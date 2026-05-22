@@ -1,117 +1,218 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import Layout from '../../components/shared/Layout';
 
 const styles = `
+  .verify-page {
+    min-height: calc(100vh - 80px);
+    background: var(--dark);
+    padding: 2rem;
+  }
+
   .verify-container {
-    padding: 6rem 2rem;
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
   }
 
+  /* Header */
   .verify-header {
-    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
-  .back-link {
-    display: inline-flex;
+  .verify-header-left {
+    display: flex;
     align-items: center;
-    gap: 0.5rem;
-    color: var(--gray-400, #9CA3AF);
+    gap: 1.5rem;
+  }
+
+  .back-button {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--dark-surface);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
-    margin-bottom: 2rem;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    color: var(--gray-400);
   }
 
-  .back-link:hover {
-    color: var(--ted-red, #EB0028);
+  .back-button:hover {
+    border-color: var(--ted-red);
+    color: var(--ted-red);
+    transform: translateX(-4px);
   }
 
-  .verify-header h1 {
-    color: var(--white, #ffffff);
+  .back-button svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  .verify-title h1 {
+    color: var(--white);
     font-size: 2rem;
-    margin: 0 0 1rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.02em;
   }
 
-  .verify-header p {
-    color: var(--gray-400, #9CA3AF);
+  .verify-title p {
+    color: var(--gray-400);
+    font-size: 1rem;
     margin: 0;
   }
 
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--dark-surface);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50px;
+  }
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--ted-red), #C41E3A);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 0.875rem;
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .user-name {
+    color: var(--white);
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .user-role {
+    color: var(--gray-400);
+    font-size: 0.75rem;
+    margin: 0;
+  }
+
+  /* Verify Card */
   .verify-card {
-    background: var(--dark-surface, #1a1a1a);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: var(--radius-xl, 16px);
-    padding: 2rem;
+    background: var(--dark-surface);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 2.5rem;
     margin-bottom: 2rem;
   }
 
   .verify-card h2 {
-    color: var(--white, #ffffff);
+    color: var(--white);
     font-size: 1.5rem;
+    font-weight: 700;
     margin: 0 0 1.5rem;
   }
 
   .verify-form {
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   .verify-form input {
     flex: 1;
-    padding: 0.875rem 1rem;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-md, 8px);
-    color: var(--white, #ffffff);
+    padding: 1rem 1.5rem;
+    background: var(--dark);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50px;
+    color: var(--white);
     font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .verify-form input::placeholder {
+    color: var(--gray-500);
   }
 
   .verify-form input:focus {
     outline: none;
-    border-color: var(--ted-red, #EB0028);
+    border-color: var(--ted-red);
+    box-shadow: 0 0 0 4px rgba(235, 0, 40, 0.1);
   }
 
-  .btn-primary {
-    padding: 0.875rem 2rem;
-    background: var(--ted-red, #EB0028);
+  .btn-verify {
+    padding: 1rem 2.5rem;
+    background: var(--ted-red);
     color: white;
     border: none;
-    border-radius: var(--radius-md, 8px);
+    border-radius: 50px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
-  .btn-primary:hover {
+  .btn-verify svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  .btn-verify:hover {
     background: #C41E3A;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(235, 0, 40, 0.3);
   }
 
+  /* Result Cards */
   .result-card {
-    background: var(--dark-surface, #1a1a1a);
-    border-radius: var(--radius-xl, 16px);
-    padding: 2rem;
-    animation: slideIn 0.3s ease;
+    background: var(--dark-surface);
+    border-radius: 24px;
+    padding: 2.5rem;
+    animation: slideIn 0.4s ease;
   }
 
   .result-card.success {
-    border: 2px solid rgba(34, 197, 94, 0.3);
+    border: 3px solid rgba(34, 197, 94, 0.4);
+    box-shadow: 0 0 40px rgba(34, 197, 94, 0.15);
   }
 
   .result-card.error {
-    border: 2px solid rgba(239, 68, 68, 0.3);
+    border: 3px solid rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.15);
   }
 
   .result-card.already-used {
-    border: 2px solid rgba(59, 130, 246, 0.3);
+    border: 3px solid rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
   }
 
   @keyframes slideIn {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
@@ -122,100 +223,233 @@ const styles = `
   .result-header {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
   }
 
-  .result-icon {
-    font-size: 2.5rem;
+  .result-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    flex-shrink: 0;
   }
 
-  .result-title {
-    color: var(--white, #ffffff);
-    font-size: 1.5rem;
+  .result-card.success .result-icon-wrapper {
+    background: rgba(34, 197, 94, 0.15);
+  }
+
+  .result-card.error .result-icon-wrapper {
+    background: rgba(239, 68, 68, 0.15);
+  }
+
+  .result-card.already-used .result-icon-wrapper {
+    background: rgba(59, 130, 246, 0.15);
+  }
+
+  .result-info h2 {
+    color: var(--white);
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+  }
+
+  .result-info p {
+    color: var(--gray-400);
+    font-size: 1rem;
     margin: 0;
   }
 
-  .result-subtitle {
-    color: var(--gray-400, #9CA3AF);
-    margin: 0.25rem 0 0;
+  /* Ticket Details */
+  .ticket-details {
+    background: var(--dark);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
   }
 
-  .result-details {
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: var(--radius-lg, 12px);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
+  .details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
   }
 
-  .detail-row {
+  .detail-item {
     display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 0;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .detail-label {
-    color: var(--gray-400, #9CA3AF);
+    color: var(--gray-500);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
 
   .detail-value {
-    color: var(--white, #ffffff);
+    color: var(--white);
+    font-size: 1rem;
     font-weight: 600;
+    word-break: break-word;
   }
 
+  .tier-badge {
+    display: inline-block;
+    padding: 0.375rem 0.875rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .tier-badge.regular {
+    background: rgba(107, 114, 128, 0.2);
+    color: #D1D5DB;
+  }
+
+  .tier-badge.vip {
+    background: rgba(245, 158, 11, 0.2);
+    color: #FCD34D;
+  }
+
+  .tier-badge.vvip {
+    background: rgba(139, 92, 246, 0.2);
+    color: #C4B5FD;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.375rem 0.875rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .status-badge.paid {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86EFAC;
+  }
+
+  .status-badge.used {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93C5FD;
+  }
+
+  /* Action Buttons */
   .result-actions {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
   }
 
-  .btn-success {
+  .btn-action {
     flex: 1;
-    padding: 1rem 2rem;
-    background: #22C55E;
-    color: white;
-    border: none;
-    border-radius: var(--radius-lg, 12px);
+    min-width: 200px;
+    padding: 1.25rem 2rem;
+    border-radius: 50px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    text-decoration: none;
+  }
+
+  .btn-action svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  .btn-success {
+    background: #22C55E;
+    color: white;
   }
 
   .btn-success:hover {
     background: #16A34A;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
   }
 
   .btn-secondary {
-    flex: 1;
-    padding: 1rem 2rem;
     background: transparent;
-    color: var(--gray-300, #D1D5DB);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg, 12px);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    color: var(--gray-300);
+    border: 2px solid rgba(255, 255, 255, 0.12);
   }
 
   .btn-secondary:hover {
-    border-color: var(--ted-red, #EB0028);
-    color: var(--ted-red, #EB0028);
+    border-color: var(--ted-red);
+    color: var(--ted-red);
+    transform: translateY(-2px);
   }
 
   @media (max-width: 768px) {
+    .verify-page {
+      padding: 1.5rem 1rem;
+    }
+
+    .verify-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .verify-header-left {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .verify-card {
+      padding: 2rem 1.5rem;
+    }
+
     .verify-form {
       flex-direction: column;
+    }
+
+    .result-card {
+      padding: 2rem 1.5rem;
+    }
+
+    .result-header {
+      flex-direction: column;
+      align-items: flex-start;
     }
 
     .result-actions {
       flex-direction: column;
     }
+
+    .btn-action {
+      min-width: 100%;
+    }
+
+    .details-grid {
+      grid-template-columns: 1fr;
+    }
   }
 `;
 
 export default function VerifyTicket() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [reference, setReference] = useState('');
   const [result, setResult] = useState(null);
 
@@ -283,116 +517,166 @@ export default function VerifyTicket() {
     setReference('');
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/login');
+  };
+
   return (
     <Layout>
       <style>{styles}</style>
-      <div className="verify-container">
-        <Link to="/admin/tickets" className="back-link">
-          ← Back to Dashboard
-        </Link>
-
-        <div className="verify-header">
-          <h1>🔍 Verify Ticket</h1>
-          <p>Manually verify tickets by reference number</p>
-        </div>
-
-        {!result && (
-          <div className="verify-card">
-            <h2>Enter Ticket Reference</h2>
-            <form onSubmit={handleVerify} className="verify-form">
-              <input
-                type="text"
-                placeholder="e.g., TEDX1234567890"
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
-              />
-              <button type="submit" className="btn-primary">
-                Verify
-              </button>
-            </form>
-          </div>
-        )}
-
-        {result && (
-          <div className={`result-card ${result.status}`}>
-            <div className="result-header">
-              <span className="result-icon">
-                {result.status === 'success' && '✅'}
-                {result.status === 'error' && '❌'}
-                {result.status === 'already-used' && 'ℹ️'}
-              </span>
-              <div>
-                <h2 className="result-title">{result.message}</h2>
-                {result.ticket && (
-                  <p className="result-subtitle">
-                    {result.ticket.name} - {result.ticket.tier}
-                  </p>
-                )}
+      <div className="verify-page">
+        <div className="verify-container">
+          {/* Header */}
+          <div className="verify-header">
+            <div className="verify-header-left">
+              <Link to="/admin/tickets" className="back-button">
+                <svg viewBox="0 0 24 24">
+                  <line x1="19" y1="12" x2="5" y2="12" />
+                  <polyline points="12 19 5 12 12 5" />
+                </svg>
+              </Link>
+              <div className="verify-title">
+                <h1>Verify Ticket</h1>
+                <p>Manually verify tickets by reference number</p>
               </div>
             </div>
-
-            {result.ticket && (
-              <>
-                <div className="result-details">
-                  <div className="detail-row">
-                    <span className="detail-label">Reference</span>
-                    <span className="detail-value">{result.ticket.reference}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Name</span>
-                    <span className="detail-value">{result.ticket.name}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Email</span>
-                    <span className="detail-value">{result.ticket.email}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Phone</span>
-                    <span className="detail-value">{result.ticket.phone}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Tier</span>
-                    <span className="detail-value">{result.ticket.tier}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Amount</span>
-                    <span className="detail-value">₦{result.ticket.price.toLocaleString()}</span>
-                  </div>
-                  {result.usedAt && (
-                    <div className="detail-row">
-                      <span className="detail-label">Used At</span>
-                      <span className="detail-value">
-                        {new Date(result.usedAt).toLocaleString()}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="result-actions">
-                  {result.status === 'success' && !result.justMarked && (
-                    <button onClick={markAsUsed} className="btn-success">
-                      Mark as Used
-                    </button>
-                  )}
-                  <button onClick={resetVerification} className="btn-secondary">
-                    Verify Another
-                  </button>
-                  <Link to="/admin/tickets" className="btn-secondary">
-                    Back to Dashboard
-                  </Link>
-                </div>
-              </>
-            )}
-
-            {result.status === 'error' && (
-              <div className="result-actions">
-                <button onClick={resetVerification} className="btn-secondary">
-                  Try Again
-                </button>
+            <div className="user-badge">
+              <div className="user-avatar">A</div>
+              <div className="user-info">
+                <p className="user-name">Admin</p>
+                <p className="user-role">Administrator</p>
               </div>
-            )}
+            </div>
           </div>
-        )}
+
+          {!result && (
+            <div className="verify-card">
+              <h2>Enter Ticket Reference</h2>
+              <form onSubmit={handleVerify} className="verify-form">
+                <input
+                  type="text"
+                  placeholder="e.g., TEDX1234567890"
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                />
+                <button type="submit" className="btn-verify">
+                  <svg viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  Verify
+                </button>
+              </form>
+            </div>
+          )}
+
+          {result && (
+            <div className={`result-card ${result.status}`}>
+              <div className="result-header">
+                <div className="result-icon-wrapper">
+                  {result.status === 'success' && '✅'}
+                  {result.status === 'error' && '❌'}
+                  {result.status === 'already-used' && 'ℹ️'}
+                </div>
+                <div className="result-info">
+                  <h2>{result.message}</h2>
+                  {result.ticket && (
+                    <p>
+                      {result.ticket.name} - {result.ticket.tier}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {result.ticket && (
+                <>
+                  <div className="ticket-details">
+                    <div className="details-grid">
+                      <div className="detail-item">
+                        <span className="detail-label">Reference</span>
+                        <span className="detail-value">{result.ticket.reference}</span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Name</span>
+                        <span className="detail-value">{result.ticket.name}</span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Email</span>
+                        <span className="detail-value">{result.ticket.email}</span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Phone</span>
+                        <span className="detail-value">{result.ticket.phone}</span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Tier</span>
+                        <span className={`tier-badge ${result.ticket.tier.toLowerCase()}`}>
+                          {result.ticket.tier}
+                        </span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Amount</span>
+                        <span className="detail-value">₦{result.ticket.price.toLocaleString()}</span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Status</span>
+                        <span className={`status-badge ${result.ticket.status || 'paid'}`}>
+                          {result.ticket.status || 'paid'}
+                        </span>
+                      </div>
+                      {result.usedAt && (
+                        <div className="detail-item">
+                          <span className="detail-label">Used At</span>
+                          <span className="detail-value">
+                            {new Date(result.usedAt).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="result-actions">
+                    {result.status === 'success' && !result.justMarked && (
+                      <button onClick={markAsUsed} className="btn-action btn-success">
+                        <svg viewBox="0 0 24 24">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Mark as Used
+                      </button>
+                    )}
+                    <button onClick={resetVerification} className="btn-action btn-secondary">
+                      <svg viewBox="0 0 24 24">
+                        <polyline points="23 4 23 10 17 10" />
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                      </svg>
+                      Verify Another
+                    </button>
+                    <Link to="/admin/tickets" className="btn-action btn-secondary">
+                      <svg viewBox="0 0 24 24">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                      </svg>
+                      Back to Dashboard
+                    </Link>
+                  </div>
+                </>
+              )}
+
+              {result.status === 'error' && (
+                <div className="result-actions">
+                  <button onClick={resetVerification} className="btn-action btn-secondary">
+                    <svg viewBox="0 0 24 24">
+                      <polyline points="23 4 23 10 17 10" />
+                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                    </svg>
+                    Try Again
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </Layout>
   );

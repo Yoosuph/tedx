@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import { AuthProvider, ProtectedRoute } from './context/AuthContext'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import SpeakersPage from './pages/SpeakersPage'
@@ -11,6 +12,9 @@ import TicketsPage from './pages/tickets/TicketsPage'
 import TicketDisplayPage from './pages/tickets/TicketDisplayPage'
 import RecoverTicketPage from './pages/tickets/RecoverTicketPage'
 import VerifyPaymentPage from './pages/tickets/VerifyPaymentPage'
+
+// Admin Pages
+import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/tickets/AdminDashboard'
 import TicketScanner from './pages/tickets/TicketScanner'
 import VerifyTicket from './pages/tickets/VerifyTicket'
@@ -27,61 +31,82 @@ import './App.css'
 
 function App() {
   return (
-    <Routes>
-      {/* Public Pages */}
-      <Route path="/" element={<HomePage />} />
-      <Route path="/about" element={<AboutPage />} />
-      <Route path="/speakers" element={<SpeakersPage />} />
-      <Route path="/schedule" element={<SchedulePage />} />
-      <Route path="/gallery" element={<GalleryPage />} />
-      <Route path="/sponsors" element={<SponsorsPage />} />
+    <AuthProvider>
+      <Routes>
+        {/* Public Pages */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/speakers" element={<SpeakersPage />} />
+        <Route path="/schedule" element={<SchedulePage />} />
+        <Route path="/gallery" element={<GalleryPage />} />
+        <Route path="/sponsors" element={<SponsorsPage />} />
 
-      {/* Ticket System - Public */}
-      <Route path="/tickets" element={<TicketsPage />} />
-      <Route path="/tickets/recover" element={<RecoverTicketPage />} />
-      <Route path="/tickets/verify" element={<VerifyPaymentPage />} />
-      <Route path="/ticket/:reference" element={<TicketDisplayPage />} />
+        {/* Ticket System - Public */}
+        <Route path="/tickets" element={<TicketsPage />} />
+        <Route path="/tickets/recover" element={<RecoverTicketPage />} />
+        <Route path="/tickets/verify" element={<VerifyPaymentPage />} />
+        <Route path="/ticket/:reference" element={<TicketDisplayPage />} />
 
-      {/* Ticket System - Admin */}
-      <Route path="/admin/tickets" element={<AdminDashboard />} />
-      <Route path="/admin/tickets/scanner" element={<TicketScanner />} />
-      <Route path="/admin/tickets/verify" element={<VerifyTicket />} />
-      <Route path="/admin/tickets/:reference" element={<TicketDetail />} />
+        {/* Admin Authentication */}
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-      {/* Legacy Attendee Pages */}
-      <Route path="/checkin" element={<CheckInPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/event-info" element={<EventInfoPage />} />
-      <Route path="/order-of-activities" element={<OrderOfActivitiesPage />} />
-      <Route path="/scan" element={<ScanPage />} />
+        {/* Ticket System - Admin (Protected) */}
+        <Route path="/admin/tickets" element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/tickets/scanner" element={
+          <ProtectedRoute>
+            <TicketScanner />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/tickets/verify" element={
+          <ProtectedRoute>
+            <VerifyTicket />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/tickets/:reference" element={
+          <ProtectedRoute>
+            <TicketDetail />
+          </ProtectedRoute>
+        } />
 
-      {/* 404 */}
-      <Route path="*" element={
-        <div style={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--dark)',
-          color: 'var(--white)',
-          fontFamily: 'var(--font-sans)',
-          textAlign: 'center',
-          padding: '2rem',
-        }}>
-          <h1 style={{ fontSize: '6rem', fontWeight: 800, color: 'var(--ted-red)', marginBottom: '1rem' }}>404</h1>
-          <p style={{ fontSize: '1.5rem', marginBottom: '2rem', color: 'var(--gray-400)' }}>Page not found</p>
-          <a href="/" style={{
-            padding: '1rem 2rem',
-            background: 'var(--ted-red)',
+        {/* Legacy Attendee Pages */}
+        <Route path="/checkin" element={<CheckInPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/event-info" element={<EventInfoPage />} />
+        <Route path="/order-of-activities" element={<OrderOfActivitiesPage />} />
+        <Route path="/scan" element={<ScanPage />} />
+
+        {/* 404 */}
+        <Route path="*" element={
+          <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--dark)',
             color: 'var(--white)',
-            borderRadius: 'var(--radius-full)',
-            textDecoration: 'none',
-            fontWeight: 600,
-          }}>Go Home</a>
-        </div>
-      } />
-    </Routes>
+            fontFamily: 'var(--font-sans)',
+            textAlign: 'center',
+            padding: '2rem',
+          }}>
+            <h1 style={{ fontSize: '6rem', fontWeight: 800, color: 'var(--ted-red)', marginBottom: '1rem' }}>404</h1>
+            <p style={{ fontSize: '1.5rem', marginBottom: '2rem', color: 'var(--gray-400)' }}>Page not found</p>
+            <a href="/" style={{
+              padding: '1rem 2rem',
+              background: 'var(--ted-red)',
+              color: 'var(--white)',
+              borderRadius: 'var(--radius-full)',
+              textDecoration: 'none',
+              fontWeight: 600,
+            }}>Go Home</a>
+          </div>
+        } />
+      </Routes>
+    </AuthProvider>
   )
 }
 
