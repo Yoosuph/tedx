@@ -1,0 +1,254 @@
+/* ============================================
+   TEDxDutse — App Layout & Utilities
+   ============================================ */
+
+/* ─── Scroll Progress Bar ─── */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ted-red), var(--ted-red-light));
+  z-index: 9999;
+  transition: width 100ms linear;
+}
+
+/* ─── Section Base ─── */
+.section {
+  padding: var(--space-24) 0;
+  position: relative;
+}
+
+.section--dark {
+  background: var(--dark);
+  color: var(--white);
+}
+
+.section--dark h2,
+.section--dark h3 {
+  color: var(--white);
+}
+
+.section--dark p {
+  color: var(--gray-400);
+}
+
+.section--gray {
+  background: var(--gray-50);
+}
+
+/* ─── Section Header ─── */
+.section-header {
+  text-align: center;
+  margin-bottom: var(--space-16);
+}
+
+.section-header h2 {
+  display: inline-block;
+  position: relative;
+  margin-bottom: var(--space-6);
+}
+
+.section-header h2::after {
+  content: '';
+  position: absolute;
+  bottom: calc(-1 * var(--space-3));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: var(--ted-red);
+  border-radius: var(--radius-full);
+}
+
+.section--dark .section-header h2::after {
+  background: var(--gold);
+}
+
+.section-header p {
+  max-width: 640px;
+  margin: 0 auto;
+  font-size: var(--text-lg);
+}
+
+/* ─── Container ─── */
+.container {
+  width: 100%;
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+}
+
+.container--sm {
+  max-width: var(--container-sm);
+}
+
+.container--md {
+  max-width: var(--container-md);
+}
+
+.container--lg {
+  max-width: var(--container-lg);
+}
+
+.container--2xl {
+  max-width: var(--container-2xl);
+}
+
+/* ─── Animation Triggers ─── */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.animate-on-scroll.from-left {
+  transform: translateX(-30px);
+}
+
+.animate-on-scroll.from-right {
+  transform: translateX(30px);
+}
+
+.animate-on-scroll.from-left.visible,
+.animate-on-scroll.from-right.visible {
+  transform: translateX(0);
+}
+
+/* ─── Floating Animation ─── */
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.float--slow {
+  animation: float 6s ease-in-out infinite;
+}
+
+.float--fast {
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ─── CTA Buttons ─── */
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: var(--text-base);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border: none;
+}
+
+.cta-btn--primary {
+  background: linear-gradient(135deg, var(--ted-red), var(--ted-red-light));
+  color: var(--white);
+  box-shadow: var(--shadow-red);
+}
+
+.cta-btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-red-lg);
+}
+
+.cta-btn--primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.cta-btn--primary:hover::before {
+  left: 100%;
+}
+
+.cta-btn--secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--white);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.cta-btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  border-color: var(--white);
+}
+
+.cta-btn--outline {
+  background: transparent;
+  color: var(--ted-red);
+  border: 2px solid var(--ted-red);
+}
+
+.cta-btn--outline:hover {
+  background: var(--ted-red);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
+.cta-btn--ghost {
+  background: transparent;
+  color: var(--gray-700);
+}
+
+.cta-btn--ghost:hover {
+  color: var(--ted-red);
+  background: var(--gray-100);
+}
+
+.cta-btn--lg {
+  padding: var(--space-5) var(--space-10);
+  font-size: var(--text-lg);
+}
+
+.cta-btn--sm {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .section {
+    padding: var(--space-16) 0;
+  }
+
+  .section-header {
+    margin-bottom: var(--space-12);
+  }
+
+  .container {
+    padding: 0 var(--space-4);
+  }
+
+  .cta-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: var(--space-12) 0;
+  }
+}

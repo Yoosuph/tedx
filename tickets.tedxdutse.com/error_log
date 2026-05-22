@@ -1,0 +1,34 @@
+[02-Sep-2025 01:12:02 UTC] PHP Warning:  Undefined variable $ticket in /home/prjjbasm/tickets.tedxdutse.com/ticket.php on line 50
+[02-Sep-2025 01:12:02 UTC] PHP Warning:  Trying to access array offset on value of type null in /home/prjjbasm/tickets.tedxdutse.com/ticket.php on line 50
+[02-Sep-2025 01:12:02 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/prjjbasm/tickets.tedxdutse.com/ticket.php on line 91
+[02-Sep-2025 01:17:06 UTC] PHP Warning:  Undefined variable $ticket in /home/prjjbasm/tickets.tedxdutse.com/ticket.php on line 50
+[02-Sep-2025 01:17:06 UTC] PHP Warning:  Trying to access array offset on value of type null in /home/prjjbasm/tickets.tedxdutse.com/ticket.php on line 50
+[02-Sep-2025 01:17:06 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/prjjbasm/tickets.tedxdutse.com/ticket.php on line 91
+[02-Sep-2025 04:57:13 UTC] PHP Warning:  Undefined array key "name" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 31
+[02-Sep-2025 04:57:13 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 31
+[02-Sep-2025 04:57:13 UTC] PHP Warning:  Undefined array key "email" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 32
+[02-Sep-2025 04:57:13 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 32
+[02-Sep-2025 04:57:13 UTC] PHP Warning:  Undefined array key "phone" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 33
+[02-Sep-2025 04:57:13 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 33
+[02-Sep-2025 04:57:13 UTC] PHP Warning:  Undefined array key "ticket_type" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 34
+[02-Sep-2025 11:02:48 UTC] PHP Warning:  Undefined array key "name" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 31
+[02-Sep-2025 11:02:48 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 31
+[02-Sep-2025 11:02:48 UTC] PHP Warning:  Undefined array key "email" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 32
+[02-Sep-2025 11:02:48 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 32
+[02-Sep-2025 11:02:48 UTC] PHP Warning:  Undefined array key "phone" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 33
+[02-Sep-2025 11:02:48 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 33
+[02-Sep-2025 11:02:48 UTC] PHP Warning:  Undefined array key "ticket_type" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 34
+[02-Sep-2025 15:46:57 UTC] PHP Warning:  Undefined array key "name" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 31
+[02-Sep-2025 15:46:57 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 31
+[02-Sep-2025 15:46:57 UTC] PHP Warning:  Undefined array key "email" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 32
+[02-Sep-2025 15:46:57 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 32
+[02-Sep-2025 15:46:57 UTC] PHP Warning:  Undefined array key "phone" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 33
+[02-Sep-2025 15:46:57 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 33
+[02-Sep-2025 15:46:57 UTC] PHP Warning:  Undefined array key "ticket_type" in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 34
+[03-Sep-2025 21:04:40 UTC] PHP Parse error:  Unclosed '{' on line 31 in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 611
+[03-Sep-2025 21:04:48 UTC] PHP Parse error:  Unclosed '{' on line 31 in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 611
+[03-Sep-2025 21:04:51 UTC] PHP Parse error:  Unclosed '{' on line 31 in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 611
+[03-Sep-2025 21:05:31 UTC] PHP Parse error:  Unclosed '{' on line 31 in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 611
+[03-Sep-2025 21:07:27 UTC] PHP Parse error:  Unclosed '{' on line 31 in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 611
+[03-Sep-2025 21:10:07 UTC] PHP Parse error:  Unclosed '{' on line 31 in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 611
+[03-Sep-2025 21:11:24 UTC] PHP Parse error:  Unclosed '{' on line 34 in /home/prjjbasm/tickets.tedxdutse.com/index.php on line 614
