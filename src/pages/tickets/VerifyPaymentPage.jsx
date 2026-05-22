@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { siteConfig } from '../../data/siteData';
 import Layout from '../../components/shared/Layout';
 
@@ -507,16 +508,25 @@ export default function VerifyPaymentPage() {
     try {
       const canvas = await html2canvas(card, {
         scale: 3,
-        backgroundColor: null,
+        backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
         borderRadius: 20,
       });
 
-      const link = document.createElement('a');
-      link.download = `TEDx-${ticketData.reference}-ticket.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      
+      // Create PDF with landscape orientation
+      const pdf = new jsPDF({
+        orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [imgWidth, imgHeight]
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save(`TEDx-${ticketData.reference}-ticket.pdf`);
     } catch (err) {
       console.error('Failed to capture ticket:', err);
     }
@@ -630,7 +640,7 @@ export default function VerifyPaymentPage() {
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            Download Ticket
+            Download PDF
           </button>
           <button onClick={handleDownloadQR} className="btn-action btn-ghost">
             <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, stroke: 'currentColor', strokeWidth: 2, fill: 'none' }}>
