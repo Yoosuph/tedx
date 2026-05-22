@@ -107,6 +107,7 @@ export default function AdminLayout({ children }) {
           padding: 2rem;
           overflow-y: auto;
           max-width: 1400px;
+          margin: 0 auto;
         }
 
         /* Mobile: hamburger-style sidebar */
