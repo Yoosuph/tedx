@@ -52,7 +52,7 @@ const pageStyles = `
 
   .schedule-page-info {
     padding: 4rem 1.5rem;
-    background: var(--gray-50, #F9FAFB);
+    background: var(--dark-surface, #1a1a1a);
   }
 
   .schedule-page-info-inner {
@@ -64,7 +64,7 @@ const pageStyles = `
     text-align: center;
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--dark, #111111);
+    color: var(--white, #ffffff);
     margin: 0 0 2.5rem;
   }
 
@@ -75,24 +75,24 @@ const pageStyles = `
   }
 
   .info-card {
-    background: var(--white, #ffffff);
+    background: rgba(255, 255, 255, 0.04);
     border-radius: 12px;
     padding: 2rem 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   }
 
   .info-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12);
+    border-color: rgba(235, 0, 40, 0.3);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
   }
 
   .info-card-icon {
     width: 48px;
     height: 48px;
     border-radius: 12px;
-    background: rgba(235, 0, 40, 0.08);
+    background: rgba(235, 0, 40, 0.12);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -108,13 +108,13 @@ const pageStyles = `
   .info-card h3 {
     font-size: 1.1rem;
     font-weight: 700;
-    color: var(--dark, #111111);
+    color: var(--white, #ffffff);
     margin: 0 0 0.75rem;
   }
 
   .info-card p {
     font-size: 0.95rem;
-    color: #6B7280;
+    color: var(--gray-400, #9CA3AF);
     margin: 0;
     line-height: 1.6;
   }

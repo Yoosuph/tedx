@@ -158,16 +158,17 @@ export default function ScheduleSection() {
         }
 
         .schedule-item-card {
-          background: var(--gray-100, #F3F4F6);
+          background: var(--dark-surface, #1a1a1a);
           border-radius: var(--radius-lg, 12px);
           padding: 1.25rem 1.5rem;
-          box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1));
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
         .schedule-item-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px -5px rgba(0,0,0,0.15);
+          border-color: rgba(235, 0, 40, 0.3);
+          box-shadow: 0 8px 25px -5px rgba(0,0,0,0.4);
         }
 
         .schedule-item-header {
@@ -209,7 +210,7 @@ export default function ScheduleSection() {
         .schedule-item-title {
           font-size: 1.05rem;
           font-weight: 700;
-          color: var(--dark, #111111);
+          color: var(--white, #ffffff);
           margin: 0;
           flex: 1;
           min-width: 0;
@@ -217,7 +218,7 @@ export default function ScheduleSection() {
 
         .schedule-item-description {
           font-size: 0.875rem;
-          color: var(--gray-600, #9CA3AF);
+          color: var(--gray-400, #9CA3AF);
           margin: 0.25rem 0 0 0;
           padding-left: calc(32px + 0.75rem);
           line-height: 1.5;
