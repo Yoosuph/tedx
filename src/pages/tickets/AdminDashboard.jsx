@@ -118,19 +118,25 @@ const styles = `
   /* Stats Grid */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
   }
 
   .stat-card {
+    grid-column: span 2;
     background: var(--dark-surface);
     border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    padding: 2rem;
+    border-radius: 16px;
+    padding: 1.25rem;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+  }
+
+  .stat-card:nth-child(4),
+  .stat-card:nth-child(5) {
+    grid-column: span 3;
   }
 
   .stat-card::before {
@@ -156,14 +162,14 @@ const styles = `
   }
 
   .stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.25rem;
-    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
   }
 
   .stat-icon.total { background: rgba(235, 0, 40, 0.15); }
@@ -174,16 +180,16 @@ const styles = `
 
   .stat-label {
     color: var(--gray-400);
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    margin: 0 0 0.5rem;
+    margin: 0 0 0.375rem;
   }
 
   .stat-value {
     color: var(--white);
-    font-size: 2.5rem;
+    font-size: 1.875rem;
     font-weight: 800;
     margin: 0 0 0.25rem;
     letter-spacing: -0.02em;
@@ -195,31 +201,31 @@ const styles = `
 
   .stat-subtext {
     color: var(--gray-500);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     margin: 0;
   }
 
   /* Action Buttons */
   .admin-actions {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2.5rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
   }
 
   .btn-action {
-    padding: 1.5rem 2rem;
+    padding: 1rem 1.25rem;
     background: var(--dark-surface);
     color: var(--white);
     border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    font-size: 1rem;
+    border-radius: 16px;
+    font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
     transition: all 0.3s ease;
   }
 
@@ -239,14 +245,14 @@ const styles = `
   }
 
   .btn-action-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
     background: rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     flex-shrink: 0;
   }
 
@@ -450,11 +456,68 @@ const styles = `
     }
 
     .stats-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.5rem;
+    }
+
+    .stat-card {
+      grid-column: span 2;
+      padding: 0.875rem;
+      border-radius: 12px;
+    }
+
+    .stat-card:nth-child(4),
+    .stat-card:nth-child(5) {
+      grid-column: span 3;
+    }
+
+    .stat-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      margin-bottom: 0.625rem;
+      font-size: 1rem;
+    }
+
+    .stat-label {
+      font-size: 0.625rem;
+      margin: 0 0 0.25rem;
+    }
+
+    .stat-value {
+      font-size: 1.375rem;
+      margin: 0 0 0.125rem;
+    }
+
+    .stat-subtext {
+      font-size: 0.6875rem;
     }
 
     .admin-actions {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+
+    .btn-action {
+      padding: 0.75rem 0.875rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      gap: 0.5rem;
+    }
+
+    .btn-action-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .btn-action-title {
+      font-size: 0.75rem;
+    }
+
+    .btn-action-desc {
+      display: none;
     }
 
     .tickets-header {

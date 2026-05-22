@@ -386,15 +386,17 @@ const styles = `
   /* ─── Responsive ─── */
   @media (max-width: 640px) {
     .ticket-card {
-      flex-direction: column;
-      max-width: 400px;
+      flex-direction: row;
+      padding: 1rem;
+      gap: 1rem;
     }
 
     .ticket-qr-panel {
       min-width: auto;
-      padding: 1.5rem;
-      flex-direction: row;
-      gap: 1.25rem;
+      width: 120px;
+      padding: 1rem;
+      flex-direction: column;
+      gap: 0.75rem;
     }
 
     .ticket-qr-panel::after,
@@ -403,19 +405,28 @@ const styles = `
     }
 
     .qr-wrap img {
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
     }
 
     .qr-badge {
       margin-bottom: 0;
+      font-size: 0.625rem;
+      padding: 0.25rem 0.625rem;
+    }
+
+    .qr-ref {
+      font-size: 0.625rem;
+    }
+
+    .qr-scan-text {
+      font-size: 0.625rem;
     }
 
     .ticket-divider {
-      width: 100%;
-      height: 1px;
+      width: 1px;
       background: repeating-linear-gradient(
-        to right,
+        to bottom,
         var(--gray-200) 0,
         var(--gray-200) 6px,
         transparent 6px,
@@ -424,21 +435,58 @@ const styles = `
     }
 
     .ticket-details-panel {
-      padding: 1.5rem;
+      padding: 0.5rem 0;
+      flex: 1;
     }
 
     .ticket-event-header {
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.5rem;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
+
+    .ticket-event-name {
+      font-size: 0.875rem;
+    }
+
+    .ticket-event-theme {
+      font-size: 0.75rem;
     }
 
     .ticket-tier-badge {
       margin-left: 0;
       align-self: flex-start;
+      font-size: 0.625rem;
+      padding: 0.25rem 0.5rem;
     }
 
     .ticket-info-grid {
-      gap: 0.625rem 1.5rem;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+
+    .info-label {
+      font-size: 0.625rem;
+    }
+
+    .info-value {
+      font-size: 0.75rem;
+    }
+
+    .info-value.price {
+      font-size: 0.875rem;
+    }
+
+    .ticket-actions {
+      margin-top: 1.5rem;
+      gap: 0.5rem;
+    }
+
+    .btn-action {
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8rem;
     }
   }
 `;
