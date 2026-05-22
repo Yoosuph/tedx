@@ -1,0 +1,371 @@
+import { useState, useEffect, useCallback } from 'react';
+import { galleryImages } from '../../data/siteData';
+import Section from '../shared/Section';
+import AnimatedCard from '../shared/AnimatedCard';
+
+export default function GallerySection() {
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+  const isOpen = lightboxIndex !== null;
+
+  const openLightbox = (index) => setLightboxIndex(index);
+  const closeLightbox = () => setLightboxIndex(null);
+
+  const goNext = useCallback(() => {
+    if (isOpen) {
+      setLightboxIndex((prev) => (prev + 1) % galleryImages.length);
+    }
+  }, [isOpen]);
+
+  const goPrev = useCallback(() => {
+    if (isOpen) {
+      setLightboxIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') goNext();
+      if (e.key === 'ArrowLeft') goPrev();
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, goNext, goPrev]);
+
+  return (
+    <>
+      <style>{`
+        .gallery-masonry {
+          columns: 2;
+          column-gap: 1rem;
+          margin-top: 2.5rem;
+        }
+
+        @media (min-width: 768px) {
+          .gallery-masonry {
+            columns: 3;
+            column-gap: 1.25rem;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .gallery-masonry {
+            columns: 4;
+            column-gap: 1.5rem;
+          }
+        }
+
+        .gallery-item {
+          break-inside: avoid;
+          margin-bottom: 1rem;
+          position: relative;
+          border-radius: var(--radius-lg, 12px);
+          overflow: hidden;
+          cursor: pointer;
+          box-shadow: var(--shadow-lg, 0 4px 20px rgba(0,0,0,0.15));
+          transition: transform var(--transition-base, 0.3s ease), box-shadow var(--transition-base, 0.3s ease);
+        }
+
+        @media (min-width: 768px) {
+          .gallery-item {
+            margin-bottom: 1.25rem;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .gallery-item {
+            margin-bottom: 1.5rem;
+          }
+        }
+
+        .gallery-item:hover {
+          transform: scale(1.03);
+          box-shadow: var(--shadow-xl, 0 12px 40px rgba(0,0,0,0.3));
+        }
+
+        .gallery-item__img {
+          width: 100%;
+          display: block;
+          aspect-ratio: auto;
+          object-fit: cover;
+          transition: transform var(--transition-base, 0.3s ease);
+        }
+
+        .gallery-item--portrait .gallery-item__img {
+          aspect-ratio: 3 / 4;
+        }
+
+        .gallery-item--landscape .gallery-item__img {
+          aspect-ratio: 4 / 3;
+        }
+
+        .gallery-item:hover .gallery-item__img {
+          transform: scale(1.08);
+        }
+
+        .gallery-item__overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.45);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity var(--transition-base, 0.3s ease);
+        }
+
+        .gallery-item:hover .gallery-item__overlay {
+          opacity: 1;
+        }
+
+        .gallery-item__zoom-icon {
+          width: 40px;
+          height: 40px;
+          color: var(--white, #fff);
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+          transform: scale(0.8);
+          transition: transform var(--transition-base, 0.3s ease);
+        }
+
+        .gallery-item:hover .gallery-item__zoom-icon {
+          transform: scale(1);
+        }
+
+        /* Lightbox */
+        .gallery-lightbox {
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          background: rgba(0, 0, 0, 0.9);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: galleryFadeIn 0.25s ease;
+        }
+
+        @keyframes galleryFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .gallery-lightbox__img {
+          max-width: 90vw;
+          max-height: 85vh;
+          object-fit: contain;
+          border-radius: var(--radius-lg, 12px);
+          box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+          animation: galleryImgIn 0.3s ease;
+        }
+
+        @keyframes galleryImgIn {
+          from { opacity: 0; transform: scale(0.92); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        .gallery-lightbox__close {
+          position: absolute;
+          top: 1.25rem;
+          right: 1.5rem;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          width: 44px;
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: var(--white, #fff);
+          transition: background var(--transition-base, 0.3s ease), transform var(--transition-base, 0.3s ease);
+          z-index: 10;
+        }
+
+        .gallery-lightbox__close:hover {
+          background: var(--ted-red, #EB0028);
+          transform: rotate(90deg);
+        }
+
+        .gallery-lightbox__close svg {
+          width: 22px;
+          height: 22px;
+        }
+
+        .gallery-lightbox__nav {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: var(--white, #fff);
+          transition: background var(--transition-base, 0.3s ease), transform var(--transition-base, 0.3s ease);
+          z-index: 10;
+        }
+
+        .gallery-lightbox__nav:hover {
+          background: var(--ted-red, #EB0028);
+          transform: translateY(-50%) scale(1.1);
+        }
+
+        .gallery-lightbox__nav svg {
+          width: 24px;
+          height: 24px;
+        }
+
+        .gallery-lightbox__nav--prev {
+          left: 1rem;
+        }
+
+        .gallery-lightbox__nav--next {
+          right: 1rem;
+        }
+
+        @media (max-width: 640px) {
+          .gallery-lightbox__nav {
+            width: 38px;
+            height: 38px;
+          }
+          .gallery-lightbox__nav svg {
+            width: 18px;
+            height: 18px;
+          }
+          .gallery-lightbox__nav--prev {
+            left: 0.5rem;
+          }
+          .gallery-lightbox__nav--next {
+            right: 0.5rem;
+          }
+        }
+
+        .gallery-lightbox__counter {
+          position: absolute;
+          bottom: 1.5rem;
+          left: 50%;
+          transform: translateX(-50%);
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 0.85rem;
+          font-weight: 500;
+          letter-spacing: 0.05em;
+        }
+      `}</style>
+
+      <Section
+        id="gallery"
+        title="Event Gallery"
+        subtitle="Capturing the moments that made TEDxDutse unforgettable — the energy, the connections, and the ideas that came alive."
+        dark
+      >
+        <div className="gallery-masonry">
+          {galleryImages.map((image, index) => (
+            <AnimatedCard key={image.id} direction="up" delay={index * 80}>
+              <div
+                className={`gallery-item gallery-item--${image.orientation}`}
+                onClick={() => openLightbox(index)}
+                role="button"
+                tabIndex={0}
+                aria-label={`View ${image.alt}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openLightbox(index);
+                  }
+                }}
+              >
+                <img
+                  className="gallery-item__img"
+                  src={image.src}
+                  alt={image.alt}
+                  loading="lazy"
+                />
+                <div className="gallery-item__overlay">
+                  <svg
+                    className="gallery-item__zoom-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    <line x1="11" y1="8" x2="11" y2="14" />
+                    <line x1="8" y1="11" x2="14" y2="11" />
+                  </svg>
+                </div>
+              </div>
+            </AnimatedCard>
+          ))}
+        </div>
+      </Section>
+
+      {isOpen && (
+        <div
+          className="gallery-lightbox"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeLightbox();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image lightbox"
+        >
+          <button
+            className="gallery-lightbox__close"
+            onClick={closeLightbox}
+            aria-label="Close lightbox"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+
+          <button
+            className="gallery-lightbox__nav gallery-lightbox__nav--prev"
+            onClick={goPrev}
+            aria-label="Previous image"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+
+          <img
+            className="gallery-lightbox__img"
+            src={galleryImages[lightboxIndex].src}
+            alt={galleryImages[lightboxIndex].alt}
+            key={lightboxIndex}
+          />
+
+          <button
+            className="gallery-lightbox__nav gallery-lightbox__nav--next"
+            onClick={goNext}
+            aria-label="Next image"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+
+          <div className="gallery-lightbox__counter">
+            {lightboxIndex + 1} / {galleryImages.length}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

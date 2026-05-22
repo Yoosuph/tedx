@@ -1,11 +1,13 @@
 import Layout from '../components/shared/Layout';
-import SpeakersSection from '../components/sections/SpeakersSection';
+import GallerySection from '../components/sections/GallerySection';
+import { siteConfig } from '../data/siteData';
+import { Link } from 'react-router-dom';
 
-export default function SpeakersPage() {
+export default function GalleryPage() {
   return (
     <Layout>
       <style>{`
-        .speakers-hero {
+        .gallery-hero {
           background: var(--dark, #0a0a0a);
           padding: 5rem 1.5rem 4rem;
           text-align: center;
@@ -13,7 +15,7 @@ export default function SpeakersPage() {
           overflow: hidden;
         }
 
-        .speakers-hero::before {
+        .gallery-hero::before {
           content: '';
           position: absolute;
           top: 0;
@@ -24,7 +26,7 @@ export default function SpeakersPage() {
           pointer-events: none;
         }
 
-        .speakers-hero__title {
+        .gallery-hero__title {
           font-size: clamp(2.25rem, 5vw, 3.5rem);
           font-weight: 800;
           color: var(--white, #fff);
@@ -33,11 +35,11 @@ export default function SpeakersPage() {
           letter-spacing: -0.02em;
         }
 
-        .speakers-hero__title span {
+        .gallery-hero__title span {
           color: var(--ted-red, #EB0028);
         }
 
-        .speakers-hero__subtitle {
+        .gallery-hero__subtitle {
           font-size: clamp(1rem, 2.5vw, 1.25rem);
           color: var(--gray-50, #ccc);
           max-width: 640px;
@@ -46,7 +48,7 @@ export default function SpeakersPage() {
           position: relative;
         }
 
-        .speakers-hero__divider {
+        .gallery-hero__divider {
           width: 60px;
           height: 3px;
           background: var(--ted-red, #EB0028);
@@ -54,13 +56,13 @@ export default function SpeakersPage() {
           border-radius: 2px;
         }
 
-        .speakers-intro {
+        .gallery-intro {
           background: var(--dark, #0a0a0a);
           padding: 2rem 1.5rem 0;
           text-align: center;
         }
 
-        .speakers-intro__text {
+        .gallery-intro__text {
           max-width: 720px;
           margin: 0 auto;
           font-size: 1.05rem;
@@ -68,27 +70,40 @@ export default function SpeakersPage() {
           line-height: 1.8;
         }
 
-        .speakers-cta {
+        .gallery-intro__credit {
+          display: inline-block;
+          margin-top: 0.75rem;
+          padding: 0.4rem 1rem;
+          background: rgba(235, 0, 40, 0.1);
+          border: 1px solid rgba(235, 0, 40, 0.2);
+          border-radius: 9999px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: var(--ted-red, #EB0028);
+          letter-spacing: 0.03em;
+        }
+
+        .gallery-cta {
           background: var(--dark, #0a0a0a);
           padding: 4rem 1.5rem 5rem;
           text-align: center;
         }
 
-        .speakers-cta__heading {
+        .gallery-cta__heading {
           font-size: 1.75rem;
           font-weight: 700;
           color: var(--white, #fff);
           margin: 0 0 0.75rem;
         }
 
-        .speakers-cta__text {
+        .gallery-cta__text {
           font-size: 1.05rem;
           color: var(--gray-50, #aaa);
           margin: 0 0 2rem;
           line-height: 1.6;
         }
 
-        .speakers-cta__btn {
+        .gallery-cta__btn {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
@@ -104,13 +119,13 @@ export default function SpeakersPage() {
           letter-spacing: 0.02em;
         }
 
-        .speakers-cta__btn:hover {
+        .gallery-cta__btn:hover {
           transform: translateY(-2px);
           box-shadow: 0 8px 30px rgba(235, 0, 40, 0.5);
           background: #d40024;
         }
 
-        .speakers-cta__btn svg {
+        .gallery-cta__btn svg {
           width: 18px;
           height: 18px;
           stroke: currentColor;
@@ -120,42 +135,46 @@ export default function SpeakersPage() {
       `}</style>
 
       {/* Page Hero Banner */}
-      <section className="speakers-hero">
-        <h1 className="speakers-hero__title">
-          Our <span>Speakers</span>
+      <section className="gallery-hero">
+        <h1 className="gallery-hero__title">
+          Event <span>Gallery</span>
         </h1>
-        <p className="speakers-hero__subtitle">
-          A diverse lineup of thought leaders, innovators, and changemakers — each bringing
-          unique perspectives and ideas worth spreading to the TEDxDutse stage.
+        <p className="gallery-hero__subtitle">
+          Capturing the moments that define {siteConfig.eventName} — the energy on stage,
+          the connections in the crowd, and the ideas that came alive. Every frame tells a story.
         </p>
-        <div className="speakers-hero__divider" />
+        <div className="gallery-hero__divider" />
       </section>
 
-      {/* Intro Paragraph */}
-      <div className="speakers-intro">
-        <p className="speakers-intro__text">
-          Our speakers are selected for their ability to challenge assumptions, spark curiosity,
-          and inspire action. From public health advocates to cultural storytellers, each voice
-          on our stage contributes to a broader conversation about the ideas shaping our future.
+      {/* Intro — AD Visuals Photography Credit */}
+      <div className="gallery-intro">
+        <p className="gallery-intro__text">
+          These images were captured by the <strong>AD Visuals</strong> photography team, whose
+          keen eye and creative direction brought the spirit of {siteConfig.eventName} {siteConfig.eventYear} to life.
+          From candid backstage moments to powerful on-stage deliveries, their lens preserved
+          every detail of the {siteConfig.theme} experience.
         </p>
+        <span className="gallery-intro__credit">
+          📸 Photography by AD Visuals
+        </span>
       </div>
 
-      {/* Speakers Grid (reuses existing component) */}
-      <SpeakersSection />
+      {/* Gallery Grid + Lightbox (reuses existing component) */}
+      <GallerySection />
 
       {/* CTA - Get Tickets */}
-      <section className="speakers-cta">
-        <h2 className="speakers-cta__heading">Want to hear them live?</h2>
-        <p className="speakers-cta__text">
-          Secure your seat and experience these powerful talks in person.
+      <section className="gallery-cta">
+        <h2 className="gallery-cta__heading">Want to be in the next frame?</h2>
+        <p className="gallery-cta__text">
+          Join us at {siteConfig.eventName} {siteConfig.eventYear} and become part of the story.
         </p>
-        <a href="/tickets" className="speakers-cta__btn">
+        <Link to="/tickets" className="gallery-cta__btn">
           Get Your Ticket
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <line x1="5" y1="12" x2="19" y2="12" />
             <polyline points="12 5 19 12 12 19" />
           </svg>
-        </a>
+        </Link>
       </section>
     </Layout>
   );
