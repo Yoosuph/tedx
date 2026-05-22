@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import Layout from '../components/shared/Layout';
 import AboutSection from '../components/sections/AboutSection';
-import { siteConfig } from '../data/siteData';
+import { useSiteData } from '../context/SiteDataContext';
 
 export default function AboutPage() {
+  const { siteConfig } = useSiteData();
   return (
     <Layout>
       <style>{`

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { galleryImages } from '../../data/siteData';
+import { useSiteData } from '../../context/SiteDataContext';
 import Section from '../shared/Section';
 import AnimatedCard from '../shared/AnimatedCard';
 
 export default function GallerySection() {
+  const { galleryImages } = useSiteData();
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const isOpen = lightboxIndex !== null;
 

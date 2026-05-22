@@ -1,7 +1,8 @@
-import { siteConfig } from '../../data/siteData';
+import { useSiteData } from '../../context/SiteDataContext';
 import Button from '../shared/Button';
 
 export default function HeroSection() {
+  const { siteConfig } = useSiteData();
   const handleScrollToAbout = (e) => {
     e.preventDefault();
     const aboutSection = document.getElementById('about');

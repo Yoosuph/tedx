@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Section from '../shared/Section';
 import AnimatedCard from '../shared/AnimatedCard';
-import { schedule } from '../../data/siteData';
+import { useSiteData } from '../../context/SiteDataContext';
 
 const typeConfig = {
   talk: {
@@ -72,6 +72,7 @@ const typeConfig = {
 };
 
 export default function ScheduleSection() {
+  const { schedule } = useSiteData();
   const [activeTab, setActiveTab] = useState('morning');
   const currentSession = schedule[activeTab];
 

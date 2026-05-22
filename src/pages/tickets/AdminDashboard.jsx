@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Layout from '../../components/shared/Layout';
+import { useSiteData } from '../../context/SiteDataContext';
+import AdminLayout from '../admin/AdminLayout';
 
 const styles = `
   .admin-page {
@@ -534,6 +535,7 @@ const styles = `
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { ticketTiers } = useSiteData();
   const [tickets, setTickets] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({
@@ -608,7 +610,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <Layout>
+    <AdminLayout>
       <style>{styles}</style>
       <div className="admin-page">
         <div className="admin-container">
@@ -617,23 +619,6 @@ export default function AdminDashboard() {
             <div className="admin-header-left">
               <h1>Ticket Management</h1>
               <p>Manage tickets, track sales, and handle event check-in</p>
-            </div>
-            <div className="admin-header-right">
-              <div className="user-badge">
-                <div className="user-avatar">A</div>
-                <div className="user-info">
-                  <p className="user-name">Admin</p>
-                  <p className="user-role">Administrator</p>
-                </div>
-              </div>
-              <button onClick={handleLogout} className="btn-logout">
-                <svg viewBox="0 0 24 24">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                Logout
-              </button>
             </div>
           </div>
 
@@ -655,19 +640,19 @@ export default function AdminDashboard() {
               <div className="stat-icon regular">🎟️</div>
               <p className="stat-label">Regular</p>
               <p className="stat-value">{stats.regular}</p>
-              <p className="stat-subtext">₦3,000 each</p>
+              <p className="stat-subtext">₦{(ticketTiers.find(t => t.id === 'regular')?.price || 3000).toLocaleString()} each</p>
             </div>
             <div className="stat-card">
               <div className="stat-icon vip">⭐</div>
               <p className="stat-label">VIP</p>
               <p className="stat-value">{stats.vip}</p>
-              <p className="stat-subtext">₦10,000 each</p>
+              <p className="stat-subtext">₦{(ticketTiers.find(t => t.id === 'vip')?.price || 10000).toLocaleString()} each</p>
             </div>
             <div className="stat-card">
               <div className="stat-icon vvip">👑</div>
               <p className="stat-label">VVIP</p>
               <p className="stat-value">{stats.vvip}</p>
-              <p className="stat-subtext">₦25,000 each</p>
+              <p className="stat-subtext">₦{(ticketTiers.find(t => t.id === 'vvip')?.price || 25000).toLocaleString()} each</p>
             </div>
           </div>
 
@@ -760,6 +745,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 }

@@ -1,4 +1,4 @@
-import { sponsors } from '../../data/siteData';
+import { useSiteData } from '../../context/SiteDataContext';
 import Section from '../shared/Section';
 import AnimatedCard from '../shared/AnimatedCard';
 
@@ -59,6 +59,7 @@ function SponsorCard({ sponsor, size }) {
 }
 
 export default function SponsorsSection() {
+  const { sponsors } = useSiteData();
   // Calculate global delay offset per tier for staggered animation
   let globalDelay = 0;
 

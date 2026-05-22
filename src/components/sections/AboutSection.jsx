@@ -1,4 +1,4 @@
-import { siteConfig, tedxBoilerplate } from '../../data/siteData';
+import { useSiteData } from '../../context/SiteDataContext';
 import Section from '../shared/Section';
 import AnimatedCard from '../shared/AnimatedCard';
 
@@ -53,6 +53,7 @@ const stats = [
 ];
 
 export default function AboutSection() {
+  const { siteConfig, tedxBoilerplate } = useSiteData();
   return (
     <>
       <style>{`

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Swal from 'sweetalert2';
-import { siteConfig, tedxBoilerplate } from '../../data/siteData';
+import { useSiteData } from '../../context/SiteDataContext';
 
 const quickLinks = [
   { label: 'Home', href: '#home' },
@@ -19,6 +19,7 @@ const socialIcons = [
 ];
 
 export default function Footer() {
+  const { siteConfig, tedxBoilerplate } = useSiteData();
   const [email, setEmail] = useState('');
   const currentYear = new Date().getFullYear();
 

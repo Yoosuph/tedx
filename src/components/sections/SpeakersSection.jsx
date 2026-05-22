@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { speakers } from '../../data/siteData';
+import { useSiteData } from '../../context/SiteDataContext';
 import Section from '../shared/Section';
 import AnimatedCard from '../shared/AnimatedCard';
 
@@ -458,6 +458,7 @@ function SpeakerModal({ speaker, index, onClose }) {
 }
 
 export default function SpeakersSection() {
+  const { speakers } = useSiteData();
   const [selectedSpeaker, setSelectedSpeaker] = useState(null);
 
   return (

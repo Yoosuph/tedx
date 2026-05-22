@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { siteConfig } from '../../data/siteData';
+import { useSiteData } from '../../context/SiteDataContext';
 import Layout from '../../components/shared/Layout';
 
 const styles = `
@@ -492,6 +492,7 @@ const styles = `
 `;
 
 export default function VerifyPaymentPage() {
+  const { siteConfig } = useSiteData();
   const [status, setStatus] = useState('loading');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [ticketData, setTicketData] = useState(null);

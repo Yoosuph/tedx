@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PaystackButton } from 'react-paystack';
-import { ticketTiers, siteConfig } from '../../data/siteData';
+import { useSiteData } from '../../context/SiteDataContext';
 import Layout from '../../components/shared/Layout';
 
 const styles = `
@@ -349,6 +349,7 @@ const styles = `
 `;
 
 export default function TicketsPage() {
+  const { ticketTiers, siteConfig } = useSiteData();
   const [selectedTier, setSelectedTier] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [error, setError] = useState('');

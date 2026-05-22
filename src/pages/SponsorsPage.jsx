@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import Layout from '../components/shared/Layout';
 import SponsorsSection from '../components/sections/SponsorsSection';
-import { siteConfig } from '../data/siteData';
+import { useSiteData } from '../context/SiteDataContext';
 
 export default function SponsorsPage() {
+  const { siteConfig } = useSiteData();
   return (
     <Layout>
       <style>{`

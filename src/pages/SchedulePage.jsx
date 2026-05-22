@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import Layout from '../components/shared/Layout';
 import ScheduleSection from '../components/sections/ScheduleSection';
-import { siteConfig } from '../data/siteData';
+import { useSiteData } from '../context/SiteDataContext';
 
 const pageStyles = `
   .schedule-page-hero {
@@ -181,6 +181,7 @@ const pageStyles = `
 `;
 
 export default function SchedulePage() {
+  const { siteConfig } = useSiteData();
   return (
     <Layout>
       <style>{pageStyles}</style>

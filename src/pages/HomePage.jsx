@@ -3,7 +3,7 @@ import { useScrollProgress } from '../hooks/useScrollAnimation'
 import Navbar from '../components/layout/Navbar'
 import HeroSection from '../components/sections/HeroSection'
 import Footer from '../components/layout/Footer'
-import { galleryImages } from '../data/siteData'
+import { useSiteData } from '../context/SiteDataContext'
 
 const teaserCards = [
   { icon: 'fas fa-info-circle', title: 'About', desc: 'Discover the story behind Roots and Wings', link: '/about' },
@@ -44,6 +44,7 @@ const whyAttend = [
 ]
 
 export default function HomePage() {
+  const { galleryImages } = useSiteData();
   const progress = useScrollProgress()
   const previewImages = galleryImages.slice(0, 4)
 
