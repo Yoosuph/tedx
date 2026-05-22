@@ -5,11 +5,24 @@ import SpeakersPage from './pages/SpeakersPage'
 import SchedulePage from './pages/SchedulePage'
 import GalleryPage from './pages/GalleryPage'
 import SponsorsPage from './pages/SponsorsPage'
+
+// Ticket System Pages
+import TicketsPage from './pages/tickets/TicketsPage'
+import TicketDisplayPage from './pages/tickets/TicketDisplayPage'
+import RecoverTicketPage from './pages/tickets/RecoverTicketPage'
+import VerifyPaymentPage from './pages/tickets/VerifyPaymentPage'
+import AdminDashboard from './pages/tickets/AdminDashboard'
+import TicketScanner from './pages/tickets/TicketScanner'
+import VerifyTicket from './pages/tickets/VerifyTicket'
+import TicketDetail from './pages/tickets/TicketDetail'
+
+// Legacy Attendee Pages
 import CheckInPage from './pages/CheckInPage'
 import DashboardPage from './pages/DashboardPage'
 import EventInfoPage from './pages/EventInfoPage'
 import OrderOfActivitiesPage from './pages/OrderOfActivitiesPage'
 import ScanPage from './pages/ScanPage'
+
 import './App.css'
 
 function App() {
@@ -23,7 +36,19 @@ function App() {
       <Route path="/gallery" element={<GalleryPage />} />
       <Route path="/sponsors" element={<SponsorsPage />} />
 
-      {/* Attendee Pages */}
+      {/* Ticket System - Public */}
+      <Route path="/tickets" element={<TicketsPage />} />
+      <Route path="/tickets/recover" element={<RecoverTicketPage />} />
+      <Route path="/tickets/verify" element={<VerifyPaymentPage />} />
+      <Route path="/ticket/:reference" element={<TicketDisplayPage />} />
+
+      {/* Ticket System - Admin */}
+      <Route path="/admin/tickets" element={<AdminDashboard />} />
+      <Route path="/admin/tickets/scanner" element={<TicketScanner />} />
+      <Route path="/admin/tickets/verify" element={<VerifyTicket />} />
+      <Route path="/admin/tickets/:reference" element={<TicketDetail />} />
+
+      {/* Legacy Attendee Pages */}
       <Route path="/checkin" element={<CheckInPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/event-info" element={<EventInfoPage />} />
