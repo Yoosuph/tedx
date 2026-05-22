@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import { useScrollProgress } from '../hooks/useScrollAnimation'
-import { useEffect, useState } from 'react'
 import Navbar from '../components/layout/Navbar'
 import HeroSection from '../components/sections/HeroSection'
 import Footer from '../components/layout/Footer'
@@ -43,45 +42,6 @@ const whyAttend = [
     desc: 'Receive official recognition for participating in this landmark event',
   },
 ]
-
-function CountdownTimer() {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
-
-  useEffect(() => {
-    const eventDate = new Date('2026-11-28T09:00:00').getTime()
-
-    const timer = setInterval(() => {
-      const now = new Date().getTime()
-      const distance = eventDate - now
-
-      if (distance < 0) {
-        clearInterval(timer)
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
-        return
-      }
-
-      setTimeLeft({
-        days: Math.floor(distance / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-        minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((distance % (1000 * 60)) / 1000),
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [])
-
-  return (
-    <div className="countdown-grid">
-      {Object.entries(timeLeft).map(([unit, value]) => (
-        <div key={unit} className="countdown-item">
-          <div className="countdown-number">{value.toString().padStart(2, '0')}</div>
-          <div className="countdown-label">{unit}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
 
 export default function HomePage() {
   const progress = useScrollProgress()
