@@ -314,7 +314,12 @@ export default function HeroSection() {
           muted
           loop
           playsInline
+          preload="auto"
           poster="/transparent_logo.png"
+          onEnded={(e) => {
+            e.target.currentTime = 0;
+            e.target.play();
+          }}
         >
           <source src="/tedx.mp4" type="video/mp4" />
         </video>
