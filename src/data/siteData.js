@@ -5,11 +5,11 @@
 
 export const siteConfig = {
   eventName: 'TEDxDutse',
-  eventYear: 2025,
+  eventYear: 2026,
   theme: 'Roots and Wings',
   tagline: 'Where Culture Meets Innovation',
   subtitle: 'Where Dutse\'s stories take flight',
-  date: 'Saturday, November 29, 2025',
+  date: 'Saturday, November 28, 2026',
   time: '9:00 AM – 6:00 PM',
   venue: 'Ahmadu Bello Hall, New Secretariat Complex, Dutse, Jigawa State, Nigeria',
   venueShort: 'Ahmadu Bello Hall, Dutse',
