@@ -36,6 +36,8 @@ const rows = [
   { time: '2:50 – 3:00 PM', activity: 'Closing Remark (10 mins)' },
 ]
 
+import { Link } from 'react-router-dom';
+
 export default function OrderOfActivitiesPage() {
   return (
     <div>
@@ -64,7 +66,7 @@ export default function OrderOfActivitiesPage() {
             ))}
           </tbody>
         </table>
-        <a href="/dashboard" className="back-btn">&larr; Back to Dashboard</a>
+        <Link to="/dashboard" className="back-btn">&larr; Back to Dashboard</Link>
       </div>
     </div>
   )

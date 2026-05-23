@@ -12,6 +12,8 @@ a.back-btn { display:inline-block; margin-bottom:15px; padding:10px 15px; backgr
 a.back-btn:hover { background:#c32418; }
 `
 
+import { Link } from 'react-router-dom';
+
 export default function EventInfoPage() {
   return (
     <div>
@@ -21,7 +23,7 @@ export default function EventInfoPage() {
       </div>
       <div className="container-inner">
         <p className="welcome">Hello, <strong>Attendee</strong>! Here's the event info:</p>
-        <a href="/dashboard" className="back-btn">&larr; Back to Dashboard</a>
+        <Link to="/dashboard" className="back-btn">&larr; Back to Dashboard</Link>
 
         {[
           { title: 'Event Name', content: 'TEDxDutse 2025: "Roots and Wings"' },

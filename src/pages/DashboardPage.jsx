@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 
 const dashCss = `
 body { margin:0; padding:0; font-family:Arial,sans-serif; background:#000; color:#fff; }
@@ -47,10 +47,10 @@ export default function DashboardPage() {
       <p className="welcome">Welcome, <strong>{name || 'Attendee'}</strong></p>
 
       <div className="menu-container">
-        <a href="/order-of-activities" className="menu-item">
+        <Link to="/order-of-activities" className="menu-item">
           <i className="fas fa-list-ul" />
           <div>Order of Activities</div>
-        </a>
+        </Link>
         <a href="https://kahoot.it" target="_blank" rel="noreferrer" className="menu-item">
           <i className="fas fa-gamepad" />
           <div>Join Kahoot Game</div>
@@ -59,14 +59,14 @@ export default function DashboardPage() {
           <i className="fas fa-award" />
           <div>Print Certificate</div>
         </div>
-        <a href="/event-info" className="menu-item">
+        <Link to="/event-info" className="menu-item">
           <i className="fas fa-info-circle" />
           <div>Event Information</div>
-        </a>
-        <a href="/speakers" className="menu-item">
+        </Link>
+        <Link to="/speakers" className="menu-item">
           <i className="fas fa-microphone" />
           <div>Speakers & Bio</div>
-        </a>
+        </Link>
       </div>
 
       <a href="https://chat.whatsapp.com/FSClJBjkgr6LYdDMcFx2A0" target="_blank" rel="noreferrer" className="whatsapp-float" title="Join TEDx Duste WhatsApp Community">

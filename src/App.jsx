@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Link } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute } from './context/AuthContext'
 import { SiteDataProvider } from './context/SiteDataContext'
 import HomePage from './pages/HomePage'
@@ -127,14 +127,14 @@ function App() {
             }}>
               <h1 style={{ fontSize: '6rem', fontWeight: 800, color: 'var(--ted-red)', marginBottom: '1rem' }}>404</h1>
               <p style={{ fontSize: '1.5rem', marginBottom: '2rem', color: 'var(--gray-400)' }}>Page not found</p>
-              <a href="/" style={{
+              <Link to="/" style={{
                 padding: '1rem 2rem',
                 background: 'var(--ted-red)',
                 color: 'var(--white)',
                 borderRadius: 'var(--radius-full)',
                 textDecoration: 'none',
                 fontWeight: 600,
-              }}>Go Home</a>
+              }}>Go Home</Link>
             </div>
           } />
         </Routes>
