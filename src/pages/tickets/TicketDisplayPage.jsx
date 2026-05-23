@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Layout from '../../components/shared/Layout';
+import { useSiteData } from '../../context/SiteDataContext';
 
 const styles = `
   .ticket-page {
@@ -431,6 +432,7 @@ const styles = `
 
 export default function TicketDisplayPage() {
   const { reference } = useParams();
+  const { siteConfig } = useSiteData();
   const [ticket, setTicket] = useState(null);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
 
@@ -540,7 +542,7 @@ export default function TicketDisplayPage() {
             <div className="ticket-event-header">
               <div>
                 <h3 className="ticket-event-name">{ticket.event}</h3>
-                <p className="ticket-event-theme">Roots and Wings</p>
+                <p className="ticket-event-theme">{siteConfig.theme}</p>
               </div>
               <span className={`ticket-tier-badge ${tierClass}`}>{ticket.tier}</span>
             </div>

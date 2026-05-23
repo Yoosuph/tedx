@@ -647,7 +647,7 @@ export default function VerifyPaymentPage() {
             <div className="ticket-event-header">
               <div>
                 <h3 className="ticket-event-name">{ticketData.event}</h3>
-                <p className="ticket-event-theme">Roots and Wings</p>
+                <p className="ticket-event-theme">{siteConfig.theme}</p>
               </div>
               <span className={`ticket-tier-badge ${tierClass}`}>{ticketData.tier}</span>
             </div>

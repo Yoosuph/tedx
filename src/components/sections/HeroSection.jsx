@@ -11,9 +11,18 @@ export default function HeroSection() {
     }
   };
 
-  // Extract shorter date for badge (remove "Saturday, " prefix)
-  const badgeDate = siteConfig.date.replace(/^Saturday,\s*/, '');
-  const badgeLocation = 'Dutse, Jigawa State';
+  // Extract shorter date for badge (remove day name prefix like "Saturday, " or "Thursday, ")
+  const badgeDate = siteConfig.date.replace(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s*/i, '');
+
+  // Derive location from venueShort if available, otherwise from venue
+  const badgeLocation = siteConfig.venueShort || siteConfig.venue || '';
+
+  // Parse theme for dynamic title rendering
+  // Default theme "Roots and Wings" → split into parts for styling
+  const themeParts = siteConfig.theme.split(/\s+and\s+/i);
+  const themeWord1 = themeParts[0] || '';
+  const themeWord2 = themeParts[1] || '';
+  const hasAnd = themeParts.length === 2;
 
   return (
     <>
@@ -345,11 +354,17 @@ export default function HeroSection() {
             {badgeDate} • {badgeLocation}
           </div>
 
-          {/* Title */}
+          {/* Title — dynamic from siteConfig.theme */}
           <h1 className="hero-title">
-            <span className="hero-title-roots">Roots</span>
-            <span className="hero-title-and"> and </span>
-            <span className="hero-title-wings">Wings</span>
+            {hasAnd ? (
+              <>
+                <span className="hero-title-roots">{themeWord1}</span>
+                <span className="hero-title-and"> and </span>
+                <span className="hero-title-wings">{themeWord2}</span>
+              </>
+            ) : (
+              <span className="hero-title-wings">{siteConfig.theme}</span>
+            )}
           </h1>
 
           {/* Subtitle */}

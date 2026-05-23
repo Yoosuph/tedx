@@ -13,8 +13,10 @@ a.back-btn:hover { background:#c32418; }
 `
 
 import { Link } from 'react-router-dom';
+import { useSiteData } from '../context/SiteDataContext';
 
 export default function EventInfoPage() {
+  const { siteConfig } = useSiteData();
   return (
     <div>
       <style>{css}</style>
@@ -26,11 +28,11 @@ export default function EventInfoPage() {
         <Link to="/dashboard" className="back-btn">&larr; Back to Dashboard</Link>
 
         {[
-          { title: 'Event Name', content: 'TEDxDutse 2025: "Roots and Wings"' },
-          { title: 'Date & Time', content: 'Saturday, November 29, 2025<br />9:00 AM – 6:00 PM' },
-          { title: 'Venue', content: 'Ahmadu Bello Hall, New secretariat complex, Dutse, Jigawa state! Nigeria' },
-          { title: 'Dress Code', content: 'Smart Casual' },
-          { title: 'Contact / Support', content: 'For any inquiries, contact:<br />WhatsApp: +2349033773213 <br />Email: info@tedxdutse.com' },
+          { title: 'Event Name', content: `${siteConfig.eventName} ${siteConfig.eventYear}: "${siteConfig.theme}"` },
+          { title: 'Date & Time', content: `${siteConfig.date}<br />${siteConfig.time}` },
+          { title: 'Venue', content: siteConfig.venue },
+          { title: 'Dress Code', content: siteConfig.dressCode },
+          { title: 'Contact / Support', content: `For any inquiries, contact:<br />WhatsApp: ${siteConfig.contact.phone} <br />Email: ${siteConfig.contact.email}` },
         ].map((c, i) => (
           <div key={i} className="card">
             <h3>{c.title}</h3>

@@ -5,14 +5,6 @@ import HeroSection from '../components/sections/HeroSection'
 import Footer from '../components/layout/Footer'
 import { useSiteData } from '../context/SiteDataContext'
 
-const teaserCards = [
-  { icon: 'fas fa-info-circle', title: 'About', desc: 'Discover the story behind Roots and Wings', link: '/about' },
-  { icon: 'fas fa-microphone', title: 'Speakers', desc: 'Meet our 8 inspiring speakers and performers', link: '/speakers' },
-  { icon: 'fas fa-calendar-alt', title: 'Schedule', desc: 'Full day programme from morning to evening', link: '/schedule' },
-  { icon: 'fas fa-images', title: 'Gallery', desc: 'Event photos captured by AD Visuals', link: '/gallery' },
-  { icon: 'fas fa-handshake', title: 'Partners', desc: 'The organizations making this possible', link: '/sponsors' },
-]
-
 const highlights = [
   { number: '8', label: 'Speakers', icon: 'fas fa-microphone' },
   { number: '2', label: 'Performances', icon: 'fas fa-music' },
@@ -44,9 +36,17 @@ const whyAttend = [
 ]
 
 export default function HomePage() {
-  const { galleryImages } = useSiteData();
+  const { galleryImages, siteConfig } = useSiteData();
   const progress = useScrollProgress()
   const previewImages = galleryImages.slice(0, 4)
+
+  const teaserCards = [
+    { icon: 'fas fa-info-circle', title: 'About', desc: `Discover the story behind ${siteConfig.theme}`, link: '/about' },
+    { icon: 'fas fa-microphone', title: 'Speakers', desc: `Meet our inspiring speakers and performers`, link: '/speakers' },
+    { icon: 'fas fa-calendar-alt', title: 'Schedule', desc: 'Full day programme from morning to evening', link: '/schedule' },
+    { icon: 'fas fa-images', title: 'Gallery', desc: 'Event photos captured by AD Visuals', link: '/gallery' },
+    { icon: 'fas fa-handshake', title: 'Partners', desc: 'The organizations making this possible', link: '/sponsors' },
+  ]
 
   return (
     <>
@@ -684,7 +684,7 @@ export default function HomePage() {
         <section className="discover-section">
           <div className="discover-heading">
             <h2>Discover More</h2>
-            <p>Explore everything TEDxDutse: Roots and Wings has to offer</p>
+            <p>Explore everything {siteConfig.eventName}: {siteConfig.theme} has to offer</p>
           </div>
 
           <div className="discover-grid">
