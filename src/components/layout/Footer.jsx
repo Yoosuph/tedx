@@ -382,6 +382,9 @@ export default function Footer() {
             <p className="footer-copyright">
               &copy; {currentYear} {siteConfig.eventName}. All rights reserved.
             </p>
+            <p className="footer-copyright" style={{ marginTop: '0.5rem', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)' }}>
+              Crafted and Designed by <a href="https://www.innovatech-ng.com" target="_blank" rel="noopener noreferrer" style={{ color: '#EB0028', fontWeight: 'bold', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#fff'} onMouseOut={(e) => e.target.style.color = '#EB0028'}>InnovaTech</a>
+            </p>
             <p className="footer-disclaimer">
               {tedxBoilerplate.footerDisclaimer}
             </p>

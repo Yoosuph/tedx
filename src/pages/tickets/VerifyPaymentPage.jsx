@@ -15,20 +15,20 @@ const styles = `
     align-items: center;
     justify-content: center;
     padding: 3rem 2rem;
-    background: radial-gradient(circle at 50% 50%, rgba(235, 0, 40, 0.05) 0%, var(--black) 80%);
+    background: radial-gradient(circle at 50% 50%, rgba(235, 0, 40, 0.05) 0%, #0A0A0A 80%);
   }
 
   /* Loading State */
   .verify-loading {
     text-align: center;
-    color: var(--gray-400);
+    color: #9CA3AF;
   }
 
   .loading-spinner {
     width: 48px;
     height: 48px;
-    border: 3px solid var(--gray-700);
-    border-top-color: var(--ted-red);
+    border: 3px solid #374151;
+    border-top-color: #EB0028;
     border-radius: 50%;
     margin: 0 auto 1.5rem;
     animation: spin 0.8s linear infinite;
@@ -47,7 +47,7 @@ const styles = `
   .verify-error {
     text-align: center;
     max-width: 480px;
-    background: var(--dark-surface);
+    background: #1A1A1A;
     padding: 3rem;
     border-radius: 32px;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -68,21 +68,21 @@ const styles = `
   }
 
   .verify-error h2 {
-    color: var(--white);
+    color: #FFFFFF;
     font-size: 1.5rem;
     margin: 0 0 0.75rem;
     font-weight: 800;
   }
 
   .verify-error p {
-    color: var(--gray-400);
+    color: #9CA3AF;
     margin: 0 0 2rem;
     line-height: 1.6;
   }
 
   .btn-primary {
     padding: 0.875rem 2rem;
-    background: var(--ted-red);
+    background: #EB0028;
     color: white;
     border: none;
     border-radius: 100px;
@@ -137,7 +137,7 @@ const styles = `
   }
 
   .success-header h2 {
-    color: var(--white);
+    color: #FFFFFF;
     font-size: 2.25rem;
     font-weight: 800;
     margin: 0 0 0.5rem;
@@ -145,7 +145,7 @@ const styles = `
   }
 
   .success-header p {
-    color: var(--gray-400);
+    color: #9CA3AF;
     font-size: 1rem;
     margin: 0;
   }
@@ -158,7 +158,7 @@ const styles = `
   }
 
   .ticket-card {
-    background: var(--white);
+    background: #FFFFFF;
     border-radius: 24px;
     display: flex;
     overflow: hidden;
@@ -188,8 +188,8 @@ const styles = `
   }
 
   .qr-badge {
-    background: var(--ted-red);
-    color: var(--white);
+    background: #EB0028;
+    color: #FFFFFF;
     font-size: 0.75rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -201,18 +201,19 @@ const styles = `
   }
 
   .qr-badge.vip {
-    background: linear-gradient(135deg, var(--gold) 0%, #D97706 100%);
-    color: var(--black);
+    background: linear-gradient(135deg, #FFD700 0%, #D97706 100%);
+    color: #0A0A0A;
     box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
   }
 
   .qr-badge.vvip {
     background: linear-gradient(135deg, #8B5CF6 0%, #5B21B6 100%);
+    color: #FFFFFF;
     box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
   }
 
   .qr-wrap {
-    background: var(--white);
+    background: #FFFFFF;
     padding: 0.875rem;
     border-radius: 16px;
     margin-bottom: 1.25rem;
@@ -241,9 +242,9 @@ const styles = `
   }
 
   .qr-ref {
-    color: var(--gray-300);
+    color: #D1D5DB;
     font-size: 0.75rem;
-    font-family: var(--font-mono);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
     font-weight: 600;
     letter-spacing: 0.05em;
   }
@@ -251,7 +252,7 @@ const styles = `
   .btn-copy-ref {
     background: transparent;
     border: none;
-    color: var(--gray-400);
+    color: #9CA3AF;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -261,7 +262,7 @@ const styles = `
   }
 
   .btn-copy-ref:hover {
-    color: var(--ted-red);
+    color: #EB0028;
   }
 
   .btn-copy-ref svg {
@@ -273,7 +274,7 @@ const styles = `
   }
 
   .qr-scan-text {
-    color: var(--gray-600);
+    color: #6B7280;
     font-size: 0.625rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -294,7 +295,7 @@ const styles = `
     position: absolute;
     width: 24px;
     height: 24px;
-    background: var(--black);
+    background: #0A0A0A;
     border-radius: 50%;
     left: -12px;
     z-index: 10;
@@ -314,8 +315,8 @@ const styles = `
     padding: 2.5rem 3rem;
     display: flex;
     flex-direction: column;
-    background: var(--white);
-    color: var(--black);
+    background: #FFFFFF;
+    color: #0A0A0A;
   }
 
   .ticket-event-header {
@@ -324,7 +325,7 @@ const styles = `
     align-items: flex-start;
     margin-bottom: 2rem;
     padding-bottom: 1.25rem;
-    border-bottom: 1px solid var(--gray-200);
+    border-bottom: 1px solid #E5E7EB;
   }
 
   .ticket-event-logo {
@@ -335,18 +336,18 @@ const styles = `
   .ticket-event-name {
     font-size: 1.5rem;
     font-weight: 900;
-    color: var(--black);
+    color: #0A0A0A;
     margin: 0;
     letter-spacing: -0.03em;
   }
 
   .ticket-event-name span {
-    color: var(--ted-red);
+    color: #EB0028;
   }
 
   .ticket-event-theme {
     font-size: 0.8125rem;
-    color: var(--gray-500);
+    color: #6B7280;
     margin: 0.25rem 0 0;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -355,7 +356,7 @@ const styles = `
 
   .ticket-tier-badge {
     background: rgba(235, 0, 40, 0.08);
-    color: var(--ted-red);
+    color: #EB0028;
     font-size: 0.75rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -368,7 +369,7 @@ const styles = `
 
   .ticket-tier-badge.vip {
     background: rgba(255, 215, 0, 0.08);
-    color: var(--gold-dark);
+    color: #D97706;
     border-color: rgba(255, 215, 0, 0.2);
   }
 
@@ -395,7 +396,7 @@ const styles = `
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--gray-400);
+    color: #9CA3AF;
     margin: 0 0 0.375rem;
   }
 
@@ -410,7 +411,7 @@ const styles = `
   }
 
   .info-value.price {
-    color: var(--ted-red);
+    color: #EB0028;
     font-weight: 900;
     font-size: 1.125rem;
   }
@@ -440,13 +441,13 @@ const styles = `
   }
 
   .btn-download {
-    background: var(--ted-red);
+    background: #EB0028;
     color: white;
     box-shadow: 0 10px 20px rgba(235, 0, 40, 0.2);
   }
 
   .btn-download:hover {
-    background: var(--ted-red-dark);
+    background: #C4001F;
     transform: translateY(-2px);
     box-shadow: 0 15px 30px rgba(235, 0, 40, 0.4);
   }
@@ -461,14 +462,14 @@ const styles = `
 
   .btn-ghost {
     background: rgba(255, 255, 255, 0.04);
-    color: var(--gray-300);
+    color: #D1D5DB;
     border: 1px solid rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(10px);
   }
 
   .btn-ghost:hover {
     background: rgba(255, 255, 255, 0.08);
-    color: var(--white);
+    color: #FFFFFF;
     border-color: rgba(255, 255, 255, 0.15);
     transform: translateY(-2px);
   }
@@ -589,7 +590,7 @@ export default function VerifyPaymentPage() {
     setTimeout(() => {
       const ticket = {
         reference,
-        name: data.name,
+        name: data.name.toUpperCase(),
         email: data.email,
         phone: data.phone,
         tier: data.tier.name,
@@ -604,7 +605,7 @@ export default function VerifyPaymentPage() {
 
       const qrData = JSON.stringify({
         reference: ticket.reference,
-        name: ticket.name,
+        name: ticket.name.toUpperCase(),
         tier: ticket.tier,
       });
 
@@ -620,7 +621,7 @@ export default function VerifyPaymentPage() {
 
       ticketsAPI.create({
         reference: ticket.reference,
-        name: ticket.name,
+        name: ticket.name.toUpperCase(),
         email: ticket.email,
         phone: ticket.phone,
         tier: ticket.tier,
@@ -771,11 +772,11 @@ export default function VerifyPaymentPage() {
               <div className="ticket-info-grid">
                 <div className="info-item">
                   <p className="info-label">Attendee</p>
-                  <p className="info-value">{ticketData.name}</p>
+                  <p className="info-value" style={{ textTransform: 'uppercase' }}>{ticketData.name.toUpperCase()}</p>
                 </div>
                 <div className="info-item">
                   <p className="info-label">Reference</p>
-                  <p className="info-value" style={{ fontFamily: 'var(--font-mono)' }}>{ticketData.reference}</p>
+                  <p className="info-value" style={{ fontFamily: 'monospace' }}>{ticketData.reference}</p>
                 </div>
                 <div className="info-item">
                   <p className="info-label">Email</p>

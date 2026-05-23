@@ -897,41 +897,43 @@ export default function TicketScanner() {
 
           {!result && (
             <div className="scanner-card">
+              {/* Viewfinder is always mounted to avoid DOM race conditions during camera open */}
+              <div 
+                className="scanner-viewfinder-container"
+                style={{ display: isScanning ? 'block' : 'none', position: 'relative', width: '100%', maxWidth: '380px', margin: '0 auto' }}
+              >
+                <div id="qr-scanner"></div>
+                <div className="scanner-overlay"></div>
+                <div className="scanner-laser"></div>
+                <div className="scanner-corner corner-tl"></div>
+                <div className="scanner-corner corner-tr"></div>
+                <div className="scanner-corner corner-bl"></div>
+                <div className="scanner-corner corner-br"></div>
+              </div>
+
               {isScanning ? (
-                <>
-                  <div className="scanner-viewfinder-container">
-                    <div id="qr-scanner"></div>
-                    <div className="scanner-overlay"></div>
-                    <div className="scanner-laser"></div>
-                    <div className="scanner-corner corner-tl"></div>
-                    <div className="scanner-corner corner-tr"></div>
-                    <div className="scanner-corner corner-bl"></div>
-                    <div className="scanner-corner corner-br"></div>
-                  </div>
-
-                  <div className="scanner-controls">
-                    {cameras.length > 1 && (
-                      <select 
-                        className="camera-select" 
-                        value={selectedCameraId} 
-                        onChange={handleCameraChange}
-                      >
-                        {cameras.map((camera) => (
-                          <option key={camera.id} value={camera.id}>
-                            {camera.label || `Camera ${cameras.indexOf(camera) + 1}`}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-
-                    <button 
-                      onClick={stopScanning} 
-                      className="btn-scanner-toggle btn-scanner-stop"
+                <div className="scanner-controls">
+                  {cameras.length > 1 && (
+                    <select 
+                      className="camera-select" 
+                      value={selectedCameraId} 
+                      onChange={handleCameraChange}
                     >
-                      🛑 Close Camera
-                    </button>
-                  </div>
-                </>
+                      {cameras.map((camera) => (
+                        <option key={camera.id} value={camera.id}>
+                          {camera.label || `Camera ${cameras.indexOf(camera) + 1}`}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
+                  <button 
+                    onClick={stopScanning} 
+                    className="btn-scanner-toggle btn-scanner-stop"
+                  >
+                    🛑 Close Camera
+                  </button>
+                </div>
               ) : (
                 <div className="activate-container">
                   <div className="activate-icon">📷</div>

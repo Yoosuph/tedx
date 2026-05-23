@@ -304,34 +304,81 @@ const styles = `
     border-color: #8B5CF6;
   }
 
-  /* Form Section */
-  .purchase-form {
-    background: rgba(255, 255, 255, 0.01);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 40px;
-    padding: 4rem;
-    margin-top: 4rem;
-    backdrop-filter: blur(30px);
-    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
-    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  /* ─── Modal Popup Styling ─── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(16px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    overflow-y: auto;
+    animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  @keyframes slideUp {
+  @keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-container {
+    background: rgba(20, 20, 20, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 36px;
+    width: 100%;
+    max-width: 640px;
+    position: relative;
+    padding: 3.5rem;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+    animation: modalScaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  @keyframes modalScaleUp {
     from {
       opacity: 0;
-      transform: translateY(40px);
+      transform: scale(0.95) translateY(20px);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: scale(1) translateY(0);
     }
+  }
+
+  .modal-close-btn {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--gray-400);
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    line-height: 1;
+  }
+
+  .modal-close-btn:hover {
+    background: rgba(235, 0, 40, 0.15);
+    border-color: var(--ted-red);
+    color: var(--ted-red);
   }
 
   .purchase-form h3 {
     color: var(--white);
-    font-size: 2.25rem;
+    font-size: 2rem;
     font-weight: 800;
-    margin: 0 0 2.5rem;
+    margin: 0 0 2rem;
     letter-spacing: -0.02em;
     text-align: center;
   }
@@ -339,9 +386,9 @@ const styles = `
   .selected-tier-banner {
     background: linear-gradient(135deg, rgba(235, 0, 40, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
     border: 1px solid rgba(235, 0, 40, 0.2);
-    border-radius: 24px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 3rem;
+    border-radius: 20px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -361,19 +408,19 @@ const styles = `
 
   .selected-tier-info h4 {
     color: var(--white);
-    margin: 0 0 0.5rem;
-    font-size: 1.5rem;
+    margin: 0 0 0.25rem;
+    font-size: 1.25rem;
     font-weight: 800;
   }
 
   .selected-tier-info p {
     color: var(--gray-400);
     margin: 0;
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
   }
 
   .selected-tier-price {
-    font-size: 2.75rem;
+    font-size: 2.25rem;
     font-weight: 900;
     color: var(--ted-red);
     letter-spacing: -0.02em;
@@ -384,25 +431,21 @@ const styles = `
 
   .form-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-    margin-bottom: 3rem;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
   }
 
   .form-group {
     margin: 0;
   }
 
-  .form-group.full-width {
-    grid-column: span 2;
-  }
-
   .form-group label {
     display: block;
     color: var(--gray-400);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -411,16 +454,17 @@ const styles = `
     position: relative;
     display: flex;
     align-items: center;
+    width: 100%;
   }
 
   .form-group input {
     width: 100%;
-    padding: 1.25rem 1.75rem;
+    padding: 1rem 1.5rem;
     background: rgba(0, 0, 0, 0.4);
     border: 2px solid rgba(255, 255, 255, 0.08);
     border-radius: 100px;
     color: var(--white);
-    font-size: 1rem;
+    font-size: 0.9375rem;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -445,14 +489,29 @@ const styles = `
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
   }
 
+  .phone-input-prefix {
+    position: absolute;
+    left: 1.5rem;
+    color: var(--white);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    pointer-events: none;
+  }
+
+  .form-group input.phone-input {
+    padding-left: 5rem;
+    font-family: var(--font-mono);
+    letter-spacing: 0.05em;
+  }
+
   .error-message {
     background: rgba(235, 0, 40, 0.08);
     border: 1px solid rgba(235, 0, 40, 0.25);
     color: var(--ted-red-light);
-    padding: 1.25rem 2rem;
+    padding: 1rem 1.5rem;
     border-radius: 100px;
-    margin-bottom: 2.5rem;
-    font-size: 0.9375rem;
+    margin-bottom: 2rem;
+    font-size: 0.875rem;
     font-weight: 600;
     text-align: center;
     animation: shake 0.5s ease;
@@ -466,12 +525,12 @@ const styles = `
 
   .pay-button {
     width: 100%;
-    padding: 1.375rem 2.5rem;
+    padding: 1.125rem 2rem;
     background: var(--ted-red);
     color: var(--white);
     border: none;
     border-radius: 100px;
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 800;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -512,16 +571,6 @@ const styles = `
     box-shadow: none;
   }
 
-  @media (max-width: 992px) {
-    .form-grid {
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-    .form-group.full-width {
-      grid-column: span 1;
-    }
-  }
-
   @media (max-width: 768px) {
     .tickets-hero {
       padding: 6rem 1.5rem 3rem;
@@ -545,16 +594,16 @@ const styles = `
       min-height: auto;
     }
 
-    .purchase-form {
-      padding: 2.5rem 1.5rem;
-      border-radius: 30px;
+    .modal-container {
+      padding: 2rem 1.5rem;
+      border-radius: 28px;
     }
 
     .selected-tier-banner {
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 1.25rem;
       text-align: center;
-      padding: 2rem 1.5rem;
+      padding: 1.5rem;
     }
   }
 `;
@@ -562,7 +611,9 @@ const styles = `
 export default function TicketsPage() {
   const { ticketTiers, siteConfig } = useSiteData();
   const [selectedTier, setSelectedTier] = useState(null);
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
+  
+  // Pre-write '+234 ' prefix in phone number
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '+234 ' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -576,23 +627,36 @@ export default function TicketsPage() {
   const handleTierSelect = (tier) => {
     setSelectedTier(tier);
     setError('');
-    setTimeout(() => {
-      const formElement = document.querySelector('.purchase-form');
-      if (formElement) {
-        const offset = formElement.offsetTop - 80;
-        window.scrollTo({ top: offset, behavior: 'smooth' });
-      }
-    }, 100);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedTier(null);
+    setFormData({ name: '', email: '', phone: '+234 ' });
+    setError('');
   };
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let value = e.target.value;
+    
+    if (e.target.name === 'phone') {
+      // Force starts with '+234 '
+      if (!value.startsWith('+234 ')) {
+        value = '+234 ';
+      }
+      // Filter out non-digits from prefix suffix
+      const suffix = value.slice(5).replace(/\D/g, '');
+      // Limit suffix to exactly 10 digits (Nigerian standards)
+      const truncatedSuffix = suffix.slice(0, 10);
+      value = '+234 ' + truncatedSuffix;
+    }
+    
+    setFormData({ ...formData, [e.target.name]: value });
     setError('');
   };
 
   const onSuccess = (reference) => {
     navigate(`/tickets/verify?reference=${reference.reference}`, { 
-      state: { ticketData: { ...formData, tier: selectedTier } } 
+      state: { ticketData: { ...formData, name: formData.name.toUpperCase(), tier: selectedTier } } 
     });
   };
 
@@ -601,22 +665,31 @@ export default function TicketsPage() {
   };
 
   const validateForm = () => {
-    if (!formData.name || !formData.email || !formData.phone) {
+    if (!formData.name.trim() || !formData.email || !formData.phone) {
       return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      return false;
+    }
+    const suffix = formData.phone.slice(5).replace(/\D/g, '');
+    if (suffix.length !== 10) {
       return false;
     }
     return true;
   };
 
   const handleValidation = () => {
-    if (!formData.name || !formData.email || !formData.phone) {
-      setError('All fields are required');
+    if (!formData.name.trim()) {
+      setError('Full Name is required');
       return false;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       setError('Please enter a valid email address');
+      return false;
+    }
+    const suffix = formData.phone.slice(5).replace(/\D/g, '');
+    if (suffix.length !== 10) {
+      setError('Nigerian phone number must contain exactly 10 digits after +234');
       return false;
     }
     return true;
@@ -631,7 +704,7 @@ export default function TicketsPage() {
     onClose,
     metadata: {
       custom_fields: [
-        { display_name: "Full Name", variable_name: "full_name", value: formData.name },
+        { display_name: "Full Name", variable_name: "full_name", value: formData.name.toUpperCase() },
         { display_name: "Phone", variable_name: "phone", value: formData.phone },
         { display_name: "Ticket Tier", variable_name: "ticket_tier", value: selectedTier?.name },
       ]
@@ -704,9 +777,7 @@ export default function TicketsPage() {
                       className={`tier-button ${isSelected ? 'selected' : ''}`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (!isSelected) {
-                          handleTierSelect(tier);
-                        }
+                        handleTierSelect(tier);
                       }}
                     >
                       {isSelected ? 'Pass Selected ✓' : `Select ${tier.name}`}
@@ -717,78 +788,86 @@ export default function TicketsPage() {
             })}
           </div>
 
-          {/* Purchase Checkout Form */}
+          {/* Checkout Popup Modal Overlay */}
           {selectedTier && (
-            <div className="purchase-form">
-              <h3>Attendee Information</h3>
-              
-              <div className={`selected-tier-banner ${activeThemeClass}`}>
-                <div className="selected-tier-info">
-                  <h4>{selectedTier.name} Access Pass</h4>
-                  <p>{selectedTier.features[0]}</p>
+            <div className="modal-overlay" onClick={handleCloseModal}>
+              <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+                <button className="modal-close-btn" onClick={handleCloseModal} aria-label="Close modal">×</button>
+                
+                <div className="purchase-form">
+                  <h3>Attendee Information</h3>
+                  
+                  <div className={`selected-tier-banner ${activeThemeClass}`}>
+                    <div className="selected-tier-info">
+                      <h4>{selectedTier.name} Access Pass</h4>
+                      <p>{selectedTier.features[0]}</p>
+                    </div>
+                    <div className="selected-tier-price">₦{selectedTier.price.toLocaleString()}</div>
+                  </div>
+
+                  {error && <div className="error-message">{error}</div>}
+
+                  <div className="form-grid">
+                    <div className={`form-group ${activeThemeClass}`}>
+                      <label htmlFor="name">Full Name</label>
+                      <div className="input-wrapper">
+                        <input
+                          type="text"
+                          id="name"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          placeholder="Enter your full name"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className={`form-group ${activeThemeClass}`}>
+                      <label htmlFor="email">Email Address</label>
+                      <div className="input-wrapper">
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          placeholder="you@example.com"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className={`form-group ${activeThemeClass}`}>
+                      <label htmlFor="phone">Phone Number</label>
+                      <div className="input-wrapper">
+                        <span className="phone-input-prefix">+234</span>
+                        <input
+                          type="tel"
+                          id="phone"
+                          name="phone"
+                          className="phone-input"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          placeholder="803 123 4567"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <PaystackButton
+                    {...paystackProps}
+                    className={`pay-button ${activeThemeClass}`}
+                    disabled={!validateForm()}
+                    onClick={(e) => {
+                      if (!handleValidation()) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                 </div>
-                <div className="selected-tier-price">₦{selectedTier.price.toLocaleString()}</div>
               </div>
-
-              {error && <div className="error-message">{error}</div>}
-
-              <div className="form-grid">
-                <div className={`form-group ${activeThemeClass}`}>
-                  <label htmlFor="name">Full Name</label>
-                  <div className="input-wrapper">
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder="Enter your full name"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className={`form-group ${activeThemeClass}`}>
-                  <label htmlFor="email">Email Address</label>
-                  <div className="input-wrapper">
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="you@example.com"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className={`form-group ${activeThemeClass} full-width`}>
-                  <label htmlFor="phone">Phone Number</label>
-                  <div className="input-wrapper">
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="+234 800 000 0000"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <PaystackButton
-                {...paystackProps}
-                className={`pay-button ${activeThemeClass}`}
-                disabled={!validateForm()}
-                onClick={(e) => {
-                  if (!handleValidation()) {
-                    e.preventDefault();
-                  }
-                }}
-              />
             </div>
           )}
         </div>
