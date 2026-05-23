@@ -75,22 +75,32 @@ export default function AdminSchedule() {
     markDirty();
   };
 
-  const handleSave = () => {
-    const obj = {};
-    blocks.forEach(b => {
-      obj[b.key] = {
-        label: b.label,
-        time: b.time,
-        items: b.items.map(it => {
-          const item = { time: it.time, title: it.title, type: it.type, description: it.description };
-          if (it.speakerId) item.speakerId = Number(it.speakerId);
-          return item;
-        }),
-      };
-    });
-    updateSchedule(obj);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const [btnState, setBtnState] = useState('idle'); // 'idle' | 'loading' | 'success'
+
+  const handleSave = async () => {
+    setBtnState('loading');
+    try {
+      const obj = {};
+      blocks.forEach(b => {
+        obj[b.key] = {
+          label: b.label,
+          time: b.time,
+          items: b.items.map(it => {
+            const item = { time: it.time, title: it.title, type: it.type, description: it.description };
+            if (it.speakerId) item.speakerId = Number(it.speakerId);
+            return item;
+          }),
+        };
+      });
+      await updateSchedule(obj);
+      setBtnState('success');
+      setTimeout(() => {
+        setBtnState('idle');
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      setBtnState('idle');
+    }
   };
 
   const typeBadge = (type) => {
@@ -162,9 +172,40 @@ export default function AdminSchedule() {
         .btn-save {
           padding: 0.75rem 2rem; background: var(--ted-red); color: white;
           border: none; border-radius: 50px; font-size: 0.875rem; font-weight: 700; cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
         }
-        .btn-save:hover { background: #C41E3A; }
-        .save-msg { color: #86EFAC; font-size: 0.875rem; opacity: ${saved ? 1 : 0}; transition: opacity 0.3s; }
+        .btn-save:hover:not(:disabled) { background: #C41E3A; }
+        .btn-save:disabled {
+          opacity: 0.8;
+          cursor: not-allowed;
+        }
+        .btn-save.success-state {
+          background: #22C55E !important;
+        }
+        /* Button loading spinner */
+        .btn-loading-content {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+
+        .btn-spinner {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top-color: #ffffff;
+          border-radius: 50%;
+          animation: btn-spin 0.6s linear infinite;
+        }
+
+        @keyframes btn-spin {
+          to { transform: rotate(360deg); }
+        }
         .type-badge {
           display: inline-block; padding: 0.125rem 0.5rem; border-radius: 4px;
           font-size: 0.675rem; font-weight: 700; text-transform: uppercase; color: white;
@@ -275,8 +316,20 @@ export default function AdminSchedule() {
         <button className="btn-add-block" onClick={addBlock}>+ Add New Session Block</button>
 
         <div className="save-bar">
-          <button className="btn-save" onClick={handleSave}>Save Schedule</button>
-          <span className="save-msg">Schedule updated!</span>
+          <button 
+            className={`btn-save ${btnState === 'success' ? 'success-state' : ''}`} 
+            onClick={handleSave}
+            disabled={btnState !== 'idle'}
+          >
+            {btnState === 'idle' && 'Save Schedule'}
+            {btnState === 'loading' && (
+              <div className="btn-loading-content">
+                <div className="btn-spinner" />
+                <span>Saving...</span>
+              </div>
+            )}
+            {btnState === 'success' && '✓ Schedule Saved'}
+          </button>
         </div>
       </div>
     </AdminLayout>

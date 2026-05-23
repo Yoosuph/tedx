@@ -62,10 +62,20 @@ export default function AdminPricing() {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    updateTicketTiers(tiers);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const [btnState, setBtnState] = useState('idle'); // 'idle' | 'loading' | 'success'
+
+  const handleSave = async () => {
+    setBtnState('loading');
+    try {
+      await updateTicketTiers(tiers);
+      setBtnState('success');
+      setTimeout(() => {
+        setBtnState('idle');
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      setBtnState('idle');
+    }
   };
 
   return (
@@ -112,9 +122,49 @@ export default function AdminPricing() {
         .btn-add-tier { width: 100%; padding: 1rem; background: rgba(255,255,255,0.03); border: 2px dashed rgba(255,255,255,0.1); border-radius: 16px; color: var(--gray-400); font-size: 0.875rem; font-weight: 600; cursor: pointer; margin-bottom: 1.5rem; }
         .btn-add-tier:hover { border-color: var(--ted-red); color: var(--ted-red); }
         .save-bar { display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; }
-        .btn-save { padding: 0.75rem 2rem; background: var(--ted-red); color: white; border: none; border-radius: 50px; font-size: 0.875rem; font-weight: 700; cursor: pointer; }
-        .btn-save:hover { background: #C41E3A; }
-        .save-msg { color: #86EFAC; font-size: 0.875rem; opacity: ${saved ? 1 : 0}; transition: opacity 0.3s; }
+        .btn-save {
+          padding: 0.75rem 2rem;
+          background: var(--ted-red);
+          color: white;
+          border: none;
+          border-radius: 50px;
+          font-size: 0.875rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+        .btn-save:hover:not(:disabled) { background: #C41E3A; }
+        .btn-save:disabled {
+          opacity: 0.8;
+          cursor: not-allowed;
+        }
+        .btn-save.success-state {
+          background: #22C55E !important;
+        }
+        /* Button loading spinner */
+        .btn-loading-content {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+
+        .btn-spinner {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top-color: #ffffff;
+          border-radius: 50%;
+          animation: btn-spin 0.6s linear infinite;
+        }
+
+        @keyframes btn-spin {
+          to { transform: rotate(360deg); }
+        }
         .popular-toggle { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
         .popular-toggle input[type=checkbox] { accent-color: var(--ted-red); }
         .popular-toggle label { color: var(--gray-400); font-size: 0.8125rem; }
@@ -171,8 +221,20 @@ export default function AdminPricing() {
         <button className="btn-add-tier" onClick={addTier}>+ Add New Tier</button>
 
         <div className="save-bar">
-          <button className="btn-save" onClick={handleSave}>Save Pricing</button>
-          <span className="save-msg">Pricing updated!</span>
+          <button 
+            className={`btn-save ${btnState === 'success' ? 'success-state' : ''}`} 
+            onClick={handleSave}
+            disabled={btnState !== 'idle'}
+          >
+            {btnState === 'idle' && 'Save Pricing'}
+            {btnState === 'loading' && (
+              <div className="btn-loading-content">
+                <div className="btn-spinner" />
+                <span>Saving...</span>
+              </div>
+            )}
+            {btnState === 'success' && '✓ Pricing Saved'}
+          </button>
         </div>
       </div>
     </AdminLayout>

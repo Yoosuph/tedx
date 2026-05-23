@@ -469,6 +469,27 @@ const styles = `
       gap: 1.25rem;
     }
   }
+
+  /* Button loading spinner */
+  .btn-loading-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .btn-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: btn-spin 0.6s linear infinite;
+  }
+
+  @keyframes btn-spin {
+    to { transform: rotate(360deg); }
+  }
 `;
 
 export default function VerifyTicket() {
@@ -476,6 +497,7 @@ export default function VerifyTicket() {
   const { siteConfig } = useSiteData();
   const [reference, setReference] = useState('');
   const [result, setResult] = useState(null);
+  const [btnState, setBtnState] = useState('idle'); // 'idle' | 'loading' | 'success'
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -531,6 +553,7 @@ export default function VerifyTicket() {
   const markAsUsed = async () => {
     if (!result.ticket) return;
 
+    setBtnState('loading');
     try {
       const updated = await ticketsAPI.update(result.ticket.reference, {
         status: 'used',
@@ -544,12 +567,16 @@ export default function VerifyTicket() {
         updated.date = updated.date || siteConfig.date;
         updated.venue = updated.venue || siteConfig.venueShort || siteConfig.venue;
 
-        setResult({
-          status: 'success',
-          ticket: updated,
-          message: 'Checked In Successfully',
-          justMarked: true,
-        });
+        setBtnState('success');
+        setTimeout(() => {
+          setResult({
+            status: 'success',
+            ticket: updated,
+            message: 'Checked In Successfully',
+            justMarked: true,
+          });
+          setBtnState('idle');
+        }, 1500);
 
         // Sync local storage cache
         const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
@@ -562,9 +589,12 @@ export default function VerifyTicket() {
 
         // Notify other components
         window.dispatchEvent(new Event('tickets-changed'));
+      } else {
+        setBtnState('idle');
       }
     } catch (error) {
       console.error('Error marking ticket as used:', error);
+      setBtnState('idle');
     }
   };
 
@@ -685,11 +715,26 @@ export default function VerifyTicket() {
 
                   <div className="result-actions">
                     {result.status === 'success' && !result.justMarked && (
-                      <button onClick={markAsUsed} className="btn-action btn-success">
-                        <svg viewBox="0 0 24 24">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Complete Check-In
+                      <button 
+                        onClick={markAsUsed} 
+                        className="btn-action btn-success"
+                        disabled={btnState !== 'idle'}
+                      >
+                        {btnState === 'idle' && (
+                          <>
+                            <svg viewBox="0 0 24 24">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            Complete Check-In
+                          </>
+                        )}
+                        {btnState === 'loading' && (
+                          <div className="btn-loading-content">
+                            <div className="btn-spinner" />
+                            <span>Completing...</span>
+                          </div>
+                        )}
+                        {btnState === 'success' && '✓ Checked In'}
                       </button>
                     )}
                     <button onClick={resetVerification} className="btn-action btn-secondary">

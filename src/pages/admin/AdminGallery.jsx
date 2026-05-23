@@ -96,7 +96,21 @@ export default function AdminGallery() {
     }
     dragItem.current = null; dragOver.current = null;
   };
-  const handleSave = () => { updateGalleryImages(images); setSaved(true); setTimeout(() => setSaved(false), 3000); };
+  const [btnState, setBtnState] = useState('idle'); // 'idle' | 'loading' | 'success'
+
+  const handleSave = async () => {
+    setBtnState('loading');
+    try {
+      await updateGalleryImages(images);
+      setBtnState('success');
+      setTimeout(() => {
+        setBtnState('idle');
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      setBtnState('idle');
+    }
+  };
   const editingImage = images.find(img => img.id === editingId);
 
   return (
@@ -138,9 +152,49 @@ export default function AdminGallery() {
         .btn-done { padding: 0.5rem 1rem; background: var(--ted-red); color: white; border: none; border-radius: 8px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; }
         .btn-cancel { padding: 0.5rem 1rem; background: rgba(255,255,255,0.05); color: var(--gray-400); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.8125rem; cursor: pointer; }
         .save-bar { display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; }
-        .btn-save { padding: 0.75rem 2rem; background: var(--ted-red); color: white; border: none; border-radius: 50px; font-size: 0.875rem; font-weight: 700; cursor: pointer; }
-        .btn-save:hover { background: #C41E3A; }
-        .save-msg { color: #86EFAC; font-size: 0.875rem; opacity: ${saved ? 1 : 0}; transition: opacity 0.3s; }
+        .btn-save {
+          padding: 0.75rem 2rem;
+          background: var(--ted-red);
+          color: white;
+          border: none;
+          border-radius: 50px;
+          font-size: 0.875rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+        .btn-save:hover:not(:disabled) { background: #C41E3A; }
+        .btn-save:disabled {
+          opacity: 0.8;
+          cursor: not-allowed;
+        }
+        .btn-save.success-state {
+          background: #22C55E !important;
+        }
+        /* Button loading spinner */
+        .btn-loading-content {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+
+        .btn-spinner {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top-color: #ffffff;
+          border-radius: 50%;
+          animation: btn-spin 0.6s linear infinite;
+        }
+
+        @keyframes btn-spin {
+          to { transform: rotate(360deg); }
+        }
         .empty-state { text-align: center; padding: 3rem 1rem; color: var(--gray-400); }
         .file-upload-label { display: inline-block; cursor: pointer; }
         .file-upload-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
@@ -246,8 +300,20 @@ export default function AdminGallery() {
         )}
 
         <div className="save-bar">
-          <button className="btn-save" onClick={handleSave}>Save Gallery</button>
-          <span className="save-msg">Gallery updated!</span>
+          <button 
+            className={`btn-save ${btnState === 'success' ? 'success-state' : ''}`} 
+            onClick={handleSave}
+            disabled={btnState !== 'idle'}
+          >
+            {btnState === 'idle' && 'Save Gallery'}
+            {btnState === 'loading' && (
+              <div className="btn-loading-content">
+                <div className="btn-spinner" />
+                <span>Saving...</span>
+              </div>
+            )}
+            {btnState === 'success' && '✓ Gallery Saved'}
+          </button>
         </div>
       </div>
     </AdminLayout>

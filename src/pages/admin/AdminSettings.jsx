@@ -116,12 +116,22 @@ export default function AdminSettings() {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    // Remove temporary input fields before saving
-    const { dateInput, timeStartInput, timeEndInput, ...configToSave } = form;
-    updateSiteConfig(configToSave);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const [btnState, setBtnState] = useState('idle'); // 'idle' | 'loading' | 'success'
+
+  const handleSave = async () => {
+    setBtnState('loading');
+    try {
+      // Remove temporary input fields before saving
+      const { dateInput, timeStartInput, timeEndInput, ...configToSave } = form;
+      await updateSiteConfig(configToSave);
+      setBtnState('success');
+      setTimeout(() => {
+        setBtnState('idle');
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      setBtnState('idle');
+    }
   };
 
   return (
@@ -192,14 +202,38 @@ export default function AdminSettings() {
           font-weight: 700;
           cursor: pointer;
           transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
         }
-        .btn-save:hover { background: #C41E3A; transform: translateY(-1px); }
-        .save-msg {
-          color: #86EFAC;
-          font-size: 0.875rem;
-          font-weight: 600;
-          opacity: ${saved ? 1 : 0};
-          transition: opacity 0.3s;
+        .btn-save:hover:not(:disabled) { background: #C41E3A; transform: translateY(-1px); }
+        .btn-save:disabled {
+          opacity: 0.8;
+          cursor: not-allowed;
+        }
+        .btn-save.success-state {
+          background: #22C55E !important;
+        }
+        /* Button loading spinner */
+        .btn-loading-content {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+
+        .btn-spinner {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top-color: #ffffff;
+          border-radius: 50%;
+          animation: btn-spin 0.6s linear infinite;
+        }
+
+        @keyframes btn-spin {
+          to { transform: rotate(360deg); }
         }
         @media (max-width: 640px) {
           .form-row { grid-template-columns: 1fr; }
@@ -329,8 +363,20 @@ export default function AdminSettings() {
         </div>
 
         <div className="save-bar">
-          <button className="btn-save" onClick={handleSave}>Save Changes</button>
-          <span className="save-msg">Settings saved successfully!</span>
+          <button 
+            className={`btn-save ${btnState === 'success' ? 'success-state' : ''}`} 
+            onClick={handleSave}
+            disabled={btnState !== 'idle'}
+          >
+            {btnState === 'idle' && 'Save Changes'}
+            {btnState === 'loading' && (
+              <div className="btn-loading-content">
+                <div className="btn-spinner" />
+                <span>Saving...</span>
+              </div>
+            )}
+            {btnState === 'success' && '✓ Changes Saved'}
+          </button>
         </div>
       </div>
     </AdminLayout>

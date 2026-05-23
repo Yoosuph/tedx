@@ -63,10 +63,20 @@ export default function AdminSpeakers() {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    updateSpeakers(list);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const [btnState, setBtnState] = useState('idle'); // 'idle' | 'loading' | 'success'
+
+  const handleSave = async () => {
+    setBtnState('loading');
+    try {
+      await updateSpeakers(list);
+      setBtnState('success');
+      setTimeout(() => {
+        setBtnState('idle');
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      setBtnState('idle');
+    }
   };
 
   return (
@@ -139,9 +149,49 @@ export default function AdminSpeakers() {
         .btn-add-speaker { width: 100%; padding: 1rem; background: rgba(255,255,255,0.03); border: 2px dashed rgba(255,255,255,0.1); border-radius: 16px; color: var(--gray-400); font-size: 0.875rem; font-weight: 600; cursor: pointer; margin-bottom: 1.5rem; }
         .btn-add-speaker:hover { border-color: var(--ted-red); color: var(--ted-red); }
         .save-bar { display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; }
-        .btn-save { padding: 0.75rem 2rem; background: var(--ted-red); color: white; border: none; border-radius: 50px; font-size: 0.875rem; font-weight: 700; cursor: pointer; }
-        .btn-save:hover { background: #C41E3A; }
-        .save-msg { color: #86EFAC; font-size: 0.875rem; opacity: ${saved ? 1 : 0}; transition: opacity 0.3s; }
+        .btn-save {
+          padding: 0.75rem 2rem;
+          background: var(--ted-red);
+          color: white;
+          border: none;
+          border-radius: 50px;
+          font-size: 0.875rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+        .btn-save:hover:not(:disabled) { background: #C41E3A; }
+        .btn-save:disabled {
+          opacity: 0.8;
+          cursor: not-allowed;
+        }
+        .btn-save.success-state {
+          background: #22C55E !important;
+        }
+        /* Button loading spinner */
+        .btn-loading-content {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+
+        .btn-spinner {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top-color: #ffffff;
+          border-radius: 50%;
+          animation: btn-spin 0.6s linear infinite;
+        }
+
+        @keyframes btn-spin {
+          to { transform: rotate(360deg); }
+        }
         .sp-count { color: var(--gray-500); font-size: 0.8125rem; margin-left: auto; }
         .sp-file-label { display: inline-block; cursor: pointer; }
         .sp-file-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
@@ -255,8 +305,20 @@ export default function AdminSpeakers() {
         <button className="btn-add-speaker" onClick={addSpeaker}>+ Add New Speaker</button>
 
         <div className="save-bar">
-          <button className="btn-save" onClick={handleSave}>Save Speakers</button>
-          <span className="save-msg">Speakers updated!</span>
+          <button 
+            className={`btn-save ${btnState === 'success' ? 'success-state' : ''}`} 
+            onClick={handleSave}
+            disabled={btnState !== 'idle'}
+          >
+            {btnState === 'idle' && 'Save Speakers'}
+            {btnState === 'loading' && (
+              <div className="btn-loading-content">
+                <div className="btn-spinner" />
+                <span>Saving...</span>
+              </div>
+            )}
+            {btnState === 'success' && '✓ Speakers Saved'}
+          </button>
           <span className="sp-count">{list.length} speaker{list.length !== 1 ? 's' : ''}</span>
         </div>
       </div>

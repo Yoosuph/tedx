@@ -8,14 +8,15 @@ const styles = `
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
-    animation: fadeIn 0.2s ease-out;
+    animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   @keyframes fadeIn {
@@ -26,7 +27,7 @@ const styles = `
   @keyframes slideUp {
     from { 
       opacity: 0;
-      transform: translateY(20px) scale(0.95);
+      transform: translateY(20px) scale(0.98);
     }
     to { 
       opacity: 1;
@@ -35,19 +36,21 @@ const styles = `
   }
 
   .modal-content {
-    background: var(--dark-surface, #1a1a1a);
+    background: rgba(26, 26, 26, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: var(--radius-xl, 16px);
-    max-width: 1000px;
+    border-radius: 28px;
+    max-width: 640px;
     width: 100%;
     position: relative;
-    animation: slideUp 0.3s ease-out;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
   }
 
   .modal-close {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 1.25rem;
+    right: 1.25rem;
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -64,29 +67,31 @@ const styles = `
   }
 
   .modal-close:hover {
-    background: rgba(235, 0, 40, 0.1);
+    background: rgba(235, 0, 40, 0.15);
     border-color: var(--ted-red, #EB0028);
     color: var(--ted-red, #EB0028);
   }
 
   .detail-card {
-    padding: 1.5rem 2rem;
+    padding: 2.5rem;
   }
 
   .detail-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.25rem;
-    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .detail-header h1 {
     color: var(--white, #ffffff);
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+    font-weight: 800;
     margin: 0;
     line-height: 1.2;
+    letter-spacing: -0.02em;
   }
 
   .detail-header-right {
@@ -97,8 +102,8 @@ const styles = `
 
   .detail-header p {
     color: var(--gray-400, #9CA3AF);
-    margin: 0;
-    font-size: 0.875rem;
+    margin: 0.25rem 0 0;
+    font-size: 0.9375rem;
   }
 
   .status-badge {
@@ -111,42 +116,48 @@ const styles = `
   }
 
   .status-paid {
-    background: rgba(34, 197, 94, 0.1);
+    background: rgba(34, 197, 94, 0.12);
     color: #86EFAC;
+    border: 1px solid rgba(34, 197, 94, 0.15);
   }
 
   .status-used {
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(59, 130, 246, 0.12);
     color: #93C5FD;
+    border: 1px solid rgba(59, 130, 246, 0.15);
   }
 
   .detail-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 1.25rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 2rem;
   }
 
   .detail-section {
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: var(--radius-lg, 12px);
-    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
   }
 
   .detail-section h3 {
     color: var(--white, #ffffff);
-    font-size: 0.875rem;
-    margin: 0 0 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 0.5rem;
   }
 
   .detail-row {
     display: flex;
     justify-content: space-between;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    font-size: 0.875rem;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 0.9375rem;
   }
 
   .detail-row:last-child {
@@ -162,22 +173,22 @@ const styles = `
     color: var(--white, #ffffff);
     font-weight: 600;
     text-align: right;
-    max-width: 60%;
+    max-width: 70%;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .detail-value.amount {
     color: var(--ted-red, #EB0028);
-    font-size: 1rem;
+    font-weight: 800;
   }
 
   .checkin-banner {
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: var(--radius-lg, 12px);
-    padding: 0.875rem 1.25rem;
-    margin-bottom: 1.25rem;
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.15);
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -190,65 +201,101 @@ const styles = `
   }
 
   .checkin-banner-icon {
-    color: #93C5FD;
+    color: #86EFAC;
     font-size: 1.25rem;
+    font-weight: bold;
   }
 
   .checkin-banner-text {
     color: var(--white, #ffffff);
-    font-weight: 600;
-    font-size: 0.875rem;
+    font-weight: 700;
+    font-size: 0.9375rem;
   }
 
   .checkin-banner-time {
     color: var(--gray-400, #9CA3AF);
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
+    margin-top: 0.125rem;
   }
 
   .action-buttons {
     display: flex;
-    gap: 0.75rem;
-    padding-top: 1rem;
+    gap: 1rem;
+    padding-top: 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .btn-success {
     flex: 1;
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 2rem;
     background: #22C55E;
     color: white;
     border: none;
-    border-radius: var(--radius-lg, 12px);
-    font-size: 0.875rem;
-    font-weight: 600;
+    border-radius: 100px;
+    font-size: 0.9375rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
   }
 
-  .btn-success:hover {
+  .btn-success:hover:not(:disabled) {
     background: #16A34A;
     transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.25);
+  }
+
+  .btn-success:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
   }
 
   .btn-secondary {
     flex: 1;
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 2rem;
     background: transparent;
     color: var(--gray-300, #D1D5DB);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg, 12px);
-    font-size: 0.875rem;
-    font-weight: 600;
+    border-radius: 100px;
+    font-size: 0.9375rem;
+    font-weight: 700;
     cursor: pointer;
     text-decoration: none;
-    display: inline-block;
-    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.3s ease;
   }
 
   .btn-secondary:hover {
     border-color: var(--ted-red, #EB0028);
     color: var(--ted-red, #EB0028);
+    background: rgba(235, 0, 40, 0.05);
+    transform: translateY(-2px);
+  }
+
+  /* Button loading spinner */
+  .btn-loading-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .btn-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: btn-spin 0.6s linear infinite;
+  }
+
+  @keyframes btn-spin {
+    to { transform: rotate(360deg); }
   }
 
   .not-found {
@@ -268,32 +315,27 @@ const styles = `
   }
 
   @media (max-width: 768px) {
-    .detail-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .detail-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.75rem;
-    }
-
-    .detail-header-right {
-      align-self: flex-end;
-    }
-
     .modal-content {
       max-width: 100%;
     }
 
     .detail-card {
-      padding: 1.25rem;
+      padding: 1.5rem;
     }
 
-    .checkin-banner {
+    .detail-header {
       flex-direction: column;
       align-items: flex-start;
-      gap: 0.5rem;
+      gap: 1rem;
+    }
+
+    .detail-header-right {
+      align-self: stretch;
+      justify-content: flex-end;
+    }
+
+    .action-buttons {
+      flex-direction: column;
     }
   }
 `;
@@ -303,6 +345,7 @@ export default function TicketDetail() {
   const navigate = useNavigate();
   const { siteConfig } = useSiteData();
   const [ticket, setTicket] = useState(null);
+  const [btnState, setBtnState] = useState('idle'); // 'idle' | 'loading' | 'success'
 
   useEffect(() => {
     const fetchTicket = async () => {
@@ -341,6 +384,7 @@ export default function TicketDetail() {
   };
 
   const markAsUsed = async () => {
+    setBtnState('loading');
     try {
       const updated = await ticketsAPI.update(reference, {
         status: 'used',
@@ -354,18 +398,28 @@ export default function TicketDetail() {
         updated.event = updated.event || siteConfig.eventName;
         updated.date = updated.date || siteConfig.date;
         updated.venue = updated.venue || siteConfig.venueShort || siteConfig.venue;
-        setTicket(updated);
-        // Also sync local cache
-        const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
-        const index = tickets.findIndex(t => t.reference === reference);
-        if (index !== -1) {
-          tickets[index].status = 'used';
-          tickets[index].usedAt = updated.usedAt;
-          localStorage.setItem('tedx_tickets', JSON.stringify(tickets));
-        }
+
+        setBtnState('success');
+        setTimeout(() => {
+          setTicket(updated);
+          setBtnState('idle');
+          // Also sync local cache
+          const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
+          const index = tickets.findIndex(t => t.reference === reference);
+          if (index !== -1) {
+            tickets[index].status = 'used';
+            tickets[index].usedAt = updated.usedAt;
+            localStorage.setItem('tedx_tickets', JSON.stringify(tickets));
+          }
+          // Notify dashboard of changes
+          window.dispatchEvent(new Event('tickets-changed'));
+        }, 1500);
+      } else {
+        setBtnState('idle');
       }
     } catch (error) {
       console.error('Error marking ticket as used:', error);
+      setBtnState('idle');
     }
   };
 
@@ -397,7 +451,7 @@ export default function TicketDetail() {
         <div className="detail-card">
           <div className="detail-header">
             <div>
-              <h1>{ticket.name}</h1>
+              <h1>{ticket.name.toUpperCase()}</h1>
               <p>{ticket.tier} Ticket</p>
             </div>
             <div className="detail-header-right">
@@ -412,7 +466,7 @@ export default function TicketDetail() {
               <h3>Attendee</h3>
               <div className="detail-row">
                 <span className="detail-label">Name</span>
-                <span className="detail-value">{ticket.name}</span>
+                <span className="detail-value">{ticket.name.toUpperCase()}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Email</span>
@@ -428,7 +482,7 @@ export default function TicketDetail() {
               <h3>Ticket</h3>
               <div className="detail-row">
                 <span className="detail-label">Reference</span>
-                <span className="detail-value">{ticket.reference}</span>
+                <span className="detail-value" style={{ fontFamily: 'monospace' }}>{ticket.reference}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Tier</span>
@@ -473,8 +527,19 @@ export default function TicketDetail() {
 
           <div className="action-buttons">
             {(!ticket.status || ticket.status === 'paid') && (
-              <button onClick={markAsUsed} className="btn-success">
-                Mark as Used
+              <button 
+                onClick={markAsUsed} 
+                className="btn-success"
+                disabled={btnState !== 'idle'}
+              >
+                {btnState === 'idle' && 'Mark as Used'}
+                {btnState === 'loading' && (
+                  <div className="btn-loading-content">
+                    <div className="btn-spinner" />
+                    <span>Checking in...</span>
+                  </div>
+                )}
+                {btnState === 'success' && '✓ Checked In'}
               </button>
             )}
             <button onClick={handleClose} className="btn-secondary">

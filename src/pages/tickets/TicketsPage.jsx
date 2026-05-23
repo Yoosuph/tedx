@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PaystackButton } from 'react-paystack';
+import { usePaystackPayment } from 'react-paystack';
 import { useSiteData } from '../../context/SiteDataContext';
 import Layout from '../../components/shared/Layout';
+import { supabase } from '../../lib/supabase';
 
 const styles = `
   .tickets-page {
@@ -571,6 +572,34 @@ const styles = `
     box-shadow: none;
   }
 
+  /* Button loading spinner */
+  .btn-loading-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .btn-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: btn-spin 0.6s linear infinite;
+  }
+
+  @keyframes btn-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .pay-button.success-state {
+    background: #22C55E !important;
+    border-color: #22C55E !important;
+    box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3) !important;
+    color: #ffffff !important;
+  }
+
   @media (max-width: 768px) {
     .tickets-hero {
       padding: 6rem 1.5rem 3rem;
@@ -695,19 +724,74 @@ export default function TicketsPage() {
     return true;
   };
 
-  const paystackProps = {
+  const [purchaseState, setPurchaseState] = useState('idle'); // 'idle' | 'checking' | 'loading' | 'success'
+
+  const paystackConfig = {
     email: formData.email,
     amount: selectedTier?.price * 100 || 0,
     publicKey,
-    text: `Secure Pass • ₦${selectedTier?.price?.toLocaleString() || 0}`,
-    onSuccess,
-    onClose,
     metadata: {
       custom_fields: [
         { display_name: "Full Name", variable_name: "full_name", value: formData.name.toUpperCase() },
         { display_name: "Phone", variable_name: "phone", value: formData.phone },
         { display_name: "Ticket Tier", variable_name: "ticket_tier", value: selectedTier?.name },
       ]
+    }
+  };
+
+  const initializePayment = usePaystackPayment(paystackConfig);
+
+  const handleCheckout = async (e) => {
+    e.preventDefault();
+    if (!handleValidation()) return;
+
+    setPurchaseState('checking');
+    setError('');
+
+    try {
+      const emailToCheck = formData.email.trim().toLowerCase();
+      const nameToCheck = formData.name.trim().toUpperCase();
+
+      // Check for duplicate purchase in Supabase
+      const { data, error: dbError } = await supabase
+        .from('tickets')
+        .select('reference')
+        .eq('email', emailToCheck)
+        .ilike('name', nameToCheck);
+
+      if (dbError) {
+        console.error('Error checking duplicate purchase:', dbError);
+      }
+
+      if (data && data.length > 0) {
+        setError('A ticket has already been purchased with this email and name. Please verify your details.');
+        setPurchaseState('idle');
+        return;
+      }
+
+      // No duplicate found, proceed to loading and launch Paystack
+      setPurchaseState('loading');
+      
+      initializePayment(
+        // onSuccess
+        (ref) => {
+          setPurchaseState('success');
+          setTimeout(() => {
+            onSuccess(ref);
+            setPurchaseState('idle');
+          }, 1500);
+        },
+        // onClose
+        () => {
+          setPurchaseState('idle');
+          setError('Payment window closed');
+        }
+      );
+
+    } catch (err) {
+      console.error('Checkout error:', err);
+      setError('An error occurred. Please try again.');
+      setPurchaseState('idle');
     }
   };
 
@@ -856,16 +940,20 @@ export default function TicketsPage() {
                     </div>
                   </div>
 
-                  <PaystackButton
-                    {...paystackProps}
-                    className={`pay-button ${activeThemeClass}`}
-                    disabled={!validateForm()}
-                    onClick={(e) => {
-                      if (!handleValidation()) {
-                        e.preventDefault();
-                      }
-                    }}
-                  />
+                  <button
+                    className={`pay-button ${activeThemeClass} ${purchaseState === 'success' ? 'success-state' : ''}`}
+                    disabled={!validateForm() || purchaseState === 'checking' || purchaseState === 'loading' || purchaseState === 'success'}
+                    onClick={handleCheckout}
+                  >
+                    {purchaseState === 'idle' && `Secure Pass • ₦${selectedTier?.price?.toLocaleString() || 0}`}
+                    {(purchaseState === 'checking' || purchaseState === 'loading') && (
+                      <div className="btn-loading-content">
+                        <div className="btn-spinner" />
+                        <span>Processing...</span>
+                      </div>
+                    )}
+                    {purchaseState === 'success' && '✓ Success'}
+                  </button>
                 </div>
               </div>
             </div>

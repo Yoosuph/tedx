@@ -17,6 +17,7 @@ export default function AdminLayout({ children }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -191,23 +192,25 @@ export default function AdminLayout({ children }) {
           <SidebarNav
             location={location}
             onLogout={handleLogout}
+            onClose={() => setSidebarOpen(false)}
+            open={sidebarOpen}
           />
           <div className="admin-main">
             <AdminPageTransition>
               {children}
             </AdminPageTransition>
           </div>
-          <MobileToggle />
+          <MobileToggle open={sidebarOpen} setOpen={setSidebarOpen} />
         </div>
       </div>
     </>
   );
 }
 
-function SidebarNav({ location, onLogout, onClose }) {
+function SidebarNav({ location, onLogout, onClose, open }) {
   return (
     <>
-      <div className="admin-sidebar" id="admin-sidebar">
+      <div className={`admin-sidebar ${open ? 'open' : ''}`} id="admin-sidebar">
         <div className="sidebar-nav">
           {navItems.map(item => (
             <Link
@@ -231,20 +234,13 @@ function SidebarNav({ location, onLogout, onClose }) {
   );
 }
 
-function MobileToggle() {
-  const [open, setOpen] = useState(false);
-
+function MobileToggle({ open, setOpen }) {
   return (
     <>
       <button className="mobile-admin-toggle" onClick={() => setOpen(!open)}>
         {open ? '✕' : '☰'}
       </button>
       <div className={`sidebar-overlay ${open ? 'open' : ''}`} onClick={() => setOpen(false)} />
-      {open && (
-        <style>{`
-          .admin-sidebar { left: 0 !important; }
-        `}</style>
-      )}
     </>
   );
 }
