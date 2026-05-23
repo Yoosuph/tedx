@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from '../admin/AdminLayout';
+import { ticketsAPI } from '../../lib/supabase';
+
 
 const styles = `
   .dashboard-page {
@@ -536,17 +538,17 @@ export default function AdminDashboard() {
     checkedIn: 0,
   });
 
-  useEffect(() => {
-    // Load tickets from localStorage
-    const stored = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
+  const fetchTickets = useCallback(async () => {
+    // Load tickets from Supabase database
+    const stored = await ticketsAPI.getAll();
     setTickets(stored);
 
     // Calculate stats
     const revenue = stored.reduce((sum, t) => sum + t.price, 0);
-    const regular = stored.filter(t => t.tier === 'Regular').length;
-    const vip = stored.filter(t => t.tier === 'VIP').length;
-    const vvip = stored.filter(t => t.tier === 'VVIP').length;
-    const checkedIn = stored.filter(t => t.status === 'used').length;
+    const regular = stored.filter(t => t.tier?.toLowerCase() === 'regular').length;
+    const vip = stored.filter(t => t.tier?.toLowerCase() === 'vip').length;
+    const vvip = stored.filter(t => t.tier?.toLowerCase() === 'vvip').length;
+    const checkedIn = stored.filter(t => t.status === 'used' || t.checked_in).length;
 
     setStats({
       total: stored.length,
@@ -556,7 +558,22 @@ export default function AdminDashboard() {
       vvip,
       checkedIn,
     });
-  }, []);
+  }, [ticketTiers]);
+
+  useEffect(() => {
+    fetchTickets();
+
+    // Listen to real-time changes
+    const handleTicketsChanged = () => {
+      console.log('🔄 AdminDashboard: Tickets changed event received, fetching updates...');
+      fetchTickets();
+    };
+
+    window.addEventListener('tickets-changed', handleTicketsChanged);
+    return () => {
+      window.removeEventListener('tickets-changed', handleTicketsChanged);
+    };
+  }, [fetchTickets]);
 
   const filteredTickets = tickets.filter(ticket => {
     const term = searchTerm.toLowerCase();

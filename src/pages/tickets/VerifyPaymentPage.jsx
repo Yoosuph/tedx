@@ -5,6 +5,8 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useSiteData } from '../../context/SiteDataContext';
 import Layout from '../../components/shared/Layout';
+import { ticketsAPI } from '../../lib/supabase';
+
 
 const styles = `
   .verify-page {
@@ -540,6 +542,26 @@ export default function VerifyPaymentPage() {
       const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
       tickets.push(ticket);
       localStorage.setItem('tedx_tickets', JSON.stringify(tickets));
+
+      // Save to Supabase database
+      ticketsAPI.create({
+        reference: ticket.reference,
+        name: ticket.name,
+        email: ticket.email,
+        phone: ticket.phone,
+        tier: ticket.tier,
+        price: ticket.price,
+        status: 'paid',
+        checked_in: false
+      }).then((dbTicket) => {
+        if (dbTicket) {
+          console.log('✅ Ticket synced to Supabase:', dbTicket);
+        } else {
+          console.error('❌ Failed to sync ticket to Supabase');
+        }
+      }).catch((err) => {
+        console.error('❌ Error syncing ticket to Supabase:', err);
+      });
     }, 1500);
   }, [location]);
 

@@ -5,6 +5,8 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Layout from '../../components/shared/Layout';
 import { useSiteData } from '../../context/SiteDataContext';
+import { ticketsAPI } from '../../lib/supabase';
+
 
 const styles = `
   .ticket-page {
@@ -437,25 +439,37 @@ export default function TicketDisplayPage() {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
-    const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
-    const found = tickets.find(t => t.reference === reference);
+    const fetchTicket = async () => {
+      try {
+        const found = await ticketsAPI.getByReference(reference);
 
-    if (found) {
-      setTicket(found);
+        if (found) {
+          // Normalize ticket details with siteConfig fallbacks
+          found.usedAt = found.checked_in_at || found.used_at;
+          found.event = found.event || siteConfig.eventName;
+          found.date = found.date || siteConfig.date;
+          found.venue = found.venue || siteConfig.venueShort || siteConfig.venue;
 
-      const qrData = JSON.stringify({
-        reference: found.reference,
-        name: found.name,
-        tier: found.tier,
-      });
+          setTicket(found);
 
-      QRCode.toDataURL(qrData, {
-        width: 240,
-        margin: 1,
-        color: { dark: '#0A0A0A', light: '#ffffff' },
-      }).then(setQrCodeUrl);
-    }
-  }, [reference]);
+          const qrData = JSON.stringify({
+            reference: found.reference,
+            name: found.name,
+            tier: found.tier,
+          });
+
+          QRCode.toDataURL(qrData, {
+            width: 240,
+            margin: 1,
+            color: { dark: '#0A0A0A', light: '#ffffff' },
+          }).then(setQrCodeUrl);
+        }
+      } catch (error) {
+        console.error('Error fetching ticket for display:', error);
+      }
+    };
+    fetchTicket();
+  }, [reference, siteConfig]);
 
   const handleDownloadQR = () => {
     const link = document.createElement('a');

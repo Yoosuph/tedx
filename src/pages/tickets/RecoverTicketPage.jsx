@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../../components/shared/Layout';
+import { supabase } from '../../lib/supabase';
+
 
 const styles = `
   .recover-container {
@@ -122,7 +124,7 @@ export default function RecoverTicketPage() {
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!email) {
@@ -133,22 +135,50 @@ export default function RecoverTicketPage() {
 
     setStatus('loading');
 
-    // Search localStorage for tickets with this email
-    setTimeout(() => {
-      const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
-      const found = tickets.filter(t => t.email.toLowerCase() === email.toLowerCase());
+    try {
+      // Query Supabase for tickets matching this email address
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('email', email.trim().toLowerCase());
 
-      if (found.length > 0) {
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.length > 0) {
         setStatus('success');
-        setMessage(`Found ${found.length} ticket(s). Redirecting...`);
+        setMessage(`Found ${data.length} ticket(s). Redirecting...`);
+        
+        // Push found tickets to localStorage so the client-side displays have them cached
+        const localTickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
+        data.forEach(t => {
+          if (!localTickets.some(lt => lt.reference === t.reference)) {
+            localTickets.push({
+              reference: t.reference,
+              name: t.name,
+              email: t.email,
+              phone: t.phone,
+              tier: t.tier,
+              price: t.price,
+              status: t.status
+            });
+          }
+        });
+        localStorage.setItem('tedx_tickets', JSON.stringify(localTickets));
+
         setTimeout(() => {
-          navigate(`/ticket/${found[found.length - 1].reference}`);
+          navigate(`/ticket/${data[data.length - 1].reference}`);
         }, 2000);
       } else {
         setStatus('error');
         setMessage('No tickets found for this email address');
       }
-    }, 1500);
+    } catch (error) {
+      console.error('Error recovering tickets:', error);
+      setStatus('error');
+      setMessage('An error occurred while fetching your ticket. Please try again.');
+    }
   };
 
   return (

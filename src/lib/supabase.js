@@ -25,6 +25,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
  */
 export const siteConfigAPI = {
   async get() {
+    console.log('🔍 Fetching site config...');
     const { data, error } = await supabase
       .from('site_config')
       .select('*')
@@ -32,23 +33,63 @@ export const siteConfigAPI = {
       .single();
     
     if (error) {
-      console.error('Error fetching site config:', error);
+      console.error('❌ Error fetching site config:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       return null;
     }
+    
+    console.log('✅ Site config fetched:', data);
     return data;
   },
 
   async update(updates) {
-    const { data, error } = await supabase
-      .from('site_config')
-      .update(updates)
-      .select()
-      .single();
+    console.log('📝 Updating site config:', updates);
+    
+    // First get the existing config to get its ID
+    const existing = await this.get();
+    
+    let data, error;
+    
+    if (existing) {
+      // Update existing row
+      console.log('✅ Found existing config, updating row:', existing.id);
+      const result = await supabase
+        .from('site_config')
+        .update(updates)
+        .eq('id', existing.id)
+        .select()
+        .single();
+      data = result.data;
+      error = result.error;
+    } else {
+      // Insert new row if none exists
+      console.log('⚠️ No existing config found, creating new row');
+      const result = await supabase
+        .from('site_config')
+        .insert([updates])
+        .select()
+        .single();
+      data = result.data;
+      error = result.error;
+    }
     
     if (error) {
-      console.error('Error updating site config:', error);
+      console.error('❌ Error updating site config:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       return null;
     }
+    
+    console.log('✅ Site config updated successfully');
     return data;
   },
 

@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useAuth } from '../../context/AuthContext';
 import Layout from '../../components/shared/Layout';
+import { ticketsAPI } from '../../lib/supabase';
+import { useSiteData } from '../../context/SiteDataContext';
+
 
 const styles = `
   .scanner-page {
@@ -456,6 +459,7 @@ const styles = `
 export default function TicketScanner() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { siteConfig } = useSiteData();
   const [result, setResult] = useState(null);
   const [manualRef, setManualRef] = useState('');
   const scannerRef = useRef(null);
@@ -496,52 +500,83 @@ export default function TicketScanner() {
     }
   };
 
-  const verifyTicket = (reference) => {
-    const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
-    const ticket = tickets.find(t => t.reference === reference);
+  const verifyTicket = async (reference) => {
+    try {
+      const ticket = await ticketsAPI.getByReference(reference);
 
-    if (!ticket) {
-      setResult({
-        status: 'error',
-        message: 'Ticket not found',
-      });
-      return;
-    }
+      if (!ticket) {
+        setResult({
+          status: 'error',
+          message: 'Ticket not found',
+        });
+        return;
+      }
 
-    if (ticket.status === 'used') {
-      setResult({
-        status: 'already-used',
-        ticket,
-        message: 'This ticket has already been used',
-        usedAt: ticket.usedAt,
-      });
-      return;
-    }
+      // Normalize ticket details
+      ticket.usedAt = ticket.checked_in_at || ticket.used_at;
+      ticket.event = ticket.event || siteConfig.eventName;
+      ticket.date = ticket.date || siteConfig.date;
+      ticket.venue = ticket.venue || siteConfig.venueShort || siteConfig.venue;
 
-    setResult({
-      status: 'success',
-      ticket,
-      message: 'Ticket verified successfully',
-    });
-  };
-
-  const markAsUsed = () => {
-    if (!result.ticket) return;
-
-    const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
-    const index = tickets.findIndex(t => t.reference === result.ticket.reference);
-    
-    if (index !== -1) {
-      tickets[index].status = 'used';
-      tickets[index].usedAt = new Date().toISOString();
-      localStorage.setItem('tedx_tickets', JSON.stringify(tickets));
+      if (ticket.status === 'used' || ticket.checked_in) {
+        setResult({
+          status: 'already-used',
+          ticket,
+          message: 'This ticket has already been used',
+          usedAt: ticket.usedAt,
+        });
+        return;
+      }
 
       setResult({
         status: 'success',
-        ticket: tickets[index],
-        message: 'Ticket marked as used',
-        justMarked: true,
+        ticket,
+        message: 'Ticket verified successfully',
       });
+    } catch (error) {
+      console.error('Error verifying ticket:', error);
+      setResult({
+        status: 'error',
+        message: 'Database connection failed',
+      });
+    }
+  };
+
+  const markAsUsed = async () => {
+    if (!result.ticket) return;
+
+    try {
+      const updated = await ticketsAPI.update(result.ticket.reference, {
+        status: 'used',
+        checked_in: true,
+        checked_in_at: new Date().toISOString()
+      });
+      
+      if (updated) {
+        // Normalize fields
+        updated.usedAt = updated.checked_in_at || updated.used_at;
+        updated.event = updated.event || siteConfig.eventName;
+        updated.date = updated.date || siteConfig.date;
+        updated.venue = updated.venue || siteConfig.venueShort || siteConfig.venue;
+
+        setResult({
+          status: 'success',
+          ticket: updated,
+          message: 'Ticket marked as used',
+          justMarked: true,
+        });
+
+        // Sync local storage cache for checking on this device
+        const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
+        const index = tickets.findIndex(t => t.reference === result.ticket.reference);
+        if (index !== -1) {
+          tickets[index].status = 'used';
+          tickets[index].usedAt = updated.usedAt;
+          localStorage.setItem('tedx_tickets', JSON.stringify(tickets));
+        }
+      }
+    } catch (error) {
+      console.error('Error marking ticket as used:', error);
     }
   };
 

@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ticketsAPI } from '../../lib/supabase';
+import { useSiteData } from '../../context/SiteDataContext';
+
 
 const styles = `
   .modal-overlay {
@@ -298,13 +301,23 @@ const styles = `
 export default function TicketDetail() {
   const { reference } = useParams();
   const navigate = useNavigate();
+  const { siteConfig } = useSiteData();
   const [ticket, setTicket] = useState(null);
 
   useEffect(() => {
-    const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
-    const found = tickets.find(t => t.reference === reference);
-    setTicket(found || null);
-  }, [reference]);
+    const fetchTicket = async () => {
+      const found = await ticketsAPI.getByReference(reference);
+      if (found) {
+        // Normalize fields
+        found.usedAt = found.checked_in_at || found.used_at;
+        found.event = found.event || siteConfig.eventName;
+        found.date = found.date || siteConfig.date;
+        found.venue = found.venue || siteConfig.venueShort || siteConfig.venue;
+      }
+      setTicket(found || null);
+    };
+    fetchTicket();
+  }, [reference, siteConfig]);
 
   useEffect(() => {
     // Prevent body scroll when modal is open
@@ -327,15 +340,32 @@ export default function TicketDetail() {
     navigate('/admin/tickets');
   };
 
-  const markAsUsed = () => {
-    const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
-    const index = tickets.findIndex(t => t.reference === reference);
-    
-    if (index !== -1) {
-      tickets[index].status = 'used';
-      tickets[index].usedAt = new Date().toISOString();
-      localStorage.setItem('tedx_tickets', JSON.stringify(tickets));
-      setTicket(tickets[index]);
+  const markAsUsed = async () => {
+    try {
+      const updated = await ticketsAPI.update(reference, {
+        status: 'used',
+        checked_in: true,
+        checked_in_at: new Date().toISOString()
+      });
+      
+      if (updated) {
+        // Normalize fields
+        updated.usedAt = updated.checked_in_at || updated.used_at;
+        updated.event = updated.event || siteConfig.eventName;
+        updated.date = updated.date || siteConfig.date;
+        updated.venue = updated.venue || siteConfig.venueShort || siteConfig.venue;
+        setTicket(updated);
+        // Also sync local cache
+        const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
+        const index = tickets.findIndex(t => t.reference === reference);
+        if (index !== -1) {
+          tickets[index].status = 'used';
+          tickets[index].usedAt = updated.usedAt;
+          localStorage.setItem('tedx_tickets', JSON.stringify(tickets));
+        }
+      }
+    } catch (error) {
+      console.error('Error marking ticket as used:', error);
     }
   };
 
