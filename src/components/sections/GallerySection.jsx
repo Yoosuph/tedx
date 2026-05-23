@@ -3,7 +3,7 @@ import { useSiteData } from '../../context/SiteDataContext';
 import Section from '../shared/Section';
 import AnimatedCard from '../shared/AnimatedCard';
 
-export default function GallerySection() {
+export default function GallerySection({ hideHeader = false }) {
   const { galleryImages } = useSiteData();
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const isOpen = lightboxIndex !== null;
@@ -267,8 +267,9 @@ export default function GallerySection() {
       <Section
         id="gallery"
         title="Event Gallery"
-        subtitle="Capturing the moments that made TEDxDutse unforgettable — the energy, the connections, and the ideas that came alive."
+        subtitle="Capturing moments from our inspiring events"
         dark
+        hideHeader={hideHeader}
       >
         <div className="gallery-masonry">
           {galleryImages.map((image, index) => (

@@ -103,7 +103,7 @@ export default function AboutPage() {
       </section>
 
       {/* About Content */}
-      <AboutSection />
+      <AboutSection hideHeader />
 
       {/* CTA Section */}
       <section className="about-cta">

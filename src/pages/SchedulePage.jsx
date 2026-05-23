@@ -197,7 +197,7 @@ export default function SchedulePage() {
       </section>
 
       {/* Schedule Section (tabs + timeline) */}
-      <ScheduleSection />
+      <ScheduleSection hideHeader />
 
       {/* Info Cards */}
       <section className="schedule-page-info">

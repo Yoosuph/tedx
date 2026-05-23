@@ -457,7 +457,7 @@ function SpeakerModal({ speaker, index, onClose }) {
   );
 }
 
-export default function SpeakersSection() {
+export default function SpeakersSection({ hideHeader = false }) {
   const { speakers } = useSiteData();
   const [selectedSpeaker, setSelectedSpeaker] = useState(null);
 
@@ -657,8 +657,9 @@ export default function SpeakersSection() {
       <Section
         id="speakers"
         title="Our Speakers"
-        subtitle="A diverse lineup of thought leaders, innovators, and changemakers sharing ideas that matter. Click any speaker to learn more."
+        subtitle="Meet the inspiring voices sharing ideas worth spreading"
         dark
+        hideHeader={hideHeader}
       >
         <div className="speakers-grid">
           {speakers.map((speaker, index) => (

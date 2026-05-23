@@ -142,7 +142,7 @@ export default function SpeakersPage() {
       </div>
 
       {/* Speakers Grid (reuses existing component) */}
-      <SpeakersSection />
+      <SpeakersSection hideHeader />
 
       {/* CTA - Get Tickets */}
       <section className="speakers-cta">

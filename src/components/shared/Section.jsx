@@ -6,6 +6,7 @@ export default function Section({
   subtitle,
   dark = false,
   gray = false,
+  hideHeader = false,
   children,
   className = '',
   headerAlign = 'center',
@@ -24,7 +25,7 @@ export default function Section({
   return (
     <section id={id} className={sectionClass}>
       <div className="container">
-        {(title || subtitle) && (
+        {!hideHeader && (title || subtitle) && (
           <div
             ref={ref}
             className={`section-header animate-on-scroll ${isVisible ? 'visible' : ''}`}

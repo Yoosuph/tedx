@@ -161,7 +161,7 @@ export default function GalleryPage() {
       </div>
 
       {/* Gallery Grid + Lightbox (reuses existing component) */}
-      <GallerySection />
+      <GallerySection hideHeader />
 
       {/* CTA - Get Tickets */}
       <section className="gallery-cta">

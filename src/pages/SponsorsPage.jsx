@@ -151,7 +151,7 @@ export default function SponsorsPage() {
       </section>
 
       {/* Sponsors Section (tiered layout) */}
-      <SponsorsSection />
+      <SponsorsSection hideHeader />
 
       {/* Become a Partner */}
       <section className="become-partner">

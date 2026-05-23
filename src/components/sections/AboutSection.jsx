@@ -52,7 +52,7 @@ const stats = [
   },
 ];
 
-export default function AboutSection() {
+export default function AboutSection({ hideHeader = false }) {
   const { siteConfig, tedxBoilerplate } = useSiteData();
   return (
     <>
@@ -263,7 +263,8 @@ export default function AboutSection() {
       <Section
         id="about"
         title={`About ${siteConfig.eventName}`}
-        subtitle={`Discover the story behind ${siteConfig.theme} — ${siteConfig.tagline}`}
+        subtitle={siteConfig.tagline}
+        hideHeader={hideHeader}
       >
         <div className="about-grid">
           <AnimatedCard direction="left" delay={100}>

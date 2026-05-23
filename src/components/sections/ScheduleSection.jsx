@@ -71,7 +71,7 @@ const typeConfig = {
   },
 };
 
-export default function ScheduleSection() {
+export default function ScheduleSection({ hideHeader = false }) {
   const { schedule } = useSiteData();
   const [activeTab, setActiveTab] = useState('morning');
   const currentSession = schedule[activeTab];
@@ -290,8 +290,9 @@ export default function ScheduleSection() {
       <Section
         id="schedule"
         title="Event Schedule"
-        subtitle="A full day of inspiring talks, performances, and networking"
+        subtitle="Plan your day with our carefully curated program"
         dark
+        hideHeader={hideHeader}
       >
         {/* Tabs */}
         <div className="schedule-tabs">

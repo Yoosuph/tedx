@@ -58,9 +58,8 @@ function SponsorCard({ sponsor, size }) {
   );
 }
 
-export default function SponsorsSection() {
+export default function SponsorsSection({ hideHeader = false }) {
   const { sponsors } = useSiteData();
-  // Calculate global delay offset per tier for staggered animation
   let globalDelay = 0;
 
   return (
@@ -197,6 +196,7 @@ export default function SponsorsSection() {
         title="Our Partners"
         subtitle="TEDxDutse is made possible by the generous support of our community partners who believe in the power of ideas to spark change."
         gray
+        hideHeader={hideHeader}
       >
         <div style={{ marginTop: '2rem' }}>
           {tierConfig.map((tier, tierIndex) => {
