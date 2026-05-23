@@ -104,10 +104,14 @@ export default function AdminLayout({ children }) {
         }
         .admin-main {
           flex: 1;
-          padding: 2rem;
+          padding: 2rem 3rem;
           overflow-y: auto;
-          max-width: 1400px;
-          margin: 0 auto;
+        }
+
+        /* Center inner page containers */
+        .admin-main > div:not(style) {
+          margin-left: auto;
+          margin-right: auto;
         }
 
         /* Mobile: hamburger-style sidebar */
