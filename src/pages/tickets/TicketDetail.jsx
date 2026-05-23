@@ -321,24 +321,32 @@ const styles = `
   @media (max-width: 900px) {
     .modal-overlay {
       align-items: flex-start;
-      padding: 1rem 0.75rem;
+      padding: 0.75rem;
     }
 
     .modal-content {
       max-width: 100%;
       margin: 0;
+      max-height: 92vh;
+      overflow-y: auto;
     }
   }
 
   @media (max-width: 700px) {
     .detail-card {
-      padding: 1rem;
+      padding: 0.875rem;
     }
 
     .detail-header {
       flex-direction: column;
       align-items: flex-start;
-      gap: 0.75rem;
+      gap: 0.5rem;
+      margin-bottom: 0.875rem;
+      padding-bottom: 0.75rem;
+    }
+
+    .detail-header h1 {
+      font-size: 1.1rem;
     }
 
     .detail-header-right {
@@ -348,16 +356,63 @@ const styles = `
 
     .detail-grid {
       grid-template-columns: 1fr 1fr;
+      gap: 0.625rem;
+      margin-bottom: 0.875rem;
+    }
+
+    .detail-section {
+      padding: 0.625rem 0.75rem;
+    }
+
+    .detail-section h3 {
+      font-size: 0.625rem;
+      margin: 0 0 0.375rem;
+    }
+
+    .detail-row {
+      padding: 0.25rem 0;
+      font-size: 0.75rem;
+    }
+
+    .checkin-banner {
+      padding: 0.625rem 0.875rem;
+      margin-bottom: 0.875rem;
     }
 
     .action-buttons {
-      flex-direction: column;
+      flex-direction: row;
+      gap: 0.5rem;
+      padding-top: 0.75rem;
+    }
+
+    .btn-success,
+    .btn-secondary {
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
     }
   }
 
   @media (max-width: 480px) {
+    .modal-overlay {
+      padding: 0.5rem;
+    }
+
+    .modal-content {
+      max-height: 95vh;
+      border-radius: 14px;
+    }
+
+    .detail-card {
+      padding: 0.75rem;
+    }
+
     .detail-grid {
       grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+
+    .detail-section {
+      padding: 0.5rem 0.625rem;
     }
   }
 `;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Layout from '../../components/shared/Layout';
+import AdminLayout from '../../pages/admin/AdminLayout';
 import { ticketsAPI } from '../../lib/supabase';
 import { useSiteData } from '../../context/SiteDataContext';
 
@@ -604,7 +604,7 @@ export default function VerifyTicket() {
   };
 
   return (
-    <Layout>
+    <AdminLayout>
       <style>{styles}</style>
       <div className="verify-page">
         <div className="verify-container">
@@ -770,6 +770,6 @@ export default function VerifyTicket() {
           )}
         </div>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 }

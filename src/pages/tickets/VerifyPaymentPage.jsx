@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { useSiteData } from '../../context/SiteDataContext';
 import Layout from '../../components/shared/Layout';
 import { ticketsAPI } from '../../lib/supabase';
@@ -566,6 +564,38 @@ const styles = `
       font-size: 0.875rem;
     }
   }
+
+  /* Print styles — only show the ticket card */
+  @media print {
+    body * {
+      visibility: hidden !important;
+    }
+
+    #ticket-card,
+    #ticket-card * {
+      visibility: visible !important;
+    }
+
+    #ticket-card {
+      position: fixed !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+
+    .verify-page,
+    .success-header,
+    .ticket-actions,
+    nav,
+    footer,
+    .scroll-progress {
+      display: none !important;
+    }
+  }
 `;
 
 export default function VerifyPaymentPage() {
@@ -647,34 +677,8 @@ export default function VerifyPaymentPage() {
     link.click();
   };
 
-  const handleDownloadTicket = async () => {
-    const card = document.getElementById('ticket-card');
-    if (!card) return;
-
-    try {
-      const canvas = await html2canvas(card, {
-        scale: 3,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        logging: false,
-        borderRadius: 24,
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      
-      const pdf = new jsPDF({
-        orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
-        unit: 'px',
-        format: [imgWidth, imgHeight]
-      });
-
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      pdf.save(`TEDx-${ticketData.reference}-ticket.pdf`);
-    } catch (err) {
-      console.error('Failed to capture ticket:', err);
-    }
+  const handlePrintTicket = () => {
+    window.print();
   };
 
   const handleCopyRef = () => {
@@ -801,13 +805,13 @@ export default function VerifyPaymentPage() {
 
         {/* Actions */}
         <div className="ticket-actions">
-          <button onClick={handleDownloadTicket} className="btn-action btn-download">
+          <button onClick={handlePrintTicket} className="btn-action btn-download">
             <svg viewBox="0 0 24 24">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="8" />
             </svg>
-            Download PDF
+            Print Ticket
           </button>
           <button onClick={handleDownloadQR} className="btn-action btn-ghost">
             <svg viewBox="0 0 24 24" style={{ width: 18, height: 18, stroke: 'currentColor', strokeWidth: 2, fill: 'none' }}>
