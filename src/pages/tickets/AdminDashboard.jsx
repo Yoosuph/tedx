@@ -5,7 +5,6 @@ import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from '../admin/AdminLayout';
 import { ticketsAPI } from '../../lib/supabase';
 
-
 const styles = `
   .dashboard-page {
     max-width: 1100px;
@@ -15,17 +14,17 @@ const styles = `
   .admin-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 3rem;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
   .admin-header-left h1 {
     color: var(--white);
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem;
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
     letter-spacing: -0.02em;
   }
 
@@ -35,97 +34,91 @@ const styles = `
     margin: 0;
   }
 
-  .admin-header-right {
+  /* Quick Check-In Bar */
+  .quick-checkin-bar {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
     display: flex;
-    gap: 0.75rem;
+    justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    backdrop-filter: blur(10px);
   }
 
-  .user-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1.25rem;
-    background: var(--dark-surface);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 50px;
-  }
-
-  .user-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--ted-red), #C41E3A);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
+  .quick-checkin-info h3 {
+    color: var(--white);
+    font-size: 1.125rem;
+    margin: 0 0 0.25rem;
     font-weight: 700;
-    font-size: 0.875rem;
   }
 
-  .user-info {
+  .quick-checkin-info p {
+    color: var(--gray-400);
+    margin: 0;
+    font-size: 0.8125rem;
+  }
+
+  .quick-checkin-form {
     display: flex;
-    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    max-width: 420px;
+    width: 100%;
   }
 
-  .user-name {
+  .quick-checkin-input {
+    flex: 1;
+    padding: 0.75rem 1.25rem;
+    background: var(--black);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 100px;
     color: var(--white);
     font-size: 0.875rem;
-    font-weight: 600;
-    margin: 0;
+    transition: all 0.3s ease;
   }
 
-  .user-role {
-    color: var(--gray-400);
-    font-size: 0.75rem;
-    margin: 0;
+  .quick-checkin-input:focus {
+    outline: none;
+    border-color: var(--ted-red);
+    box-shadow: 0 0 15px rgba(235, 0, 40, 0.1);
   }
 
-  .btn-logout {
-    padding: 0.75rem 1.5rem;
-    background: transparent;
-    color: var(--gray-400);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 50px;
+  .btn-quick-lookup {
+    padding: 0.75rem 1.75rem;
+    background: var(--ted-red);
+    color: white;
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 700;
+    border-radius: 100px;
     cursor: pointer;
     transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+    white-space: nowrap;
   }
 
-  .btn-logout:hover {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.3);
-    color: #FCA5A5;
-  }
-
-  .btn-logout svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    stroke-width: 2;
-    fill: none;
+  .btn-quick-lookup:hover {
+    background: var(--ted-red-dark);
+    transform: translateY(-1px);
   }
 
   /* Stats Grid */
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 1rem;
+    gap: 1.25rem;
     margin-bottom: 2rem;
   }
 
   .stat-card {
     grid-column: span 2;
-    background: var(--dark-surface);
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 1.25rem;
-    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    padding: 1.5rem;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
   }
@@ -150,7 +143,8 @@ const styles = `
   .stat-card:hover {
     border-color: var(--ted-red);
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.03);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
   }
 
   .stat-card:hover::before {
@@ -158,35 +152,35 @@ const styles = `
   }
 
   .stat-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1rem;
-    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+    font-size: 1.35rem;
   }
 
-  .stat-icon.total { background: rgba(235, 0, 40, 0.15); }
-  .stat-icon.revenue { background: rgba(34, 197, 94, 0.15); }
-  .stat-icon.regular { background: rgba(107, 114, 128, 0.15); }
-  .stat-icon.vip { background: rgba(245, 158, 11, 0.15); }
-  .stat-icon.vvip { background: rgba(139, 92, 246, 0.15); }
+  .stat-icon.total { background: rgba(235, 0, 40, 0.12); border: 1px solid rgba(235, 0, 40, 0.15); }
+  .stat-icon.revenue { background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.15); }
+  .stat-icon.regular { background: rgba(156, 163, 175, 0.1); border: 1px solid rgba(156, 163, 175, 0.15); }
+  .stat-icon.vip { background: rgba(255, 215, 0, 0.08); border: 1px solid rgba(255, 215, 0, 0.15); }
+  .stat-icon.vvip { background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.15); }
 
   .stat-label {
     color: var(--gray-400);
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    margin: 0 0 0.375rem;
+    margin: 0 0 0.5rem;
   }
 
   .stat-value {
     color: var(--white);
-    font-size: 1.875rem;
-    font-weight: 800;
+    font-size: 2rem;
+    font-weight: 900;
     margin: 0 0 0.25rem;
     letter-spacing: -0.02em;
   }
@@ -199,52 +193,55 @@ const styles = `
     color: var(--gray-500);
     font-size: 0.8125rem;
     margin: 0;
+    font-weight: 600;
   }
 
   /* Action Buttons */
   .admin-actions {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 2rem;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
   }
 
   .btn-action {
-    padding: 1rem 1.25rem;
-    background: var(--dark-surface);
+    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.01);
     color: var(--white);
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    transition: all 0.3s ease;
+    gap: 1rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .btn-action:hover {
     border-color: var(--ted-red);
-    background: rgba(235, 0, 40, 0.1);
+    background: rgba(235, 0, 40, 0.04);
     transform: translateY(-2px);
   }
 
   .btn-action.primary {
     background: var(--ted-red);
     border-color: var(--ted-red);
+    box-shadow: 0 10px 20px rgba(235, 0, 40, 0.15);
   }
 
   .btn-action.primary:hover {
-    background: #C41E3A;
+    background: var(--ted-red-dark);
+    box-shadow: 0 15px 30px rgba(235, 0, 40, 0.3);
   }
 
   .btn-action-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -253,7 +250,7 @@ const styles = `
   }
 
   .btn-action.primary .btn-action-icon {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
   }
 
   .btn-action-text {
@@ -263,14 +260,16 @@ const styles = `
   }
 
   .btn-action-title {
-    font-weight: 600;
+    font-weight: 700;
     margin: 0;
+    font-size: 0.9375rem;
   }
 
   .btn-action-desc {
     font-size: 0.8125rem;
     color: var(--gray-400);
     margin: 0.25rem 0 0;
+    font-weight: 500;
   }
 
   .btn-action.primary .btn-action-desc {
@@ -279,9 +278,9 @@ const styles = `
 
   /* Tickets Section */
   .tickets-section {
-    background: var(--dark-surface);
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 28px;
     padding: 2.5rem;
   }
 
@@ -291,13 +290,13 @@ const styles = `
     align-items: center;
     margin-bottom: 2rem;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
   .tickets-header h2 {
     color: var(--white);
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.625rem;
+    font-weight: 800;
     margin: 0;
   }
 
@@ -310,29 +309,30 @@ const styles = `
 
   .search-input {
     flex: 1;
-    padding: 0.875rem 1.25rem;
-    background: var(--dark);
+    padding: 0.875rem 1.5rem;
+    background: var(--black);
     border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: 50px;
+    border-radius: 100px;
     color: var(--white);
     font-size: 0.9375rem;
     transition: all 0.3s ease;
   }
 
   .search-input::placeholder {
-    color: var(--gray-500);
+    color: var(--gray-600);
   }
 
   .search-input:focus {
     outline: none;
     border-color: var(--ted-red);
-    box-shadow: 0 0 0 4px rgba(235, 0, 40, 0.1);
+    box-shadow: 0 0 15px rgba(235, 0, 40, 0.1);
   }
 
   /* Table */
   .tickets-table-wrapper {
     overflow-x: auto;
     border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   .tickets-table {
@@ -341,69 +341,111 @@ const styles = `
   }
 
   .tickets-table thead {
-    background: var(--dark);
+    background: rgba(255, 255, 255, 0.02);
   }
 
   .tickets-table th {
-    padding: 1.25rem 1rem;
+    padding: 1.25rem 1.5rem;
     text-align: left;
     color: var(--gray-400);
-    font-weight: 600;
-    font-size: 0.8125rem;
+    font-weight: 700;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .tickets-table td {
-    padding: 1.25rem 1rem;
+    padding: 1.25rem 1.5rem;
     color: var(--gray-300);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.9375rem;
   }
 
   .tickets-table tr:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.01);
   }
 
   .tickets-table tr:last-child td {
     border-bottom: none;
   }
 
+  /* Table Ref Copy Column */
+  .table-ref-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .table-ref-text {
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  .btn-table-copy {
+    background: transparent;
+    border: none;
+    color: var(--gray-500);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+
+  .btn-table-copy:hover {
+    color: var(--ted-red);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .btn-table-copy svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+  }
+
   .status-badge {
     display: inline-block;
     padding: 0.375rem 0.875rem;
-    border-radius: 50px;
+    border-radius: 100px;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .status-paid {
-    background: rgba(34, 197, 94, 0.15);
+    background: rgba(34, 197, 94, 0.12);
     color: #86EFAC;
+    border: 1px solid rgba(34, 197, 94, 0.15);
   }
 
   .status-used {
-    background: rgba(59, 130, 246, 0.15);
+    background: rgba(59, 130, 246, 0.12);
     color: #93C5FD;
+    border: 1px solid rgba(59, 130, 246, 0.15);
   }
 
   .status-pending {
-    background: rgba(251, 191, 36, 0.15);
+    background: rgba(251, 191, 36, 0.12);
     color: #FCD34D;
+    border: 1px solid rgba(251, 191, 36, 0.15);
   }
 
   .view-link {
     color: var(--ted-red);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.875rem;
-    transition: opacity 0.3s ease;
+    transition: color 0.3s ease;
   }
 
   .view-link:hover {
-    opacity: 0.7;
+    color: var(--ted-red-light);
   }
 
   /* Empty State */
@@ -417,7 +459,7 @@ const styles = `
     height: 80px;
     margin: 0 auto 1.5rem;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.03);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -437,79 +479,57 @@ const styles = `
     margin: 0;
   }
 
+  @media (max-width: 992px) {
+    .stats-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .stat-card {
+      grid-column: span 2;
+    }
+    .stat-card:nth-child(4),
+    .stat-card:nth-child(5) {
+      grid-column: span 2;
+    }
+  }
+
   @media (max-width: 768px) {
     .admin-header {
       flex-direction: column;
       align-items: stretch;
+      gap: 1rem;
     }
 
-    .admin-header-right {
-      justify-content: space-between;
+    .quick-checkin-bar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+    }
+
+    .quick-checkin-form {
+      max-width: none;
     }
 
     .stats-grid {
-      grid-template-columns: repeat(6, 1fr);
-      gap: 0.5rem;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
     }
 
     .stat-card {
-      grid-column: span 2;
-      padding: 0.875rem;
-      border-radius: 12px;
+      grid-column: span 1;
+      padding: 1.25rem 1rem;
     }
-
     .stat-card:nth-child(4),
     .stat-card:nth-child(5) {
-      grid-column: span 3;
-    }
-
-    .stat-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      margin-bottom: 0.625rem;
-      font-size: 1rem;
-    }
-
-    .stat-label {
-      font-size: 0.625rem;
-      margin: 0 0 0.25rem;
+      grid-column: span 1;
     }
 
     .stat-value {
-      font-size: 1.375rem;
-      margin: 0 0 0.125rem;
-    }
-
-    .stat-subtext {
-      font-size: 0.6875rem;
+      font-size: 1.5rem;
     }
 
     .admin-actions {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.5rem;
-    }
-
-    .btn-action {
-      padding: 0.75rem 0.875rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      gap: 0.5rem;
-    }
-
-    .btn-action-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      font-size: 1rem;
-    }
-
-    .btn-action-title {
-      font-size: 0.75rem;
-    }
-
-    .btn-action-desc {
-      display: none;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
     }
 
     .tickets-header {
@@ -529,6 +549,9 @@ export default function AdminDashboard() {
   const { ticketTiers } = useSiteData();
   const [tickets, setTickets] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [quickRef, setQuickRef] = useState('');
+  const [copiedRef, setCopiedRef] = useState('');
+  
   const [stats, setStats] = useState({
     total: 0,
     revenue: 0,
@@ -539,11 +562,9 @@ export default function AdminDashboard() {
   });
 
   const fetchTickets = useCallback(async () => {
-    // Load tickets from Supabase database
     const stored = await ticketsAPI.getAll();
     setTickets(stored);
 
-    // Calculate stats
     const revenue = stored.reduce((sum, t) => sum + t.price, 0);
     const regular = stored.filter(t => t.tier?.toLowerCase() === 'regular').length;
     const vip = stored.filter(t => t.tier?.toLowerCase() === 'vip').length;
@@ -563,7 +584,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchTickets();
 
-    // Listen to real-time changes
     const handleTicketsChanged = () => {
       console.log('🔄 AdminDashboard: Tickets changed event received, fetching updates...');
       fetchTickets();
@@ -581,9 +601,23 @@ export default function AdminDashboard() {
       ticket.name.toLowerCase().includes(term) ||
       ticket.email.toLowerCase().includes(term) ||
       ticket.reference.toLowerCase().includes(term) ||
-      ticket.phone.includes(term)
+      (ticket.phone && ticket.phone.includes(term))
     );
   });
+
+  const handleQuickLookup = (e) => {
+    e.preventDefault();
+    if (quickRef.trim()) {
+      navigate(`/admin/tickets/${quickRef.trim().toUpperCase()}`);
+      setQuickRef('');
+    }
+  };
+
+  const handleCopyRef = (ref) => {
+    navigator.clipboard.writeText(ref);
+    setCopiedRef(ref);
+    setTimeout(() => setCopiedRef(''), 2000);
+  };
 
   const handleExportCSV = () => {
     const headers = ['Reference', 'Name', 'Email', 'Phone', 'Tier', 'Amount', 'Status'];
@@ -591,7 +625,7 @@ export default function AdminDashboard() {
       t.reference,
       t.name,
       t.email,
-      t.phone,
+      t.phone || '',
       t.tier,
       t.price,
       t.status || 'paid',
@@ -610,11 +644,6 @@ export default function AdminDashboard() {
     link.click();
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/admin/login');
-  };
-
   return (
     <AdminLayout>
       <style>{styles}</style>
@@ -623,8 +652,28 @@ export default function AdminDashboard() {
           <div className="admin-header">
             <div className="admin-header-left">
               <h1>Ticket Management</h1>
-              <p>Manage tickets, track sales, and handle event check-in</p>
+              <p>Manage tickets, track sales, and handle door check-in</p>
             </div>
+          </div>
+
+          {/* Quick Check-In Bar */}
+          <div className="quick-checkin-bar">
+            <div className="quick-checkin-info">
+              <h3>Fast Ticket Lookup</h3>
+              <p>Enter a reference code below to check in an attendee instantly</p>
+            </div>
+            <form onSubmit={handleQuickLookup} className="quick-checkin-form">
+              <input
+                type="text"
+                className="quick-checkin-input"
+                placeholder="e.g., TEDX1716493205"
+                value={quickRef}
+                onChange={(e) => setQuickRef(e.target.value)}
+              />
+              <button type="submit" className="btn-quick-lookup">
+                Lookup Ticket
+              </button>
+            </form>
           </div>
 
           {/* Stats Grid */}
@@ -667,21 +716,21 @@ export default function AdminDashboard() {
               <div className="btn-action-icon">📷</div>
               <div className="btn-action-text">
                 <p className="btn-action-title">QR Scanner</p>
-                <p className="btn-action-desc">Scan tickets at event</p>
+                <p className="btn-action-desc">Verify with device camera</p>
               </div>
             </Link>
             <Link to="/admin/tickets/verify" className="btn-action">
               <div className="btn-action-icon">🔍</div>
               <div className="btn-action-text">
                 <p className="btn-action-title">Verify Ticket</p>
-                <p className="btn-action-desc">Manual verification</p>
+                <p className="btn-action-desc">Manual verification page</p>
               </div>
             </Link>
             <button onClick={handleExportCSV} className="btn-action">
               <div className="btn-action-icon">📊</div>
               <div className="btn-action-text">
                 <p className="btn-action-title">Export CSV</p>
-                <p className="btn-action-desc">Download all tickets</p>
+                <p className="btn-action-desc">Download sales data</p>
               </div>
             </button>
           </div>
@@ -725,10 +774,28 @@ export default function AdminDashboard() {
                   <tbody>
                     {filteredTickets.map((ticket) => (
                       <tr key={ticket.reference}>
-                        <td>{ticket.reference}</td>
+                        <td>
+                          <div className="table-ref-cell">
+                            <span className="table-ref-text">{ticket.reference}</span>
+                            <button 
+                              className="btn-table-copy" 
+                              onClick={() => handleCopyRef(ticket.reference)}
+                              title="Copy Reference"
+                            >
+                              {copiedRef === ticket.reference ? (
+                                <span style={{ color: '#22C55E', fontSize: '9px', fontWeight: 'bold' }}>✓</span>
+                              ) : (
+                                <svg viewBox="0 0 24 24">
+                                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
+                        </td>
                         <td>{ticket.name}</td>
                         <td>{ticket.email}</td>
-                        <td>{ticket.phone}</td>
+                        <td>{ticket.phone || '—'}</td>
                         <td>{ticket.tier}</td>
                         <td>₦{ticket.price.toLocaleString()}</td>
                         <td>

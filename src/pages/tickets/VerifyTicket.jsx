@@ -5,16 +5,15 @@ import Layout from '../../components/shared/Layout';
 import { ticketsAPI } from '../../lib/supabase';
 import { useSiteData } from '../../context/SiteDataContext';
 
-
 const styles = `
   .verify-page {
     min-height: calc(100vh - 80px);
-    background: var(--dark);
-    padding: 2rem;
+    background: radial-gradient(circle at 50% 50%, rgba(235, 0, 40, 0.03) 0%, var(--black) 90%);
+    padding: 3rem 2rem;
   }
 
   .verify-container {
-    max-width: 900px;
+    max-width: 800px;
     margin: 0 auto;
   }
 
@@ -22,10 +21,10 @@ const styles = `
   .verify-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 3rem;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
   .verify-header-left {
@@ -38,41 +37,42 @@ const styles = `
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: var(--dark-surface);
-    border: 2px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     color: var(--gray-400);
   }
 
   .back-button:hover {
     border-color: var(--ted-red);
     color: var(--ted-red);
+    background: rgba(235, 0, 40, 0.05);
     transform: translateX(-4px);
   }
 
   .back-button svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     stroke: currentColor;
-    stroke-width: 2;
+    stroke-width: 2.5;
     fill: none;
   }
 
   .verify-title h1 {
     color: var(--white);
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem;
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
     letter-spacing: -0.02em;
   }
 
   .verify-title p {
     color: var(--gray-400);
-    font-size: 1rem;
+    font-size: 0.9375rem;
     margin: 0;
   }
 
@@ -80,23 +80,24 @@ const styles = `
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1.25rem;
-    background: var(--dark-surface);
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: 50px;
+    padding: 0.625rem 1.25rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 100px;
+    backdrop-filter: blur(10px);
   }
 
   .user-avatar {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--ted-red), #C41E3A);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: 700;
-    font-size: 0.875rem;
+    font-weight: 800;
+    font-size: 0.8125rem;
   }
 
   .user-info {
@@ -106,116 +107,123 @@ const styles = `
 
   .user-name {
     color: var(--white);
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-size: 0.8125rem;
+    font-weight: 700;
     margin: 0;
   }
 
   .user-role {
-    color: var(--gray-400);
-    font-size: 0.75rem;
+    color: var(--gray-500);
+    font-size: 0.6875rem;
     margin: 0;
+    font-weight: 600;
   }
 
   /* Verify Card */
   .verify-card {
-    background: var(--dark-surface);
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    padding: 2.5rem;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 32px;
+    padding: 3.5rem;
     margin-bottom: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
   }
 
   .verify-card h2 {
     color: var(--white);
     font-size: 1.5rem;
-    font-weight: 700;
+    font-weight: 800;
     margin: 0 0 1.5rem;
+    letter-spacing: -0.01em;
   }
 
   .verify-form {
     display: flex;
-    gap: 0.75rem;
+    gap: 1rem;
   }
 
   .verify-form input {
     flex: 1;
-    padding: 1rem 1.5rem;
-    background: var(--dark);
+    padding: 1.125rem 1.75rem;
+    background: rgba(0, 0, 0, 0.4);
     border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: 50px;
+    border-radius: 100px;
     color: var(--white);
     font-size: 1rem;
     transition: all 0.3s ease;
   }
 
   .verify-form input::placeholder {
-    color: var(--gray-500);
+    color: var(--gray-600);
   }
 
   .verify-form input:focus {
     outline: none;
     border-color: var(--ted-red);
-    box-shadow: 0 0 0 4px rgba(235, 0, 40, 0.1);
+    box-shadow: 0 0 20px rgba(235, 0, 40, 0.15);
+    background: rgba(0, 0, 0, 0.5);
   }
 
   .btn-verify {
-    padding: 1rem 2.5rem;
+    padding: 1.125rem 2.5rem;
     background: var(--ted-red);
     color: white;
     border: none;
-    border-radius: 50px;
+    border-radius: 100px;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.625rem;
   }
 
   .btn-verify svg {
     width: 20px;
     height: 20px;
     stroke: currentColor;
-    stroke-width: 2;
+    stroke-width: 2.5;
     fill: none;
   }
 
   .btn-verify:hover {
     background: #C41E3A;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(235, 0, 40, 0.3);
+    box-shadow: 0 8px 25px rgba(235, 0, 40, 0.35);
   }
 
   /* Result Cards */
   .result-card {
-    background: var(--dark-surface);
-    border-radius: 24px;
-    padding: 2.5rem;
-    animation: slideIn 0.4s ease;
+    background: rgba(255, 255, 255, 0.01);
+    border-radius: 32px;
+    padding: 3rem;
+    animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(20px);
+    width: 100%;
   }
 
   .result-card.success {
-    border: 3px solid rgba(34, 197, 94, 0.4);
-    box-shadow: 0 0 40px rgba(34, 197, 94, 0.15);
+    border: 2px solid rgba(34, 197, 94, 0.3);
+    box-shadow: 0 20px 50px rgba(34, 197, 94, 0.08);
   }
 
   .result-card.error {
-    border: 3px solid rgba(239, 68, 68, 0.4);
-    box-shadow: 0 0 40px rgba(239, 68, 68, 0.15);
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    box-shadow: 0 20px 50px rgba(239, 68, 68, 0.08);
   }
 
   .result-card.already-used {
-    border: 3px solid rgba(59, 130, 246, 0.4);
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.08);
   }
 
   @keyframes slideIn {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(30px);
     }
     to {
       opacity: 1;
@@ -226,40 +234,33 @@ const styles = `
   .result-header {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
     padding-bottom: 2rem;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   .result-icon-wrapper {
-    width: 80px;
-    height: 80px;
-    border-radius: 24px;
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3rem;
+    font-size: 2.5rem;
     flex-shrink: 0;
   }
 
-  .result-card.success .result-icon-wrapper {
-    background: rgba(34, 197, 94, 0.15);
-  }
-
-  .result-card.error .result-icon-wrapper {
-    background: rgba(239, 68, 68, 0.15);
-  }
-
-  .result-card.already-used .result-icon-wrapper {
-    background: rgba(59, 130, 246, 0.15);
-  }
+  .result-card.success .result-icon-wrapper { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.2); }
+  .result-card.error .result-icon-wrapper { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.2); }
+  .result-card.already-used .result-icon-wrapper { background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.2); }
 
   .result-info h2 {
     color: var(--white);
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem;
+    font-size: 1.875rem;
+    font-weight: 800;
+    margin: 0 0 0.375rem;
+    letter-spacing: -0.01em;
   }
 
   .result-info p {
@@ -270,31 +271,31 @@ const styles = `
 
   /* Ticket Details */
   .ticket-details {
-    background: var(--dark);
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 24px;
     padding: 2rem;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
   }
 
   .details-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
+    gap: 1.75rem;
   }
 
   .detail-item {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.375rem;
   }
 
   .detail-label {
     color: var(--gray-500);
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
   }
 
   .detail-value {
@@ -307,46 +308,54 @@ const styles = `
   .tier-badge {
     display: inline-block;
     padding: 0.375rem 0.875rem;
-    border-radius: 50px;
-    font-size: 0.875rem;
-    font-weight: 700;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    border: 1px solid transparent;
+    width: fit-content;
   }
 
   .tier-badge.regular {
-    background: rgba(107, 114, 128, 0.2);
+    background: rgba(156, 163, 175, 0.1);
     color: #D1D5DB;
+    border-color: rgba(156, 163, 175, 0.15);
   }
 
   .tier-badge.vip {
-    background: rgba(245, 158, 11, 0.2);
-    color: #FCD34D;
+    background: rgba(255, 215, 0, 0.08);
+    color: var(--gold);
+    border-color: rgba(255, 215, 0, 0.15);
   }
 
   .tier-badge.vvip {
-    background: rgba(139, 92, 246, 0.2);
+    background: rgba(139, 92, 246, 0.08);
     color: #C4B5FD;
+    border-color: rgba(139, 92, 246, 0.15);
   }
 
   .status-badge {
     display: inline-block;
     padding: 0.375rem 0.875rem;
-    border-radius: 50px;
-    font-size: 0.875rem;
-    font-weight: 700;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    width: fit-content;
   }
 
   .status-badge.paid {
-    background: rgba(34, 197, 94, 0.15);
+    background: rgba(34, 197, 94, 0.12);
     color: #86EFAC;
+    border: 1px solid rgba(34, 197, 94, 0.15);
   }
 
   .status-badge.used {
-    background: rgba(59, 130, 246, 0.15);
+    background: rgba(59, 130, 246, 0.12);
     color: #93C5FD;
+    border: 1px solid rgba(59, 130, 246, 0.15);
   }
 
   /* Action Buttons */
@@ -358,82 +367,93 @@ const styles = `
 
   .btn-action {
     flex: 1;
-    min-width: 200px;
-    padding: 1.25rem 2rem;
-    border-radius: 50px;
-    font-size: 1rem;
-    font-weight: 600;
+    min-width: 180px;
+    padding: 1.125rem 2rem;
+    border-radius: 100px;
+    font-size: 0.9375rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     border: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 0.625rem;
     text-decoration: none;
   }
 
   .btn-action svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     stroke: currentColor;
-    stroke-width: 2;
+    stroke-width: 2.5;
     fill: none;
   }
 
   .btn-success {
     background: #22C55E;
     color: white;
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.2);
   }
 
   .btn-success:hover {
     background: #16A34A;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 12px 30px rgba(34, 197, 94, 0.4);
   }
 
   .btn-secondary {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.04);
     color: var(--gray-300);
-    border: 2px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .btn-secondary:hover {
     border-color: var(--ted-red);
-    color: var(--ted-red);
+    color: var(--white);
+    background: rgba(235, 0, 40, 0.05);
     transform: translateY(-2px);
   }
 
   @media (max-width: 768px) {
     .verify-page {
-      padding: 1.5rem 1rem;
+      padding: 2rem 1.5rem;
     }
 
     .verify-header {
       flex-direction: column;
       align-items: stretch;
+      gap: 1.25rem;
     }
 
     .verify-header-left {
       flex-direction: column;
       align-items: flex-start;
+      gap: 1rem;
     }
 
     .verify-card {
       padding: 2rem 1.5rem;
+      border-radius: 24px;
     }
 
     .verify-form {
       flex-direction: column;
     }
 
+    .btn-verify {
+      width: 100%;
+    }
+
     .result-card {
       padding: 2rem 1.5rem;
+      border-radius: 24px;
     }
 
     .result-header {
       flex-direction: column;
       align-items: flex-start;
+      gap: 1.25rem;
     }
 
     .result-actions {
@@ -446,13 +466,13 @@ const styles = `
 
     .details-grid {
       grid-template-columns: 1fr;
+      gap: 1.25rem;
     }
   }
 `;
 
 export default function VerifyTicket() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const { siteConfig } = useSiteData();
   const [reference, setReference] = useState('');
   const [result, setResult] = useState(null);
@@ -469,7 +489,7 @@ export default function VerifyTicket() {
     }
 
     try {
-      const ticket = await ticketsAPI.getByReference(reference.trim());
+      const ticket = await ticketsAPI.getByReference(reference.trim().toUpperCase());
 
       if (!ticket) {
         setResult({
@@ -479,7 +499,6 @@ export default function VerifyTicket() {
         return;
       }
 
-      // Normalize ticket details
       ticket.usedAt = ticket.checked_in_at || ticket.used_at;
       ticket.event = ticket.event || siteConfig.eventName;
       ticket.date = ticket.date || siteConfig.date;
@@ -489,7 +508,7 @@ export default function VerifyTicket() {
         setResult({
           status: 'already-used',
           ticket,
-          message: 'This ticket has already been used',
+          message: 'Already Checked In',
           usedAt: ticket.usedAt,
         });
         return;
@@ -498,7 +517,7 @@ export default function VerifyTicket() {
       setResult({
         status: 'success',
         ticket,
-        message: 'Ticket is valid',
+        message: 'Ticket is Valid',
       });
     } catch (error) {
       console.error('Error verifying ticket:', error);
@@ -520,7 +539,6 @@ export default function VerifyTicket() {
       });
       
       if (updated) {
-        // Normalize fields
         updated.usedAt = updated.checked_in_at || updated.used_at;
         updated.event = updated.event || siteConfig.eventName;
         updated.date = updated.date || siteConfig.date;
@@ -529,11 +547,11 @@ export default function VerifyTicket() {
         setResult({
           status: 'success',
           ticket: updated,
-          message: 'Ticket marked as used',
+          message: 'Checked In Successfully',
           justMarked: true,
         });
 
-        // Sync local storage cache for checking on this device
+        // Sync local storage cache
         const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
         const index = tickets.findIndex(t => t.reference === result.ticket.reference);
         if (index !== -1) {
@@ -541,6 +559,9 @@ export default function VerifyTicket() {
           tickets[index].usedAt = updated.usedAt;
           localStorage.setItem('tedx_tickets', JSON.stringify(tickets));
         }
+
+        // Notify other components
+        window.dispatchEvent(new Event('tickets-changed'));
       }
     } catch (error) {
       console.error('Error marking ticket as used:', error);
@@ -550,11 +571,6 @@ export default function VerifyTicket() {
   const resetVerification = () => {
     setResult(null);
     setReference('');
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/admin/login');
   };
 
   return (
@@ -591,7 +607,7 @@ export default function VerifyTicket() {
               <form onSubmit={handleVerify} className="verify-form">
                 <input
                   type="text"
-                  placeholder="e.g., TEDX1234567890"
+                  placeholder="e.g., TEDX1716493205"
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
                 />
@@ -600,7 +616,7 @@ export default function VerifyTicket() {
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
-                  Verify
+                  Lookup
                 </button>
               </form>
             </div>
@@ -618,7 +634,7 @@ export default function VerifyTicket() {
                   <h2>{result.message}</h2>
                   {result.ticket && (
                     <p>
-                      {result.ticket.name} - {result.ticket.tier}
+                      {result.ticket.name} • {result.ticket.tier} Pass
                     </p>
                   )}
                 </div>
@@ -630,40 +646,36 @@ export default function VerifyTicket() {
                     <div className="details-grid">
                       <div className="detail-item">
                         <span className="detail-label">Reference</span>
-                        <span className="detail-value">{result.ticket.reference}</span>
+                        <span className="detail-value" style={{ fontFamily: 'var(--font-mono)' }}>
+                          {result.ticket.reference}
+                        </span>
                       </div>
                       <div className="detail-item">
-                        <span className="detail-label">Name</span>
+                        <span className="detail-label">Attendee</span>
                         <span className="detail-value">{result.ticket.name}</span>
                       </div>
                       <div className="detail-item">
-                        <span className="detail-label">Email</span>
-                        <span className="detail-value">{result.ticket.email}</span>
+                        <span className="detail-label">Contact</span>
+                        <span className="detail-value" style={{ fontSize: '0.875rem' }}>
+                          {result.ticket.email}<br/>{result.ticket.phone || 'No phone'}
+                        </span>
                       </div>
                       <div className="detail-item">
-                        <span className="detail-label">Phone</span>
-                        <span className="detail-value">{result.ticket.phone}</span>
-                      </div>
-                      <div className="detail-item">
-                        <span className="detail-label">Tier</span>
+                        <span className="detail-label">Pass Tier</span>
                         <span className={`tier-badge ${result.ticket.tier.toLowerCase()}`}>
                           {result.ticket.tier}
                         </span>
                       </div>
                       <div className="detail-item">
-                        <span className="detail-label">Amount</span>
-                        <span className="detail-value">₦{result.ticket.price.toLocaleString()}</span>
-                      </div>
-                      <div className="detail-item">
-                        <span className="detail-label">Status</span>
+                        <span className="detail-label">Payment Status</span>
                         <span className={`status-badge ${result.ticket.status || 'paid'}`}>
                           {result.ticket.status || 'paid'}
                         </span>
                       </div>
                       {result.usedAt && (
                         <div className="detail-item">
-                          <span className="detail-label">Used At</span>
-                          <span className="detail-value">
+                          <span className="detail-label">Checked In At</span>
+                          <span className="detail-value" style={{ color: '#93C5FD' }}>
                             {new Date(result.usedAt).toLocaleString()}
                           </span>
                         </div>
@@ -677,7 +689,7 @@ export default function VerifyTicket() {
                         <svg viewBox="0 0 24 24">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
-                        Mark as Used
+                        Complete Check-In
                       </button>
                     )}
                     <button onClick={resetVerification} className="btn-action btn-secondary">
@@ -685,14 +697,14 @@ export default function VerifyTicket() {
                         <polyline points="23 4 23 10 17 10" />
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                       </svg>
-                      Verify Another
+                      Lookup Another
                     </button>
                     <Link to="/admin/tickets" className="btn-action btn-secondary">
                       <svg viewBox="0 0 24 24">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                         <polyline points="9 22 9 12 15 12 15 22" />
                       </svg>
-                      Back to Dashboard
+                      Dashboard
                     </Link>
                   </div>
                 </>
