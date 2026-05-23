@@ -42,29 +42,17 @@ const SiteDataContext = createContext(null);
 
 export function SiteDataProvider({ children }) {
   const [loading, setLoading] = useState(true);
-  const [siteConfig, setSiteConfigState] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.siteConfig, defaultSiteConfig)
-  );
-  const [speakers, setSpeakersState] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.speakers, defaultSpeakers)
-  );
-  const [schedule, setScheduleState] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.schedule, defaultSchedule)
-  );
-  const [ticketTiers, setTicketTiersState] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.ticketTiers, defaultTicketTiers)
-  );
-  const [galleryImages, setGalleryImagesState] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.galleryImages, defaultGalleryImages)
-  );
-  const [sponsors, setSponsorsState] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.sponsors, defaultSponsors)
-  );
+  const [siteConfig, setSiteConfigState] = useState(defaultSiteConfig);
+  const [speakers, setSpeakersState] = useState(defaultSpeakers);
+  const [schedule, setScheduleState] = useState(defaultSchedule);
+  const [ticketTiers, setTicketTiersState] = useState(defaultTicketTiers);
+  const [galleryImages, setGalleryImagesState] = useState(defaultGalleryImages);
+  const [sponsors, setSponsorsState] = useState(defaultSponsors);
 
-  // Load data from Supabase on mount
+  // Load data from Supabase on mount - this is now the PRIMARY source
   useEffect(() => {
     if (!isSupabaseConfigured()) {
-      console.warn('⚠️ Supabase not configured. Using localStorage fallback.');
+      console.warn('⚠️ Supabase not configured. Using defaults.');
       setLoading(false);
       return;
     }
@@ -132,7 +120,9 @@ export function SiteDataProvider({ children }) {
             time: scheduleData.find(s => s.session_type === 'morning')?.session_time || '',
             items: scheduleData
               .filter(s => s.session_type === 'morning')
+              .sort((a, b) => a.order_index - b.order_index)
               .map(s => ({
+                id: s.id,
                 time: s.time,
                 title: s.title,
                 type: s.type,
@@ -146,7 +136,9 @@ export function SiteDataProvider({ children }) {
             time: scheduleData.find(s => s.session_type === 'afternoon')?.session_time || '',
             items: scheduleData
               .filter(s => s.session_type === 'afternoon')
+              .sort((a, b) => a.order_index - b.order_index)
               .map(s => ({
+                id: s.id,
                 time: s.time,
                 title: s.title,
                 type: s.type,
@@ -178,12 +170,14 @@ export function SiteDataProvider({ children }) {
         // Load gallery images
         const galleryData = await galleryAPI.getAll();
         if (galleryData && galleryData.length > 0) {
-          const formattedGallery = galleryData.map(g => ({
-            id: g.id,
-            src: g.src,
-            alt: g.alt,
-            orientation: g.orientation,
-          }));
+          const formattedGallery = galleryData
+            .sort((a, b) => a.order_index - b.order_index)
+            .map(g => ({
+              id: g.id,
+              src: g.src,
+              alt: g.alt,
+              orientation: g.orientation,
+            }));
           setGalleryImagesState(formattedGallery);
           saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
         }
@@ -198,14 +192,17 @@ export function SiteDataProvider({ children }) {
             community: [],
           };
 
-          sponsorsData.forEach(s => {
-            if (groupedSponsors[s.tier]) {
-              groupedSponsors[s.tier].push({
-                name: s.name,
-                logo: s.logo,
-              });
-            }
-          });
+          sponsorsData
+            .sort((a, b) => a.order_index - b.order_index)
+            .forEach(s => {
+              if (groupedSponsors[s.tier]) {
+                groupedSponsors[s.tier].push({
+                  id: s.id,
+                  name: s.name,
+                  logo: s.logo,
+                });
+              }
+            });
 
           setSponsorsState(groupedSponsors);
           saveToStorage(STORAGE_KEYS.sponsors, groupedSponsors);
@@ -214,6 +211,14 @@ export function SiteDataProvider({ children }) {
         console.log('✅ Data loaded from Supabase');
       } catch (error) {
         console.error('❌ Error loading from Supabase:', error);
+        // On error, fall back to localStorage cache
+        console.log('🔄 Falling back to localStorage cache...');
+        setSiteConfigState(loadFromStorage(STORAGE_KEYS.siteConfig, defaultSiteConfig));
+        setSpeakersState(loadFromStorage(STORAGE_KEYS.speakers, defaultSpeakers));
+        setScheduleState(loadFromStorage(STORAGE_KEYS.schedule, defaultSchedule));
+        setTicketTiersState(loadFromStorage(STORAGE_KEYS.ticketTiers, defaultTicketTiers));
+        setGalleryImagesState(loadFromStorage(STORAGE_KEYS.galleryImages, defaultGalleryImages));
+        setSponsorsState(loadFromStorage(STORAGE_KEYS.sponsors, defaultSponsors));
       } finally {
         setLoading(false);
       }
@@ -259,20 +264,37 @@ export function SiteDataProvider({ children }) {
 
     if (isSupabaseConfigured()) {
       try {
-        // This is a simplified update - in production you'd want to handle creates, updates, and deletes separately
         for (const speaker of newSpeakers) {
-          await speakersAPI.update(speaker.id, {
-            name: speaker.name,
-            role: speaker.role,
-            title: speaker.title,
-            bio: speaker.bio,
-            story: speaker.story,
-            duration: speaker.duration,
-            image: speaker.image,
-            social_facebook: speaker.social?.facebook,
-            social_instagram: speaker.social?.instagram,
-            social_linkedin: speaker.social?.linkedin,
-          });
+          if (speaker.id) {
+            // Update existing speaker
+            await speakersAPI.update(speaker.id, {
+              name: speaker.name,
+              role: speaker.role,
+              title: speaker.title,
+              bio: speaker.bio,
+              story: speaker.story,
+              duration: speaker.duration,
+              image: speaker.image,
+              social_facebook: speaker.social?.facebook,
+              social_instagram: speaker.social?.instagram,
+              social_linkedin: speaker.social?.linkedin,
+            });
+          } else {
+            // Create new speaker
+            const created = await speakersAPI.create({
+              name: speaker.name,
+              role: speaker.role,
+              title: speaker.title,
+              bio: speaker.bio,
+              story: speaker.story,
+              duration: speaker.duration,
+              image: speaker.image,
+              social_facebook: speaker.social?.facebook,
+              social_instagram: speaker.social?.instagram,
+              social_linkedin: speaker.social?.linkedin,
+            });
+            speaker.id = created.id;
+          }
         }
         console.log('✅ Speakers updated in Supabase');
       } catch (error) {
@@ -281,13 +303,84 @@ export function SiteDataProvider({ children }) {
     }
   }, []);
 
+  const deleteSpeaker = useCallback(async (speakerId) => {
+    if (!isSupabaseConfigured()) return;
+
+    try {
+      await speakersAPI.delete(speakerId);
+      console.log('✅ Speaker deleted from Supabase');
+    } catch (error) {
+      console.error('❌ Error deleting speaker from Supabase:', error);
+    }
+  }, []);
+
   const updateSchedule = useCallback(async (newSchedule) => {
     setScheduleState(newSchedule);
     saveToStorage(STORAGE_KEYS.schedule, newSchedule);
 
-    // Note: Schedule updates would need more complex logic to handle session-level changes
-    // For now, we're just updating localStorage
-    console.warn('⚠️ Schedule updates to Supabase not yet implemented');
+    if (isSupabaseConfigured()) {
+      try {
+        // Update morning session
+        for (let i = 0; i < newSchedule.morning.items.length; i++) {
+          const item = newSchedule.morning.items[i];
+          if (item.id) {
+            await scheduleAPI.update(item.id, {
+              time: item.time,
+              title: item.title,
+              type: item.type,
+              description: item.description,
+              speaker_id: item.speakerId,
+              order_index: i,
+            });
+          } else {
+            const created = await scheduleAPI.create({
+              session_type: 'morning',
+              session_label: newSchedule.morning.label,
+              session_time: newSchedule.morning.time,
+              time: item.time,
+              title: item.title,
+              type: item.type,
+              description: item.description,
+              speaker_id: item.speakerId,
+              order_index: i,
+            });
+            item.id = created.id;
+          }
+        }
+
+        // Update afternoon session
+        for (let i = 0; i < newSchedule.afternoon.items.length; i++) {
+          const item = newSchedule.afternoon.items[i];
+          if (item.id) {
+            await scheduleAPI.update(item.id, {
+              time: item.time,
+              title: item.title,
+              type: item.type,
+              description: item.description,
+              speaker_id: item.speakerId,
+              order_index: i,
+            });
+          } else {
+            const created = await scheduleAPI.create({
+              session_type: 'afternoon',
+              session_label: newSchedule.afternoon.label,
+              session_time: newSchedule.afternoon.time,
+              time: item.time,
+              title: item.title,
+              type: item.type,
+              description: item.description,
+              speaker_id: item.speakerId,
+              order_index: i,
+            });
+            item.id = created.id;
+          }
+        }
+
+        console.log('✅ Schedule updated in Supabase');
+      } catch (error) {
+        console.error('❌ Error updating schedule in Supabase:', error);
+      }
+    }
   }, []);
 
   const updateTicketTiers = useCallback(async (newTiers) => {
@@ -318,12 +411,24 @@ export function SiteDataProvider({ children }) {
 
     if (isSupabaseConfigured()) {
       try {
-        for (const img of newImages) {
-          await galleryAPI.update(img.id, {
-            src: img.src,
-            alt: img.alt,
-            orientation: img.orientation,
-          });
+        for (let i = 0; i < newImages.length; i++) {
+          const img = newImages[i];
+          if (img.id) {
+            await galleryAPI.update(img.id, {
+              src: img.src,
+              alt: img.alt,
+              orientation: img.orientation,
+              order_index: i,
+            });
+          } else {
+            const created = await galleryAPI.create({
+              src: img.src,
+              alt: img.alt,
+              orientation: img.orientation,
+              order_index: i,
+            });
+            img.id = created.id;
+          }
         }
         console.log('✅ Gallery images updated in Supabase');
       } catch (error) {
@@ -332,13 +437,62 @@ export function SiteDataProvider({ children }) {
     }
   }, []);
 
+  const deleteGalleryImage = useCallback(async (imageId) => {
+    if (!isSupabaseConfigured()) return;
+
+    try {
+      await galleryAPI.delete(imageId);
+      console.log('✅ Gallery image deleted from Supabase');
+    } catch (error) {
+      console.error('❌ Error deleting gallery image from Supabase:', error);
+    }
+  }, []);
+
   const updateSponsors = useCallback(async (newSponsors) => {
     setSponsorsState(newSponsors);
     saveToStorage(STORAGE_KEYS.sponsors, newSponsors);
 
-    // Note: Sponsor updates would need more complex logic to handle tier-level changes
-    // For now, we're just updating localStorage
-    console.warn('⚠️ Sponsor updates to Supabase not yet implemented');
+    if (isSupabaseConfigured()) {
+      try {
+        let orderIndex = 0;
+        for (const tier of ['presenting', 'platinum', 'gold', 'community']) {
+          if (newSponsors[tier]) {
+            for (const sponsor of newSponsors[tier]) {
+              if (sponsor.id) {
+                await sponsorsAPI.update(sponsor.id, {
+                  name: sponsor.name,
+                  logo: sponsor.logo,
+                  tier: tier,
+                  order_index: orderIndex++,
+                });
+              } else {
+                const created = await sponsorsAPI.create({
+                  name: sponsor.name,
+                  logo: sponsor.logo,
+                  tier: tier,
+                  order_index: orderIndex++,
+                });
+                sponsor.id = created.id;
+              }
+            }
+          }
+        }
+        console.log('✅ Sponsors updated in Supabase');
+      } catch (error) {
+        console.error('❌ Error updating sponsors in Supabase:', error);
+      }
+    }
+  }, []);
+
+  const deleteSponsor = useCallback(async (sponsorId) => {
+    if (!isSupabaseConfigured()) return;
+
+    try {
+      await sponsorsAPI.delete(sponsorId);
+      console.log('✅ Sponsor deleted from Supabase');
+    } catch (error) {
+      console.error('❌ Error deleting sponsor from Supabase:', error);
+    }
   }, []);
 
   const resetToDefaults = useCallback(() => {
@@ -356,14 +510,17 @@ export function SiteDataProvider({ children }) {
     updateSiteConfig,
     speakers,
     updateSpeakers,
+    deleteSpeaker,
     schedule,
     updateSchedule,
     ticketTiers,
     updateTicketTiers,
     galleryImages,
     updateGalleryImages,
+    deleteGalleryImage,
     sponsors,
     updateSponsors,
+    deleteSponsor,
     tedxBoilerplate,
     resetToDefaults,
     isSupabaseConfigured: isSupabaseConfigured(),
