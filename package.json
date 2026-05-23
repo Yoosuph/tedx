@@ -7,9 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed-supabase": "node seed-supabase.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
+    "dotenv": "^17.4.2",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
     "jspdf": "^4.2.1",
