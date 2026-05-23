@@ -490,6 +490,8 @@ export default function SpeakersSection({ hideHeader = false }) {
           overflow: hidden;
           border: 1px solid rgba(255,255,255,0.06);
           cursor: pointer;
+          min-width: 0;
+          box-sizing: border-box;
         }
 
         .speaker-card::before {
@@ -635,21 +637,37 @@ export default function SpeakersSection({ hideHeader = false }) {
         }
 
         @media (max-width: 640px) {
+          .speakers-grid {
+            overflow-x: hidden;
+          }
+
           .speaker-card {
             padding: 1rem;
             gap: 1rem;
+            min-width: 0;
+            max-width: 100%;
           }
 
           .speaker-card__name {
             font-size: 0.95rem;
+            white-space: normal;
+            word-break: break-word;
           }
 
           .speaker-card__role {
             font-size: 0.75rem;
+            white-space: normal;
+            word-break: break-word;
           }
 
           .speaker-card__title {
             font-size: 0.8rem;
+            white-space: normal;
+            word-break: break-word;
+          }
+
+          .speaker-card__header {
+            flex-wrap: wrap;
           }
         }
       `}</style>
