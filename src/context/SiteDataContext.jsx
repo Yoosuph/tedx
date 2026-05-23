@@ -49,50 +49,230 @@ export function SiteDataProvider({ children }) {
   const [galleryImages, setGalleryImagesState] = useState(defaultGalleryImages);
   const [sponsors, setSponsorsState] = useState(defaultSponsors);
 
-  // Load data from Supabase on mount - this is now the PRIMARY source
+  // Load data from Supabase
+  const loadData = async () => {
+    try {
+      console.log('🔄 Loading data from Supabase...');
+
+      // Load site config
+      const config = await siteConfigAPI.get();
+      if (config) {
+        const formattedConfig = {
+          eventName: config.event_name,
+          eventYear: config.event_year,
+          theme: config.theme,
+          tagline: config.tagline,
+          date: config.date,
+          time: config.time,
+          venue: config.venue,
+          venueShort: config.venue_short,
+          dressCode: config.dress_code,
+          contact: {
+            email: config.contact_email,
+            phone: config.contact_phone,
+            whatsapp: config.contact_whatsapp,
+          },
+          social: {
+            instagram: config.social_instagram,
+            twitter: config.social_twitter,
+            facebook: config.social_facebook,
+            linkedin: config.social_linkedin,
+          },
+        };
+        setSiteConfigState(formattedConfig);
+        saveToStorage(STORAGE_KEYS.siteConfig, formattedConfig);
+      }
+
+      // Load speakers
+      const speakersData = await speakersAPI.getAll();
+      if (speakersData && speakersData.length > 0) {
+        const formattedSpeakers = speakersData.map(s => ({
+          id: s.id,
+          name: s.name,
+          role: s.role,
+          title: s.title,
+          bio: s.bio,
+          story: s.story,
+          duration: s.duration,
+          image: s.image,
+          social: {
+            facebook: s.social_facebook,
+            instagram: s.social_instagram,
+            linkedin: s.social_linkedin,
+          },
+        }));
+        setSpeakersState(formattedSpeakers);
+        saveToStorage(STORAGE_KEYS.speakers, formattedSpeakers);
+      }
+
+      // Load schedule
+      const scheduleData = await scheduleAPI.getAll();
+      if (scheduleData && scheduleData.length > 0) {
+        const morning = {
+          label: scheduleData.find(s => s.session_type === 'morning')?.session_label || 'Morning Session',
+          time: scheduleData.find(s => s.session_type === 'morning')?.session_time || '',
+          items: scheduleData
+            .filter(s => s.session_type === 'morning')
+            .sort((a, b) => a.order_index - b.order_index)
+            .map(s => ({
+              id: s.id,
+              time: s.time,
+              title: s.title,
+              type: s.type,
+              description: s.description,
+              speakerId: s.speaker_id,
+            })),
+        };
+
+        const afternoon = {
+          label: scheduleData.find(s => s.session_type === 'afternoon')?.session_label || 'Afternoon Session',
+          time: scheduleData.find(s => s.session_type === 'afternoon')?.session_time || '',
+          items: scheduleData
+            .filter(s => s.session_type === 'afternoon')
+            .sort((a, b) => a.order_index - b.order_index)
+            .map(s => ({
+              id: s.id,
+              time: s.time,
+              title: s.title,
+              type: s.type,
+              description: s.description,
+              speakerId: s.speaker_id,
+            })),
+        };
+
+        const formattedSchedule = { morning, afternoon };
+        setScheduleState(formattedSchedule);
+        saveToStorage(STORAGE_KEYS.schedule, formattedSchedule);
+      }
+
+      // Load ticket tiers
+      const tiersData = await ticketTiersAPI.getAll();
+      if (tiersData && tiersData.length > 0) {
+        const formattedTiers = tiersData.map(t => ({
+          id: t.id,
+          name: t.name,
+          price: t.price,
+          currency: t.currency,
+          features: t.features,
+          popular: t.popular,
+        }));
+        setTicketTiersState(formattedTiers);
+        saveToStorage(STORAGE_KEYS.ticketTiers, formattedTiers);
+      }
+
+      // Load gallery images
+      const galleryData = await galleryAPI.getAll();
+      if (galleryData && galleryData.length > 0) {
+        const formattedGallery = galleryData
+          .sort((a, b) => a.order_index - b.order_index)
+          .map(g => ({
+            id: g.id,
+            src: g.src,
+            alt: g.alt,
+            orientation: g.orientation,
+          }));
+        setGalleryImagesState(formattedGallery);
+        saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
+      }
+
+      // Load sponsors
+      const sponsorsData = await sponsorsAPI.getAll();
+      if (sponsorsData && sponsorsData.length > 0) {
+        const groupedSponsors = {
+          presenting: [],
+          platinum: [],
+          gold: [],
+          community: [],
+        };
+
+        sponsorsData
+          .sort((a, b) => a.order_index - b.order_index)
+          .forEach(s => {
+            if (groupedSponsors[s.tier]) {
+              groupedSponsors[s.tier].push({
+                id: s.id,
+                name: s.name,
+                logo: s.logo,
+              });
+            }
+          });
+
+        setSponsorsState(groupedSponsors);
+        saveToStorage(STORAGE_KEYS.sponsors, groupedSponsors);
+      }
+
+      console.log('✅ Data loaded from Supabase');
+    } catch (error) {
+      console.error('❌ Error loading from Supabase:', error);
+      // On error, fall back to localStorage cache
+      console.log('🔄 Falling back to localStorage cache...');
+      setSiteConfigState(loadFromStorage(STORAGE_KEYS.siteConfig, defaultSiteConfig));
+      setSpeakersState(loadFromStorage(STORAGE_KEYS.speakers, defaultSpeakers));
+      setScheduleState(loadFromStorage(STORAGE_KEYS.schedule, defaultSchedule));
+      setTicketTiersState(loadFromStorage(STORAGE_KEYS.ticketTiers, defaultTicketTiers));
+      setGalleryImagesState(loadFromStorage(STORAGE_KEYS.galleryImages, defaultGalleryImages));
+      setSponsorsState(loadFromStorage(STORAGE_KEYS.sponsors, defaultSponsors));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load data and subscribe to real-time changes
   useEffect(() => {
     if (!isSupabaseConfigured()) {
-      console.warn('⚠️ Supabase not configured. Using defaults.');
+      console.warn('⚠️ Supabase not configured, using localStorage fallback');
       setLoading(false);
       return;
     }
 
-    async function loadFromSupabase() {
-      try {
-        console.log('🔄 Loading data from Supabase...');
+    loadData();
 
-        // Load site config
-        const config = await siteConfigAPI.get();
-        if (config) {
-          const formattedConfig = {
-            eventName: config.event_name,
-            eventYear: config.event_year,
-            theme: config.theme,
-            tagline: config.tagline,
-            date: config.date,
-            time: config.time,
-            venue: config.venue,
-            venueShort: config.venue_short,
-            dressCode: config.dress_code,
-            contact: {
-              email: config.contact_email,
-              phone: config.contact_phone,
-              whatsapp: config.contact_whatsapp,
-            },
-            social: {
-              instagram: config.social_instagram,
-              twitter: config.social_twitter,
-              facebook: config.social_facebook,
-              linkedin: config.social_linkedin,
-            },
-          };
-          setSiteConfigState(formattedConfig);
-          saveToStorage(STORAGE_KEYS.siteConfig, formattedConfig);
-        }
+    // Subscribe to real-time changes
+    const subscriptions = [];
 
-        // Load speakers
-        const speakersData = await speakersAPI.getAll();
-        if (speakersData && speakersData.length > 0) {
+    // Site config changes
+    const siteConfigSub = supabase
+      .channel('site_config_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_config' }, () => {
+        console.log('🔄 Site config changed, reloading...');
+        siteConfigAPI.get().then(config => {
+          if (config) {
+            const formattedConfig = {
+              eventName: config.event_name,
+              eventYear: config.event_year,
+              theme: config.theme,
+              tagline: config.tagline,
+              date: config.date,
+              time: config.time,
+              venue: config.venue,
+              venueShort: config.venue_short,
+              dressCode: config.dress_code,
+              contact: {
+                email: config.contact_email,
+                phone: config.contact_phone,
+                whatsapp: config.contact_whatsapp,
+              },
+              social: {
+                instagram: config.social_instagram,
+                twitter: config.social_twitter,
+                facebook: config.social_facebook,
+                linkedin: config.social_linkedin,
+              },
+            };
+            setSiteConfigState(formattedConfig);
+            saveToStorage(STORAGE_KEYS.siteConfig, formattedConfig);
+          }
+        });
+      })
+      .subscribe();
+    subscriptions.push(siteConfigSub);
+
+    // Speakers changes
+    const speakersSub = supabase
+      .channel('speakers_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'speakers' }, () => {
+        console.log('🔄 Speakers changed, reloading...');
+        speakersAPI.getAll().then(speakersData => {
           const formattedSpeakers = speakersData.map(s => ({
             id: s.id,
             name: s.name,
@@ -110,11 +290,17 @@ export function SiteDataProvider({ children }) {
           }));
           setSpeakersState(formattedSpeakers);
           saveToStorage(STORAGE_KEYS.speakers, formattedSpeakers);
-        }
+        });
+      })
+      .subscribe();
+    subscriptions.push(speakersSub);
 
-        // Load schedule
-        const scheduleData = await scheduleAPI.getAll();
-        if (scheduleData && scheduleData.length > 0) {
+    // Schedule changes
+    const scheduleSub = supabase
+      .channel('schedule_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'schedule' }, () => {
+        console.log('🔄 Schedule changed, reloading...');
+        scheduleAPI.getAll().then(scheduleData => {
           const morning = {
             label: scheduleData.find(s => s.session_type === 'morning')?.session_label || 'Morning Session',
             time: scheduleData.find(s => s.session_type === 'morning')?.session_time || '',
@@ -150,11 +336,17 @@ export function SiteDataProvider({ children }) {
           const formattedSchedule = { morning, afternoon };
           setScheduleState(formattedSchedule);
           saveToStorage(STORAGE_KEYS.schedule, formattedSchedule);
-        }
+        });
+      })
+      .subscribe();
+    subscriptions.push(scheduleSub);
 
-        // Load ticket tiers
-        const tiersData = await ticketTiersAPI.getAll();
-        if (tiersData && tiersData.length > 0) {
+    // Ticket tiers changes
+    const tiersSub = supabase
+      .channel('ticket_tiers_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ticket_tiers' }, () => {
+        console.log('🔄 Ticket tiers changed, reloading...');
+        ticketTiersAPI.getAll().then(tiersData => {
           const formattedTiers = tiersData.map(t => ({
             id: t.id,
             name: t.name,
@@ -165,11 +357,17 @@ export function SiteDataProvider({ children }) {
           }));
           setTicketTiersState(formattedTiers);
           saveToStorage(STORAGE_KEYS.ticketTiers, formattedTiers);
-        }
+        });
+      })
+      .subscribe();
+    subscriptions.push(tiersSub);
 
-        // Load gallery images
-        const galleryData = await galleryAPI.getAll();
-        if (galleryData && galleryData.length > 0) {
+    // Gallery changes
+    const gallerySub = supabase
+      .channel('gallery_images_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery_images' }, () => {
+        console.log('🔄 Gallery changed, reloading...');
+        galleryAPI.getAll().then(galleryData => {
           const formattedGallery = galleryData
             .sort((a, b) => a.order_index - b.order_index)
             .map(g => ({
@@ -180,11 +378,17 @@ export function SiteDataProvider({ children }) {
             }));
           setGalleryImagesState(formattedGallery);
           saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
-        }
+        });
+      })
+      .subscribe();
+    subscriptions.push(gallerySub);
 
-        // Load sponsors
-        const sponsorsData = await sponsorsAPI.getAll();
-        if (sponsorsData && sponsorsData.length > 0) {
+    // Sponsors changes
+    const sponsorsSub = supabase
+      .channel('sponsors_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sponsors' }, () => {
+        console.log('🔄 Sponsors changed, reloading...');
+        sponsorsAPI.getAll().then(sponsorsData => {
           const groupedSponsors = {
             presenting: [],
             platinum: [],
@@ -206,25 +410,25 @@ export function SiteDataProvider({ children }) {
 
           setSponsorsState(groupedSponsors);
           saveToStorage(STORAGE_KEYS.sponsors, groupedSponsors);
-        }
+        });
+      })
+      .subscribe();
+    subscriptions.push(sponsorsSub);
 
-        console.log('✅ Data loaded from Supabase');
-      } catch (error) {
-        console.error('❌ Error loading from Supabase:', error);
-        // On error, fall back to localStorage cache
-        console.log('🔄 Falling back to localStorage cache...');
-        setSiteConfigState(loadFromStorage(STORAGE_KEYS.siteConfig, defaultSiteConfig));
-        setSpeakersState(loadFromStorage(STORAGE_KEYS.speakers, defaultSpeakers));
-        setScheduleState(loadFromStorage(STORAGE_KEYS.schedule, defaultSchedule));
-        setTicketTiersState(loadFromStorage(STORAGE_KEYS.ticketTiers, defaultTicketTiers));
-        setGalleryImagesState(loadFromStorage(STORAGE_KEYS.galleryImages, defaultGalleryImages));
-        setSponsorsState(loadFromStorage(STORAGE_KEYS.sponsors, defaultSponsors));
-      } finally {
-        setLoading(false);
-      }
-    }
+    // Tickets changes (for admin dashboard)
+    const ticketsSub = supabase
+      .channel('tickets_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, () => {
+        console.log('🔄 Tickets changed, triggering refresh event...');
+        window.dispatchEvent(new CustomEvent('tickets-changed'));
+      })
+      .subscribe();
+    subscriptions.push(ticketsSub);
 
-    loadFromSupabase();
+    // Cleanup subscriptions on unmount
+    return () => {
+      subscriptions.forEach(sub => supabase.removeChannel(sub));
+    };
   }, []);
 
   const updateSiteConfig = useCallback(async (newConfig) => {
@@ -266,7 +470,6 @@ export function SiteDataProvider({ children }) {
       try {
         for (const speaker of newSpeakers) {
           if (speaker.id) {
-            // Update existing speaker
             await speakersAPI.update(speaker.id, {
               name: speaker.name,
               role: speaker.role,
@@ -280,7 +483,6 @@ export function SiteDataProvider({ children }) {
               social_linkedin: speaker.social?.linkedin,
             });
           } else {
-            // Create new speaker
             const created = await speakersAPI.create({
               name: speaker.name,
               role: speaker.role,
@@ -320,7 +522,6 @@ export function SiteDataProvider({ children }) {
 
     if (isSupabaseConfigured()) {
       try {
-        // Update morning session
         for (let i = 0; i < newSchedule.morning.items.length; i++) {
           const item = newSchedule.morning.items[i];
           if (item.id) {
@@ -348,7 +549,6 @@ export function SiteDataProvider({ children }) {
           }
         }
 
-        // Update afternoon session
         for (let i = 0; i < newSchedule.afternoon.items.length; i++) {
           const item = newSchedule.afternoon.items[i];
           if (item.id) {
