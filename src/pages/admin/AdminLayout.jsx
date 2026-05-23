@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../../components/layout/Navbar';
+import AdminPageTransition from './AdminPageTransition';
 
 const navItems = [
   { label: 'Dashboard', path: '/admin/tickets', icon: '📊' },
@@ -64,16 +65,34 @@ export default function AdminLayout({ children }) {
           text-decoration: none;
           font-size: 0.875rem;
           font-weight: 500;
-          transition: all 0.2s;
+          transition: all 0.25s ease;
+          position: relative;
+          overflow: hidden;
+        }
+        .sidebar-link::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 3px;
+          height: 0;
+          background: var(--ted-red);
+          border-radius: 0 2px 2px 0;
+          transition: height 0.25s ease;
         }
         .sidebar-link:hover {
           background: rgba(255,255,255,0.05);
           color: var(--white);
+          transform: translateX(4px);
         }
         .sidebar-link.active {
           background: rgba(235, 0, 40, 0.12);
           color: var(--ted-red);
           font-weight: 600;
+        }
+        .sidebar-link.active::before {
+          height: 60%;
         }
         .sidebar-link span.icon {
           font-size: 1.125rem;
@@ -109,7 +128,7 @@ export default function AdminLayout({ children }) {
         }
 
         /* Center inner page containers */
-        .admin-main > div:not(style) {
+        .admin-page-transition {
           margin-left: auto;
           margin-right: auto;
         }
@@ -174,7 +193,9 @@ export default function AdminLayout({ children }) {
             onLogout={handleLogout}
           />
           <div className="admin-main">
-            {children}
+            <AdminPageTransition>
+              {children}
+            </AdminPageTransition>
           </div>
           <MobileToggle />
         </div>

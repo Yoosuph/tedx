@@ -62,7 +62,13 @@ function App() {
             <ProtectedRoute>
               <AdminDashboard />
             </ProtectedRoute>
-          } />
+          }>
+            <Route path=":reference" element={
+              <ProtectedRoute>
+                <TicketDetail />
+              </ProtectedRoute>
+            } />
+          </Route>
           <Route path="/admin/tickets/scanner" element={
             <ProtectedRoute>
               <TicketScanner />
@@ -71,11 +77,6 @@ function App() {
           <Route path="/admin/tickets/verify" element={
             <ProtectedRoute>
               <VerifyTicket />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/tickets/:reference" element={
-            <ProtectedRoute>
-              <TicketDetail />
             </ProtectedRoute>
           } />
           <Route path="/admin/settings" element={

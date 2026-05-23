@@ -1,19 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from '../admin/AdminLayout';
 
 const styles = `
-  .admin-page {
-    min-height: calc(100vh - 80px);
-    background: var(--dark);
-    padding: 2rem;
-  }
-
-  .admin-container {
-    max-width: 1400px;
-    margin: 0 auto;
+  .dashboard-page {
+    max-width: 1100px;
   }
 
   /* Header */
@@ -443,10 +436,6 @@ const styles = `
   }
 
   @media (max-width: 768px) {
-    .admin-page {
-      padding: 1.5rem 1rem;
-    }
-
     .admin-header {
       flex-direction: column;
       align-items: stretch;
@@ -612,8 +601,7 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <style>{styles}</style>
-      <div className="admin-page">
-        <div className="admin-container">
+      <div className="dashboard-page">
           {/* Header */}
           <div className="admin-header">
             <div className="admin-header-left">
@@ -743,8 +731,8 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
-        </div>
       </div>
+      <Outlet />
     </AdminLayout>
   );
 }
