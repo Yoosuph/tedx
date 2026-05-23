@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { usePaystackPayment } from 'react-paystack';
+
 import { useSiteData } from '../../context/SiteDataContext';
 import Layout from '../../components/shared/Layout';
 import { supabase } from '../../lib/supabase';
@@ -726,20 +726,20 @@ export default function TicketsPage() {
 
   const [purchaseState, setPurchaseState] = useState('idle'); // 'idle' | 'checking' | 'loading' | 'success'
 
-  const paystackConfig = {
-    email: formData.email,
-    amount: selectedTier?.price * 100 || 0,
-    publicKey,
-    metadata: {
-      custom_fields: [
-        { display_name: "Full Name", variable_name: "full_name", value: formData.name.toUpperCase() },
-        { display_name: "Phone", variable_name: "phone", value: formData.phone },
-        { display_name: "Ticket Tier", variable_name: "ticket_tier", value: selectedTier?.name },
-      ]
-    }
+  // Load Paystack inline script once
+  const loadPaystackScript = () => {
+    return new Promise((resolve, reject) => {
+      if (window.PaystackPop) {
+        resolve(window.PaystackPop);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://js.paystack.co/v2/inline.js';
+      script.onload = () => resolve(window.PaystackPop);
+      script.onerror = () => reject(new Error('Failed to load Paystack'));
+      document.head.appendChild(script);
+    });
   };
-
-  const initializePayment = usePaystackPayment(paystackConfig);
 
   const handleCheckout = async (e) => {
     e.preventDefault();
@@ -771,22 +771,36 @@ export default function TicketsPage() {
 
       // No duplicate found, proceed to loading and launch Paystack
       setPurchaseState('loading');
-      
-      initializePayment(
-        // onSuccess
-        (ref) => {
+
+      const PaystackPop = await loadPaystackScript();
+
+      const handler = new PaystackPop();
+      handler.newTransaction({
+        key: publicKey,
+        email: formData.email.trim(),
+        amount: selectedTier.price * 100,
+        metadata: {
+          custom_fields: [
+            { display_name: "Full Name", variable_name: "full_name", value: formData.name.toUpperCase() },
+            { display_name: "Phone", variable_name: "phone", value: formData.phone },
+            { display_name: "Ticket Tier", variable_name: "ticket_tier", value: selectedTier.name },
+          ]
+        },
+        onSuccess: (transaction) => {
           setPurchaseState('success');
           setTimeout(() => {
-            onSuccess(ref);
+            onSuccess({ reference: transaction.reference });
             setPurchaseState('idle');
           }, 1500);
         },
-        // onClose
-        () => {
+        onCancel: () => {
           setPurchaseState('idle');
           setError('Payment window closed');
+        },
+        onClose: () => {
+          // onClose fires after either success or cancel, no action needed here
         }
-      );
+      });
 
     } catch (err) {
       console.error('Checkout error:', err);
