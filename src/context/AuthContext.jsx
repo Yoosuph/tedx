@@ -10,29 +10,33 @@ export function AuthProvider({ children }) {
   const mounted = useRef(false);
 
   const checkSession = useCallback(async () => {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) {
-      console.error('Auth session error:', error);
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Auth session error:', error);
+        setIsAuthenticated(false);
+        return;
+      }
+
+      if (!mounted.current) return;
+
+      if (data?.session) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('email', data.session.user.email)
+          .maybeSingle();
+
+        setIsAuthenticated(roleData?.role === 'admin');
+      } else {
+        setIsAuthenticated(false);
+      }
+    } catch (err) {
+      console.error('Auth check error:', err);
       setIsAuthenticated(false);
-      setLoading(false);
-      return;
+    } finally {
+      if (mounted.current) setLoading(false);
     }
-
-    if (!mounted.current) return;
-
-    if (data?.session) {
-      // Check user_roles for admin
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('email', data.session.user.email)
-        .maybeSingle();
-
-      setIsAuthenticated(roleData?.role === 'admin');
-    } else {
-      setIsAuthenticated(false);
-    }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -41,20 +45,26 @@ export function AuthProvider({ children }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (!mounted.current) return;
+        try {
+          if (!mounted.current) return;
 
-        if (session?.user) {
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('email', session.user.email)
-            .maybeSingle();
+          if (session?.user) {
+            const { data: roleData } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('email', session.user.email)
+              .maybeSingle();
 
-          setIsAuthenticated(roleData?.role === 'admin');
-        } else {
+            setIsAuthenticated(roleData?.role === 'admin');
+          } else {
+            setIsAuthenticated(false);
+          }
+        } catch (err) {
+          console.error('Auth state change error:', err);
           setIsAuthenticated(false);
+        } finally {
+          if (mounted.current) setLoading(false);
         }
-        setLoading(false);
       }
     );
 
