@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from './AdminLayout';
 import { uploadGalleryMedia, validateGalleryFile } from '../../lib/cloudinary';
@@ -16,10 +16,14 @@ import {
 
 function getThumbnailUrl(item) {
   if (!item.publicId) return item.src;
-  if (item.resourceType === 'video') {
-    return buildVideoPosterUrl({ publicId: item.publicId, width: 400 });
+  try {
+    if (item.resourceType === 'video') {
+      return buildVideoPosterUrl({ publicId: item.publicId, width: 400 });
+    }
+    return buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: 400 });
+  } catch {
+    return item.src;
   }
-  return buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: 400 });
 }
 
 /**
@@ -46,8 +50,9 @@ async function destroyCloudinaryAsset(publicId, resourceType) {
 }
 
 export default function AdminGallery() {
-  const { galleryImages, updateGalleryImages, deleteGalleryImage } = useSiteData();
-  const [images, setImages] = useState(galleryImages.map(img => ({ ...img })));
+  const { galleryImages, fetchGalleryImages, updateGalleryImages } = useSiteData();
+  const [images, setImages] = useState(() => galleryImages.map(img => ({ ...img })));
+  const [deletedItems, setDeletedItems] = useState([]);
   const [saved, setSaved] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [newAlt, setNewAlt] = useState('');
@@ -61,6 +66,11 @@ export default function AdminGallery() {
   const editFileInputRef = useRef(null);
   const dragItem = useRef(null);
   const dragOver = useRef(null);
+
+  // Fetch gallery on mount
+  useEffect(() => {
+    fetchGalleryImages();
+  }, [fetchGalleryImages]);
 
   /** Upload a file to Cloudinary, then add the result to the local state. */
   const handleUpload = useCallback(async (file, altText, orientation) => {
@@ -148,28 +158,14 @@ export default function AdminGallery() {
     if (editFileInputRef.current) editFileInputRef.current.value = '';
   }, [editingId]);
 
-  const deleteImage = useCallback(async (id) => {
+  const deleteImage = useCallback((id) => {
     const img = images.find(i => i.id === id);
     if (!img) return;
-
-    // Destroy Cloudinary asset if present
-    if (img?.publicId && img?.resourceType) {
-      await destroyCloudinaryAsset(img.publicId, img.resourceType);
-    }
-
-    // Delete from database if it has a real DB id (numeric)
-    if (Number.isInteger(Number(id))) {
-      try {
-        await deleteGalleryImage(id);
-      } catch (err) {
-        console.error('Failed to delete from database:', err);
-      }
-    }
-
-    setImages(prev => prev.filter(img => img.id !== id));
+    setImages(prev => prev.filter(i => i.id !== id));
+    setDeletedItems(prev => [...prev, { id: img.id, publicId: img.publicId, resourceType: img.resourceType }]);
     if (editingId === id) setEditingId(null);
     setSaved(false);
-  }, [images, editingId, deleteGalleryImage]);
+  }, [images, editingId]);
 
   const updateImage = useCallback((id, field, value) => {
     setImages(prev => {
@@ -214,14 +210,21 @@ export default function AdminGallery() {
   const handleSave = useCallback(async () => {
     setBtnState('loading');
     try {
-      await updateGalleryImages(images);
+      for (const item of deletedItems) {
+        if (item.publicId && item.resourceType) {
+          await destroyCloudinaryAsset(item.publicId, item.resourceType).catch(() => {});
+        }
+      }
+      const idsToDelete = deletedItems.map(d => d.id);
+      await updateGalleryImages(images, idsToDelete);
+      setDeletedItems([]);
       setBtnState('success');
       setTimeout(() => setBtnState('idle'), 1500);
     } catch (err) {
       console.error(err);
       setBtnState('idle');
     }
-  }, [images, updateGalleryImages]);
+  }, [images, deletedItems, updateGalleryImages]);
 
   const editingImage = images.find(img => img.id === editingId);
 

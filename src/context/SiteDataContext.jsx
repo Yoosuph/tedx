@@ -47,6 +47,7 @@ export function SiteDataProvider({ children }) {
   const [schedule, setScheduleState] = useState(defaultSchedule);
   const [ticketTiers, setTicketTiersState] = useState(defaultTicketTiers);
   const [galleryImages, setGalleryImagesState] = useState(defaultGalleryImages);
+  const [galleryLoading, setGalleryLoading] = useState(false);
   const [sponsors, setSponsorsState] = useState(defaultSponsors);
 
   // Load data from Supabase
@@ -160,27 +161,8 @@ export function SiteDataProvider({ children }) {
         saveToStorage(STORAGE_KEYS.ticketTiers, formattedTiers);
       }
 
-      // Load gallery images
-      const galleryData = await galleryAPI.getAll();
-      if (galleryData && galleryData.length > 0) {
-        const formattedGallery = galleryData
-          .sort((a, b) => a.order_index - b.order_index)
-          .map(g => ({
-            id: g.id,
-            src: g.src,
-            alt: g.alt,
-            orientation: g.orientation,
-            publicId: g.public_id,
-            resourceType: g.resource_type,
-            format: g.format,
-            width: g.width,
-            height: g.height,
-            bytes: g.bytes,
-            duration: g.duration,
-          }));
-        setGalleryImagesState(formattedGallery);
-        saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
-      }
+      // Note: gallery images are loaded lazily on-demand
+      // when the user visits /gallery or /admin/gallery
 
       // Load sponsors
       const sponsorsData = await sponsorsAPI.getAll();
@@ -223,6 +205,40 @@ export function SiteDataProvider({ children }) {
       setLoading(false);
     }
   };
+
+  // Load gallery images on demand (lazy)
+  const fetchGalleryImages = useCallback(async () => {
+    if (!isSupabaseConfigured()) return;
+    setGalleryLoading(true);
+    try {
+      const galleryData = await galleryAPI.getAll();
+      if (galleryData && galleryData.length > 0) {
+        const formattedGallery = galleryData
+          .sort((a, b) => a.order_index - b.order_index)
+          .map(g => ({
+            id: g.id,
+            src: g.src,
+            alt: g.alt,
+            orientation: g.orientation,
+            publicId: g.public_id,
+            resourceType: g.resource_type,
+            format: g.format,
+            width: g.width,
+            height: g.height,
+            bytes: g.bytes,
+            duration: g.duration,
+          }));
+        setGalleryImagesState(formattedGallery);
+        saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
+      }
+    } catch (error) {
+      console.error('❌ Error loading gallery:', error);
+      const cached = loadFromStorage(STORAGE_KEYS.galleryImages, defaultGalleryImages);
+      if (cached) setGalleryImagesState(cached);
+    } finally {
+      setGalleryLoading(false);
+    }
+  }, []);
 
   // Load data and subscribe to real-time changes
   useEffect(() => {
@@ -619,12 +635,19 @@ export function SiteDataProvider({ children }) {
     }
   }, []);
 
-  const updateGalleryImages = useCallback(async (newImages) => {
+  const updateGalleryImages = useCallback(async (newImages, deletedIds = []) => {
     setGalleryImagesState(newImages);
     saveToStorage(STORAGE_KEYS.galleryImages, newImages);
 
     if (isSupabaseConfigured()) {
       try {
+        // Delete removed images first
+        for (const id of deletedIds) {
+          if (Number.isInteger(Number(id))) {
+            await galleryAPI.delete(id);
+          }
+        }
+
         for (let i = 0; i < newImages.length; i++) {
           const img = newImages[i];
           const payload = {
@@ -640,8 +663,6 @@ export function SiteDataProvider({ children }) {
             bytes: img.bytes ?? null,
             duration: img.duration ?? null,
           };
-          // Only update if the id is a proper integer from the database
-          // (client-generated temp IDs like 'img-...' mean it's a new record)
           if (img.id && Number.isInteger(Number(img.id))) {
             await galleryAPI.update(img.id, payload);
           } else {
@@ -652,7 +673,7 @@ export function SiteDataProvider({ children }) {
         console.log('✅ Gallery images updated in Supabase');
       } catch (error) {
         console.error('❌ Error updating gallery images in Supabase:', error);
-        throw error; // Re-throw so AdminGallery's handleSave can react
+        throw error;
       }
     }
   }, []);
@@ -736,6 +757,8 @@ export function SiteDataProvider({ children }) {
     ticketTiers,
     updateTicketTiers,
     galleryImages,
+    galleryLoading,
+    fetchGalleryImages,
     updateGalleryImages,
     deleteGalleryImage,
     sponsors,

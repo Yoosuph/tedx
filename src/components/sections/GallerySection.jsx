@@ -11,7 +11,7 @@ import {
 } from '../../lib/cloudinary';
 
 export default function GallerySection({ hideHeader = false }) {
-  const { galleryImages, loading } = useSiteData();
+  const { galleryImages, galleryLoading } = useSiteData();
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const isOpen = lightboxIndex !== null;
 
@@ -55,25 +55,34 @@ export default function GallerySection({ hideHeader = false }) {
   /**
    * Build the best thumbnail URL for a gallery item.
    * Uses Cloudinary transformations when publicId is available; falls back
-   * to the raw `src` for legacy items.
+   * to the raw `src` for legacy items or when Cloudinary config is missing.
    */
   function getThumbnailUrl(item) {
     if (!item.publicId) return item.src;
-    if (item.resourceType === 'video') {
-      return buildVideoPosterUrl({ publicId: item.publicId, width: THUMBNAIL_WIDTH });
+    try {
+      if (item.resourceType === 'video') {
+        return buildVideoPosterUrl({ publicId: item.publicId, width: THUMBNAIL_WIDTH });
+      }
+      return buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: THUMBNAIL_WIDTH });
+    } catch {
+      return item.src;
     }
-    return buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: THUMBNAIL_WIDTH });
   }
 
   /**
    * Build the lightbox URL for a gallery item.
+   * Falls back to item.src when Cloudinary config is missing.
    */
   function getLightboxUrl(item) {
     if (!item.publicId) return item.src;
-    if (item.resourceType === 'video') {
-      return buildVideoUrl({ publicId: item.publicId, format: item.format || 'mp4' });
+    try {
+      if (item.resourceType === 'video') {
+        return buildVideoUrl({ publicId: item.publicId, format: item.format || 'mp4' });
+      }
+      return buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: LIGHTBOX_WIDTH });
+    } catch {
+      return item.src;
     }
-    return buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: LIGHTBOX_WIDTH });
   }
 
   return (
@@ -419,7 +428,7 @@ export default function GallerySection({ hideHeader = false }) {
         dark
         hideHeader={hideHeader}
       >
-        {loading ? (
+        {galleryLoading ? (
           <div className="gallery-masonry gallery-skeleton">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="gallery-skeleton__card">

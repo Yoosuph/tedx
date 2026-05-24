@@ -1,10 +1,15 @@
+import { useEffect } from 'react';
 import Layout from '../components/shared/Layout';
 import GallerySection from '../components/sections/GallerySection';
 import { useSiteData } from '../context/SiteDataContext';
 import { Link } from 'react-router-dom';
 
 export default function GalleryPage() {
-  const { siteConfig } = useSiteData();
+  const { siteConfig, fetchGalleryImages } = useSiteData();
+
+  useEffect(() => {
+    fetchGalleryImages();
+  }, [fetchGalleryImages]);
   return (
     <Layout>
       <style>{`

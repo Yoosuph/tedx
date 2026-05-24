@@ -1,6 +1,7 @@
 import { Routes, Route, Link } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute } from './context/AuthContext'
 import { SiteDataProvider } from './context/SiteDataContext'
+import ErrorBoundary from './components/shared/ErrorBoundary'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import SpeakersPage from './pages/SpeakersPage'
@@ -43,6 +44,7 @@ function App() {
   return (
     <SiteDataProvider>
       <AuthProvider>
+        <ErrorBoundary>
         <Routes>
           {/* Public Pages */}
           <Route path="/" element={<HomePage />} />
@@ -157,6 +159,7 @@ function App() {
             </div>
           } />
         </Routes>
+        </ErrorBoundary>
       </AuthProvider>
     </SiteDataProvider>
   )
