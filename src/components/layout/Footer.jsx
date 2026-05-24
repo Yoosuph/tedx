@@ -1,15 +1,16 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useSiteData } from '../../context/SiteDataContext';
+import CertificateModal from '../CertificateModal';
 
 const quickLinks = [
-  { label: 'Home', href: '#home' },
-  { label: 'About', href: '#about' },
-  { label: 'Speakers', href: '#speakers' },
-  { label: 'Schedule', href: '#schedule' },
-  { label: 'Gallery', href: '#gallery' },
-  { label: 'Partners', href: '#partners' },
-  { label: 'My Certificate', href: '/my-certificate' },
+  { label: 'Home', href: '/' },
+  { label: 'About', href: '/about' },
+  { label: 'Speakers', href: '/speakers' },
+  { label: 'Schedule', href: '/schedule' },
+  { label: 'Gallery', href: '/gallery' },
+  { label: 'Partners', href: '/partners' },
 ];
 
 const socialIcons = [
@@ -22,11 +23,18 @@ const socialIcons = [
 export default function Footer() {
   const { siteConfig, tedxBoilerplate } = useSiteData();
   const [email, setEmail] = useState('');
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
   const currentYear = new Date().getFullYear();
 
-  const handleNewsletterSubmit = (e) => {
+  const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim()) return;
+
+    setSubscribing(true);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     Swal.fire({
       icon: 'success',
@@ -43,6 +51,7 @@ export default function Footer() {
     });
 
     setEmail('');
+    setSubscribing(false);
   };
 
   return (
@@ -197,14 +206,14 @@ export default function Footer() {
         }
 
         .footer-newsletter-input {
-          padding: 0.8rem 1.2rem;
+          padding: 1.25rem 1.5rem;
           border-radius: 9999px;
           border: 1px solid rgba(255,255,255,0.15);
           background: rgba(255,255,255,0.08);
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
           color: #fff;
-          font-size: 0.9rem;
+          font-size: 1rem;
           outline: none;
           transition: all 300ms ease;
           width: 100%;
@@ -222,22 +231,46 @@ export default function Footer() {
         }
 
         .footer-newsletter-btn {
-          padding: 0.8rem 1.5rem;
+          padding: 1rem 2rem;
           border-radius: 9999px;
           border: none;
           background: linear-gradient(135deg, #EB0028, #FF4757);
           color: #fff;
-          font-size: 0.9rem;
+          font-size: 1rem;
           font-weight: 600;
           cursor: pointer;
           transition: all 300ms ease;
           text-transform: uppercase;
           letter-spacing: 0.5px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          min-width: 140px;
         }
 
-        .footer-newsletter-btn:hover {
+        .footer-newsletter-btn:hover:not(:disabled) {
           transform: translateY(-2px);
           box-shadow: 0 6px 20px rgba(235, 0, 40, 0.5);
+        }
+
+        .footer-newsletter-btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .footer-btn-spinner {
+          width: 18px;
+          height: 18px;
+          border: 2.5px solid rgba(255, 255, 255, 0.3);
+          border-top-color: #ffffff;
+          border-radius: 50%;
+          animation: footer-btn-spin 0.6s linear infinite;
+        }
+
+        @keyframes footer-btn-spin {
+          to { transform: rotate(360deg); }
         }
 
         .footer-bottom {
@@ -267,20 +300,6 @@ export default function Footer() {
           .footer-grid {
             grid-template-columns: 1fr;
             gap: 2rem;
-          }
-
-          .footer-newsletter-form {
-            flex-direction: column;
-          }
-        }
-
-        @media (min-width: 769px) {
-          .footer-newsletter-form {
-            flex-direction: row;
-          }
-
-          .footer-newsletter-input {
-            flex: 1;
           }
         }
       `}</style>
@@ -319,11 +338,19 @@ export default function Footer() {
             <div>
               <h4 className="footer-heading">Quick Links</h4>
               {quickLinks.map((link) => (
-                <a key={link.label} href={link.href} className="footer-link">
+                <Link key={link.label} to={link.href} className="footer-link">
                   <i className="fas fa-chevron-right" />
                   {link.label}
-                </a>
+                </Link>
               ))}
+              <button
+                onClick={() => setShowCertModal(true)}
+                className="footer-link"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left' }}
+              >
+                <i className="fas fa-chevron-right" />
+                My Certificate
+              </button>
             </div>
 
             {/* Column 3: Event Info */}
@@ -371,8 +398,15 @@ export default function Footer() {
                   required
                   aria-label="Email address for newsletter"
                 />
-                <button type="submit" className="footer-newsletter-btn">
-                  Subscribe
+                <button type="submit" className="footer-newsletter-btn" disabled={subscribing}>
+                  {subscribing ? (
+                    <>
+                      <span className="footer-btn-spinner" />
+                      Subscribing...
+                    </>
+                  ) : (
+                    'Subscribe'
+                  )}
                 </button>
               </form>
             </div>
@@ -392,6 +426,7 @@ export default function Footer() {
           </div>
         </div>
       </footer>
+      {showCertModal && <CertificateModal onClose={() => setShowCertModal(false)} />}
     </>
   );
 }
