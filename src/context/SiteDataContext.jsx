@@ -285,7 +285,7 @@ export function SiteDataProvider({ children }) {
             setSiteConfigState(formattedConfig);
             saveToStorage(STORAGE_KEYS.siteConfig, formattedConfig);
           }
-        });
+        }).catch(err => console.error('❌ Site config reload error:', err));
       })
       .subscribe();
     subscriptions.push(siteConfigSub);
@@ -313,7 +313,7 @@ export function SiteDataProvider({ children }) {
           }));
           setSpeakersState(formattedSpeakers);
           saveToStorage(STORAGE_KEYS.speakers, formattedSpeakers);
-        });
+        }).catch(err => console.error('❌ Speakers reload error:', err));
       })
       .subscribe();
     subscriptions.push(speakersSub);
@@ -359,7 +359,7 @@ export function SiteDataProvider({ children }) {
           const formattedSchedule = { morning, afternoon };
           setScheduleState(formattedSchedule);
           saveToStorage(STORAGE_KEYS.schedule, formattedSchedule);
-        });
+        }).catch(err => console.error('❌ Schedule reload error:', err));
       })
       .subscribe();
     subscriptions.push(scheduleSub);
@@ -380,7 +380,7 @@ export function SiteDataProvider({ children }) {
           }));
           setTicketTiersState(formattedTiers);
           saveToStorage(STORAGE_KEYS.ticketTiers, formattedTiers);
-        });
+        }).catch(err => console.error('❌ Ticket tiers reload error:', err));
       })
       .subscribe();
     subscriptions.push(tiersSub);
@@ -408,7 +408,7 @@ export function SiteDataProvider({ children }) {
             }));
           setGalleryImagesState(formattedGallery);
           saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
-        });
+        }).catch(err => console.error('❌ Gallery reload error:', err));
       })
       .subscribe();
     subscriptions.push(gallerySub);
@@ -440,7 +440,7 @@ export function SiteDataProvider({ children }) {
 
           setSponsorsState(groupedSponsors);
           saveToStorage(STORAGE_KEYS.sponsors, groupedSponsors);
-        });
+        }).catch(err => console.error('❌ Sponsors reload error:', err));
       })
       .subscribe();
     subscriptions.push(sponsorsSub);

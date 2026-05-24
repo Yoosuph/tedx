@@ -1,5 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
+const SUPABASE_TIMEOUT = 10000;
+
+function fetchWithTimeout(url, options) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), SUPABASE_TIMEOUT);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(id));
+}
+
 // Supabase configuration
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -15,6 +23,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
+  },
+  global: {
+    fetch: fetchWithTimeout,
   },
 });
 
