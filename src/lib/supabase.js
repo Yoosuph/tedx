@@ -425,9 +425,19 @@ export const ticketsAPI = {
     
     if (error) {
       console.error('Error fetching tickets:', error);
-      return [];
     }
-    return data;
+    
+    const dbTickets = data || [];
+    
+    // Merge with localStorage tickets (avoid duplicates)
+    try {
+      const stored = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
+      const dbRefs = new Set(dbTickets.map(t => t.reference));
+      const localOnly = stored.filter(t => !dbRefs.has(t.reference));
+      return [...dbTickets, ...localOnly];
+    } catch {
+      return dbTickets;
+    }
   },
 
   async getByReference(reference) {
@@ -437,11 +447,20 @@ export const ticketsAPI = {
       .eq('reference', reference)
       .single();
     
-    if (error) {
+    if (data) return data;
+    
+    if (error && error.code !== 'PGRST116') {
       console.error('Error fetching ticket:', error);
+    }
+    
+    // Fallback to localStorage
+    try {
+      const stored = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
+      const found = stored.find(t => t.reference === reference);
+      return found || null;
+    } catch {
       return null;
     }
-    return data;
   },
 
   async create(ticket) {

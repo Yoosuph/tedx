@@ -9,6 +9,7 @@ const quickLinks = [
   { label: 'Schedule', href: '#schedule' },
   { label: 'Gallery', href: '#gallery' },
   { label: 'Partners', href: '#partners' },
+  { label: 'Certificates', href: '/certificates' },
 ];
 
 const socialIcons = [

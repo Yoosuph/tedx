@@ -124,8 +124,9 @@ const styles = `
   }
 
   .stat-card:nth-child(4),
-  .stat-card:nth-child(5) {
-    grid-column: span 3;
+  .stat-card:nth-child(5),
+  .stat-card:nth-child(6) {
+    grid-column: span 2;
   }
 
   .stat-card::before {
@@ -167,6 +168,7 @@ const styles = `
   .stat-icon.regular { background: rgba(156, 163, 175, 0.1); border: 1px solid rgba(156, 163, 175, 0.15); }
   .stat-icon.vip { background: rgba(255, 215, 0, 0.08); border: 1px solid rgba(255, 215, 0, 0.15); }
   .stat-icon.vvip { background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.15); }
+  .stat-icon.checkedin { background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.15); }
 
   .stat-label {
     color: var(--gray-400);
@@ -186,6 +188,10 @@ const styles = `
   }
 
   .stat-value.revenue {
+    color: #86EFAC;
+  }
+
+  .stat-value.checkedin {
     color: #86EFAC;
   }
 
@@ -486,10 +492,6 @@ const styles = `
     .stat-card {
       grid-column: span 2;
     }
-    .stat-card:nth-child(4),
-    .stat-card:nth-child(5) {
-      grid-column: span 2;
-    }
   }
 
   @media (max-width: 768px) {
@@ -517,10 +519,6 @@ const styles = `
     .stat-card {
       grid-column: span 1;
       padding: 1.25rem 1rem;
-    }
-    .stat-card:nth-child(4),
-    .stat-card:nth-child(5) {
-      grid-column: span 1;
     }
 
     .stat-value {
@@ -707,6 +705,12 @@ export default function AdminDashboard() {
               <p className="stat-label">VVIP</p>
               <p className="stat-value">{stats.vvip}</p>
               <p className="stat-subtext">₦{(ticketTiers.find(t => t.id === 'vvip')?.price || 25000).toLocaleString()} each</p>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon checkedin">✅</div>
+              <p className="stat-label">Checked In</p>
+              <p className="stat-value checkedin">{stats.checkedIn}</p>
+              <p className="stat-subtext">{stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) : 0}% of {stats.total} tickets</p>
             </div>
           </div>
 

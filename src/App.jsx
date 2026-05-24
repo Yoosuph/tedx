@@ -25,6 +25,9 @@ import AdminPricing from './pages/admin/AdminPricing'
 import AdminSpeakers from './pages/admin/AdminSpeakers'
 import AdminSchedule from './pages/admin/AdminSchedule'
 import AdminGallery from './pages/admin/AdminGallery'
+import AdminCertificates from './pages/admin/AdminCertificates'
+import AdminSpeakerCertificates from './pages/admin/AdminSpeakerCertificates'
+import CertificatesPage from './pages/certificates/CertificatesPage'
 
 // Legacy Attendee Pages
 import CheckInPage from './pages/CheckInPage'
@@ -53,6 +56,9 @@ function App() {
           <Route path="/tickets/recover" element={<RecoverTicketPage />} />
           <Route path="/tickets/verify" element={<VerifyPaymentPage />} />
           <Route path="/ticket/:reference" element={<TicketDisplayPage />} />
+
+          {/* Certificates - Public */}
+          <Route path="/certificates" element={<CertificatesPage />} />
 
           {/* Admin Authentication */}
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -102,6 +108,16 @@ function App() {
           <Route path="/admin/gallery" element={
             <ProtectedRoute>
               <AdminGallery />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/certificates" element={
+            <ProtectedRoute>
+              <AdminCertificates />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/speaker-certificates" element={
+            <ProtectedRoute>
+              <AdminSpeakerCertificates />
             </ProtectedRoute>
           } />
 
