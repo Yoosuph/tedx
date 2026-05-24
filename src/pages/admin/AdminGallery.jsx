@@ -51,8 +51,17 @@ async function destroyCloudinaryAsset(publicId, resourceType) {
 
 export default function AdminGallery() {
   const { galleryImages, fetchGalleryImages, updateGalleryImages } = useSiteData();
-  const [images, setImages] = useState(() => galleryImages.map(img => ({ ...img })));
+  const [images, setImages] = useState([]);
+  const syncedRef = useRef(false);
   const [deletedItems, setDeletedItems] = useState([]);
+
+  // Sync local state from context once real Supabase data arrives
+  useEffect(() => {
+    if (!syncedRef.current && galleryImages.some(img => img.publicId)) {
+      setImages(galleryImages.map(img => ({ ...img })));
+      syncedRef.current = true;
+    }
+  }, [galleryImages]);
   const [saved, setSaved] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [newAlt, setNewAlt] = useState('');
