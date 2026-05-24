@@ -11,7 +11,7 @@ import {
 } from '../../lib/cloudinary';
 
 export default function GallerySection({ hideHeader = false }) {
-  const { galleryImages } = useSiteData();
+  const { galleryImages, loading } = useSiteData();
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const isOpen = lightboxIndex !== null;
 
@@ -354,10 +354,19 @@ export default function GallerySection({ hideHeader = false }) {
       <Section
         id="gallery"
         title="Event Gallery"
-        subtitle="Capturing moments from our inspiring events"
+        subtitle={loading ? 'Loading gallery...' : 'Capturing moments from our inspiring events'}
         dark
         hideHeader={hideHeader}
       >
+        {loading ? (
+          <div className="gallery-masonry gallery-skeleton">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="gallery-skeleton__card">
+                <div className="gallery-skeleton__media" />
+              </div>
+            ))}
+          </div>
+        ) : (
         <div className="gallery-masonry">
           {galleryImages.map((image, index) => (
             <AnimatedCard key={image.id} direction="up" delay={index * 80}>
@@ -429,6 +438,7 @@ export default function GallerySection({ hideHeader = false }) {
             </AnimatedCard>
           ))}
         </div>
+        )}
       </Section>
 
       {isOpen && (

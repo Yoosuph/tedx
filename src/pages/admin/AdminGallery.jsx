@@ -46,7 +46,7 @@ async function destroyCloudinaryAsset(publicId, resourceType) {
 }
 
 export default function AdminGallery() {
-  const { galleryImages, updateGalleryImages } = useSiteData();
+  const { galleryImages, updateGalleryImages, deleteGalleryImage } = useSiteData();
   const [images, setImages] = useState(galleryImages.map(img => ({ ...img })));
   const [saved, setSaved] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -150,14 +150,26 @@ export default function AdminGallery() {
 
   const deleteImage = useCallback(async (id) => {
     const img = images.find(i => i.id === id);
+    if (!img) return;
+
     // Destroy Cloudinary asset if present
     if (img?.publicId && img?.resourceType) {
       await destroyCloudinaryAsset(img.publicId, img.resourceType);
     }
+
+    // Delete from database if it has a real DB id (numeric)
+    if (Number.isInteger(Number(id))) {
+      try {
+        await deleteGalleryImage(id);
+      } catch (err) {
+        console.error('Failed to delete from database:', err);
+      }
+    }
+
     setImages(prev => prev.filter(img => img.id !== id));
     if (editingId === id) setEditingId(null);
     setSaved(false);
-  }, [images, editingId]);
+  }, [images, editingId, deleteGalleryImage]);
 
   const updateImage = useCallback((id, field, value) => {
     setImages(prev => {
