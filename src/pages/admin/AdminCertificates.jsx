@@ -262,6 +262,214 @@ const styles = `
     fill: none;
   }
 
+  /* Checkbox */
+  .cert-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--ted-red);
+    cursor: pointer;
+  }
+
+  .selected-row {
+    background: rgba(235, 0, 40, 0.04) !important;
+  }
+
+  .selected-row:hover {
+    background: rgba(235, 0, 40, 0.07) !important;
+  }
+
+  /* VVIP Badge */
+  .vvip-badge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.125rem 0.5rem;
+    background: rgba(139, 92, 246, 0.12);
+    color: #8B5CF6;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 100px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    vertical-align: middle;
+  }
+
+  /* Other Attendees Section */
+  .cert-other-section {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 28px;
+    padding: 2rem;
+    margin-top: 2rem;
+  }
+
+  .cert-other-header h2 {
+    color: var(--white);
+    font-size: 1.375rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+  }
+
+  .cert-section-subtitle {
+    color: var(--gray-500);
+    font-size: 0.8125rem;
+    margin: 0.25rem 0 0;
+    font-weight: 400;
+  }
+
+  .cert-other-desc {
+    color: var(--gray-500);
+    font-size: 0.875rem;
+    margin: 0 0 1.25rem;
+  }
+
+  .cert-selected-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .cert-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: rgba(235, 0, 40, 0.08);
+    color: var(--ted-red);
+    border: 1px solid rgba(235, 0, 40, 0.15);
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .cert-tag-remove {
+    background: none;
+    border: none;
+    color: var(--ted-red);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    opacity: 0.7;
+  }
+
+  .cert-tag-remove:hover {
+    opacity: 1;
+  }
+
+  .cert-dropdown-wrapper {
+    position: relative;
+  }
+
+  .cert-dropdown-toggle {
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+    background: var(--black);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    color: var(--gray-400);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+  }
+
+  .cert-dropdown-toggle:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .cert-dropdown-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #1A1A1A;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    z-index: 100;
+    max-height: 360px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .cert-dropdown-search {
+    margin: 0.75rem;
+    padding: 0.625rem 1rem;
+    background: var(--black);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    color: var(--white);
+    font-size: 0.8125rem;
+    outline: none;
+  }
+
+  .cert-dropdown-search:focus {
+    border-color: var(--ted-red);
+  }
+
+  .cert-dropdown-search::placeholder {
+    color: var(--gray-600);
+  }
+
+  .cert-dropdown-list {
+    overflow-y: auto;
+    max-height: 280px;
+    padding: 0.25rem 0 0.5rem;
+  }
+
+  .cert-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .cert-dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .cert-dropdown-item.is-selected {
+    background: rgba(235, 0, 40, 0.04);
+  }
+
+  .cert-dropdown-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .cert-dropdown-name {
+    color: var(--white);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cert-dropdown-meta {
+    color: var(--gray-500);
+    font-size: 0.6875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cert-dropdown-empty {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--gray-500);
+    font-size: 0.8125rem;
+  }
+
   .empty-certs {
     text-align: center;
     padding: 4rem 2rem;
@@ -726,6 +934,9 @@ export default function AdminCertificates() {
   const [bulkProgress, setBulkProgress] = useState(null); // { current, total }
   const [previewTicket, setPreviewTicket] = useState(null);
   const [qrUrls, setQrUrls] = useState({});
+  const [otherSelected, setOtherSelected] = useState(new Set());
+  const [otherDropdownOpen, setOtherDropdownOpen] = useState(false);
+  const [otherSearch, setOtherSearch] = useState('');
   const templateRef = useRef({});
 
   const fetchCheckedIn = useCallback(async () => {
@@ -752,11 +963,15 @@ export default function AdminCertificates() {
             theme: siteConfig.theme || 'Roots and Wings',
             date: siteConfig.date || 'November 28, 2026',
             venue: siteConfig.venueShort || siteConfig.venue || 'Dutse, Jigawa State',
+            organizer: siteConfig.eventName || 'TEDxDutse',
+            contact: siteConfig.contactEmail || 'info@tedxdutse.com',
             recipient: ticket.name,
             email: ticket.email,
+            phone: ticket.phone || '',
             tier: ticket.tier,
             reference: ticket.reference,
             type: 'Certificate of Attendance',
+            category: 'Attendee',
             verified: true
           });
           const url = await QRCode.toDataURL(data, { width: 200, margin: 1, color: { dark: '#1A1A1A', light: '#FFFFFF' } });
@@ -768,7 +983,11 @@ export default function AdminCertificates() {
     gen();
   }, [checkedInTickets, siteConfig]);
 
-  const filtered = checkedInTickets.filter(t => {
+  // Split into VVIP (auto-eligible) and others (manual selection)
+  const vvipTickets = checkedInTickets.filter(t => t.tier?.toLowerCase() === 'vvip');
+  const otherTickets = checkedInTickets.filter(t => t.tier?.toLowerCase() !== 'vvip');
+
+  const filtered = vvipTickets.filter(t => {
     const term = searchTerm.toLowerCase();
     return (
       t.name.toLowerCase().includes(term) ||
@@ -776,6 +995,8 @@ export default function AdminCertificates() {
       t.reference.toLowerCase().includes(term)
     );
   });
+
+  const vvipCount = vvipTickets.length;
 
   const generatePDF = async (ticket) => {
     setGenerating(ticket.reference);
@@ -805,43 +1026,48 @@ export default function AdminCertificates() {
     setGenerating('');
   };
 
-  const generateBulk = async () => {
-    if (checkedInTickets.length === 0) return;
-    setBulkProgress({ current: 0, total: checkedInTickets.length });
+  const toggleOtherSelect = (ref) => {
+    setOtherSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(ref)) next.delete(ref);
+      else next.add(ref);
+      return next;
+    });
+  };
 
-    for (let i = 0; i < checkedInTickets.length; i++) {
-      const ticket = checkedInTickets[i];
-      setBulkProgress({ current: i + 1, total: checkedInTickets.length });
+  const filteredOther = otherTickets.filter(t => {
+    const term = otherSearch.toLowerCase();
+    return (
+      t.name.toLowerCase().includes(term) ||
+      t.email.toLowerCase().includes(term) ||
+      t.reference.toLowerCase().includes(term)
+    );
+  });
 
+  const generateOtherSelected = async () => {
+    const selected = otherTickets.filter(t => otherSelected.has(t.reference));
+    if (selected.length === 0) return;
+    setBulkProgress({ current: 0, total: selected.length });
+
+    for (let i = 0; i < selected.length; i++) {
+      const ticket = selected[i];
+      setBulkProgress({ current: i + 1, total: selected.length });
       try {
         const el = document.getElementById(`admin-cert-${ticket.reference}`);
         if (!el) continue;
-
-        const canvas = await html2canvas(el, {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          logging: false,
-        });
-
+        const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false });
         const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'px',
-          format: [canvas.width, canvas.height],
-        });
-
+        const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
         pdf.save(`TEDxDutse-Certificate-${ticket.name.replace(/\s+/g, '_')}.pdf`);
-
-        // Small delay between downloads so browser doesn't block them
         await new Promise(resolve => setTimeout(resolve, 500));
       } catch (err) {
-        console.error(`Failed to generate certificate for ${ticket.name}:`, err);
+        console.error(`Failed for ${ticket.name}:`, err);
       }
     }
-
     setBulkProgress(null);
+    setOtherSelected(new Set());
+    setOtherDropdownOpen(false);
   };
 
   return (
@@ -852,39 +1078,29 @@ export default function AdminCertificates() {
         <div className="admin-certs-header">
           <div>
             <h1>Certificates</h1>
-            <p>Generate attendance certificates for checked-in attendees</p>
+            <p>Manage and generate attendance certificates</p>
           </div>
-          <div className="header-actions">
-            <button
-              className="btn-preview"
-              onClick={() => setPreviewTicket(checkedInTickets[0] || { name: 'Sample Attendee', reference: 'TEDX0000000000', tier: 'VIP' })}
-            >
-              Preview Template
-            </button>
-            <button
-              className="btn-bulk"
-              onClick={generateBulk}
-              disabled={checkedInTickets.length === 0 || bulkProgress}
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              {bulkProgress ? `Generating ${bulkProgress.current}/${bulkProgress.total}...` : `Download All (${checkedInTickets.length})`}
-            </button>
-          </div>
+          <button
+            className="btn-preview"
+            onClick={() => setPreviewTicket(vvipTickets[0] || otherTickets[0] || { name: 'Sample Attendee', reference: 'TEDX0000000000', tier: 'VVIP' })}
+          >
+            Preview Template
+          </button>
         </div>
 
         {/* Stats */}
         <div className="cert-stats-bar">
           <div className="cert-stat">
-            <p className="cert-stat-label">Checked-In Attendees</p>
+            <p className="cert-stat-label">Total Checked In</p>
             <p className="cert-stat-value green">{checkedInTickets.length}</p>
           </div>
           <div className="cert-stat">
-            <p className="cert-stat-label">Certificates Ready</p>
-            <p className="cert-stat-value">{checkedInTickets.length}</p>
+            <p className="cert-stat-label">VVIP (Auto-Eligible)</p>
+            <p className="cert-stat-value">{vvipCount}</p>
+          </div>
+          <div className="cert-stat">
+            <p className="cert-stat-label">Other Tiers</p>
+            <p className="cert-stat-value">{otherTickets.length}</p>
           </div>
         </div>
 
@@ -904,23 +1120,59 @@ export default function AdminCertificates() {
           </div>
         )}
 
-        {/* Attendee List */}
+        {/* VVIP Attendee List */}
         <div className="cert-attendees-section">
           <div className="cert-attendees-header">
-            <h2>Checked-In Attendees</h2>
-            <input
-              type="text"
-              className="cert-search-input"
-              placeholder="Search by name, email, or reference..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div>
+              <h2>VVIP Attendees</h2>
+              <p className="cert-section-subtitle">Auto-eligible — certificates can be generated individually or all at once</p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                className="cert-search-input"
+                placeholder="Search VVIP..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {filtered.length > 0 && (
+                <button
+                  className="btn-bulk"
+                  onClick={async () => {
+                    setBulkProgress({ current: 0, total: filtered.length });
+                    for (let i = 0; i < filtered.length; i++) {
+                      const ticket = filtered[i];
+                      setBulkProgress({ current: i + 1, total: filtered.length });
+                      try {
+                        const el = document.getElementById(`admin-cert-${ticket.reference}`);
+                        if (!el) continue;
+                        const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false });
+                        const imgData = canvas.toDataURL('image/png');
+                        const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
+                        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                        pdf.save(`TEDxDutse-Certificate-${ticket.name.replace(/\s+/g, '_')}.pdf`);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                      } catch (err) { console.error(`Failed for ${ticket.name}:`, err); }
+                    }
+                    setBulkProgress(null);
+                  }}
+                  disabled={bulkProgress}
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Generate All ({filtered.length})
+                </button>
+              )}
+            </div>
           </div>
 
           {filtered.length === 0 ? (
             <div className="empty-certs">
-              <h3>{searchTerm ? 'No results found' : 'No checked-in attendees yet'}</h3>
-              <p>{searchTerm ? 'Try a different search term' : 'Certificates will be available once attendees check in at the event'}</p>
+              <h3>{searchTerm ? 'No VVIP results found' : 'No VVIP checked-in attendees yet'}</h3>
+              <p>{searchTerm ? 'Try a different search term' : 'VVIP certificates will appear here once they check in'}</p>
             </div>
           ) : (
             <div className="cert-table-wrapper">
@@ -930,7 +1182,6 @@ export default function AdminCertificates() {
                     <th>Name</th>
                     <th>Email</th>
                     <th>Reference</th>
-                    <th>Tier</th>
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -940,7 +1191,6 @@ export default function AdminCertificates() {
                       <td className="name-cell">{ticket.name}</td>
                       <td>{ticket.email}</td>
                       <td className="ref-cell">{ticket.reference}</td>
-                      <td className="tier-cell">{ticket.tier}</td>
                       <td>
                         <button
                           className="btn-gen"
@@ -962,6 +1212,94 @@ export default function AdminCertificates() {
             </div>
           )}
         </div>
+
+        {/* Issue to Other Attendees (non-VVIP) */}
+        {otherTickets.length > 0 && (
+          <div className="cert-other-section">
+            <div className="cert-other-header">
+              <h2>Issue to Other Attendees</h2>
+              <p className="cert-other-desc">Manually select non-VVIP attendees to issue certificates</p>
+            </div>
+
+            {/* Selected tags */}
+            {otherSelected.size > 0 && (
+              <div className="cert-selected-tags">
+                {otherTickets.filter(t => otherSelected.has(t.reference)).map(t => (
+                  <span key={t.reference} className="cert-tag">
+                    {t.name} ({t.tier})
+                    <button className="cert-tag-remove" onClick={() => toggleOtherSelect(t.reference)}>×</button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Dropdown */}
+            <div className="cert-dropdown-wrapper">
+              <button
+                className="cert-dropdown-toggle"
+                onClick={() => setOtherDropdownOpen(!otherDropdownOpen)}
+              >
+                <span>
+                  {otherSelected.size > 0
+                    ? `${otherSelected.size} attendee${otherSelected.size !== 1 ? 's' : ''} selected`
+                    : 'Select attendees to issue certificates...'}
+                </span>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points={otherDropdownOpen ? "18 15 12 9 6 15" : "6 9 12 15 18 9"} />
+                </svg>
+              </button>
+
+              {otherDropdownOpen && (
+                <div className="cert-dropdown-panel">
+                  <input
+                    type="text"
+                    className="cert-dropdown-search"
+                    placeholder="Search by name, email, or reference..."
+                    value={otherSearch}
+                    onChange={(e) => setOtherSearch(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="cert-dropdown-list">
+                    {filteredOther.length === 0 ? (
+                      <div className="cert-dropdown-empty">No matching attendees</div>
+                    ) : (
+                      filteredOther.map(ticket => (
+                        <label key={ticket.reference} className={`cert-dropdown-item ${otherSelected.has(ticket.reference) ? 'is-selected' : ''}`}>
+                          <input
+                            type="checkbox"
+                            className="cert-checkbox"
+                            checked={otherSelected.has(ticket.reference)}
+                            onChange={() => toggleOtherSelect(ticket.reference)}
+                          />
+                          <div className="cert-dropdown-info">
+                            <span className="cert-dropdown-name">{ticket.name}</span>
+                            <span className="cert-dropdown-meta">{ticket.email} · {ticket.tier} · {ticket.reference}</span>
+                          </div>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {otherSelected.size > 0 && (
+              <button
+                className="btn-bulk"
+                onClick={generateOtherSelected}
+                disabled={bulkProgress}
+                style={{ marginTop: '1rem' }}
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Generate for {otherSelected.size} Attendee{otherSelected.size !== 1 ? 's' : ''}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Hidden templates for PDF generation */}

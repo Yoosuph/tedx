@@ -513,11 +513,15 @@ export default function CertificatesPage() {
             theme: theme,
             date: eventDate,
             venue: siteConfig.venueShort || siteConfig.venue || 'Dutse, Jigawa State',
+            organizer: eventName,
+            contact: siteConfig.contactEmail || 'info@tedxdutse.com',
             recipient: ticket.name,
             email: ticket.email,
+            phone: ticket.phone || '',
             tier: ticket.tier,
             reference: ticket.reference,
             type: 'Certificate of Attendance',
+            category: 'Attendee',
             verified: true
           });
           const dataUrl = await QRCode.toDataURL(qrData, {
@@ -555,8 +559,11 @@ export default function CertificatesPage() {
         t.reference.toLowerCase().includes(term)
       );
 
-      // Only show checked-in tickets
-      const checkedIn = matched.filter(t => t.checked_in || t.status === 'used');
+      // Only show VVIP checked-in tickets
+      const checkedIn = matched.filter(t => 
+        (t.checked_in || t.status === 'used') && 
+        t.tier?.toLowerCase() === 'vvip'
+      );
       setResults(checkedIn);
     } catch (err) {
       console.error('Certificate search error:', err);
@@ -610,7 +617,7 @@ export default function CertificatesPage() {
             <h1>Certificate <span>of Attendance</span></h1>
             <p>
               Search by your name, email, or ticket reference to download your {eventName} {eventYear} certificate.
-              Only attendees who checked in at the event are eligible.
+              Certificates are available for VVIP ticket holders who checked in at the event.
             </p>
           </div>
 
@@ -636,11 +643,11 @@ export default function CertificatesPage() {
             <div className="cert-not-found">
               <h3>No Certificates Found</h3>
               <p>
-                We couldn't find any checked-in ticket matching "<strong>{query}</strong>".
+                We couldn't find any VVIP checked-in ticket matching "<strong>{query}</strong>".
                 <br /><br />
-                <span className="warn">⚠ Certificates are only available for attendees who checked in at the event.</span>
+                <span className="warn">⚠ Certificates are only available for VVIP ticket holders who checked in at the event.</span>
                 <br /><br />
-                If you attended but can't find your certificate, please contact us at{' '}
+                If you attended with a VVIP ticket but can't find your certificate, please contact us at{' '}
                 <a href={`mailto:${siteConfig.contactEmail || 'info@tedxdutse.com'}`} style={{ color: 'var(--ted-red)' }}>
                   {siteConfig.contactEmail || 'info@tedxdutse.com'}
                 </a>

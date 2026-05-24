@@ -28,6 +28,7 @@ import AdminGallery from './pages/admin/AdminGallery'
 import AdminCertificates from './pages/admin/AdminCertificates'
 import AdminSpeakerCertificates from './pages/admin/AdminSpeakerCertificates'
 import CertificatesPage from './pages/certificates/CertificatesPage'
+import MyCertificatePage from './pages/certificates/MyCertificatePage'
 
 // Legacy Attendee Pages
 import CheckInPage from './pages/CheckInPage'
@@ -59,6 +60,7 @@ function App() {
 
           {/* Certificates - Public */}
           <Route path="/certificates" element={<CertificatesPage />} />
+          <Route path="/my-certificate" element={<MyCertificatePage />} />
 
           {/* Admin Authentication */}
           <Route path="/admin/login" element={<AdminLogin />} />

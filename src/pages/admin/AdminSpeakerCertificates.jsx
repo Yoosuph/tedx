@@ -742,10 +742,13 @@ export default function AdminSpeakerCertificates() {
             theme: siteConfig.theme || 'Roots and Wings',
             date: siteConfig.date || 'November 28, 2026',
             venue: siteConfig.venueShort || siteConfig.venue || 'Dutse, Jigawa State',
+            organizer: siteConfig.eventName || 'TEDxDutse',
+            contact: siteConfig.contactEmail || 'info@tedxdutse.com',
             recipient: speaker.name,
             role: 'Speaker',
             talk: speaker.title || '',
             type: 'Certificate of Appreciation',
+            category: 'Speaker',
             verified: true
           });
           const url = await QRCode.toDataURL(data, { width: 200, margin: 1, color: { dark: '#1A1A1A', light: '#FFFEF9' } });
