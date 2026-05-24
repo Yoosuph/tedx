@@ -92,15 +92,8 @@ export function AuthProvider({ children }) {
     return (
       <div style={{
         minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--dark)',
-        color: 'var(--white)',
-        fontSize: '1.125rem'
-      }}>
-        Loading...
-      </div>
+        background: '#0a0a0a'
+      }} />
     );
   }
 

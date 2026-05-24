@@ -218,6 +218,67 @@ export default function GallerySection({ hideHeader = false }) {
           transform: translate(-50%, -50%) scale(1);
         }
 
+        /* Skeleton loading animation */
+        .gallery-skeleton {
+          pointer-events: none;
+        }
+
+        .gallery-skeleton__card {
+          break-inside: avoid;
+          margin-bottom: 1rem;
+          border-radius: var(--radius-lg, 12px);
+          overflow: hidden;
+          background: rgba(255,255,255,0.04);
+          animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+
+        @media (min-width: 768px) {
+          .gallery-skeleton__card {
+            margin-bottom: 1.25rem;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .gallery-skeleton__card {
+            margin-bottom: 1.5rem;
+          }
+        }
+
+        .gallery-skeleton__media {
+          width: 100%;
+          aspect-ratio: 4 / 3;
+          background: linear-gradient(
+            110deg,
+            rgba(255,255,255,0.04) 30%,
+            rgba(255,255,255,0.08) 50%,
+            rgba(255,255,255,0.04) 70%
+          );
+          background-size: 200% 100%;
+          animation: skeleton-shimmer 1.8s ease-in-out infinite;
+        }
+
+        .gallery-skeleton__card:nth-child(3n) .gallery-skeleton__media {
+          aspect-ratio: 3 / 4;
+        }
+
+        .gallery-skeleton__card:nth-child(5n) .gallery-skeleton__media {
+          aspect-ratio: 1 / 1;
+        }
+
+        .gallery-skeleton__card:nth-child(7n) .gallery-skeleton__media {
+          aspect-ratio: 16 / 9;
+        }
+
+        @keyframes skeleton-shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+
+        @keyframes skeleton-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+
         /* Lightbox */
         .gallery-lightbox {
           position: fixed;
@@ -354,7 +415,7 @@ export default function GallerySection({ hideHeader = false }) {
       <Section
         id="gallery"
         title="Event Gallery"
-        subtitle={loading ? 'Loading gallery...' : 'Capturing moments from our inspiring events'}
+        subtitle="Capturing moments from our inspiring events"
         dark
         hideHeader={hideHeader}
       >
