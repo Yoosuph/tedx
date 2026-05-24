@@ -640,7 +640,9 @@ export function SiteDataProvider({ children }) {
             bytes: img.bytes ?? null,
             duration: img.duration ?? null,
           };
-          if (img.id) {
+          // Only update if the id is a proper integer from the database
+          // (client-generated temp IDs like 'img-...' mean it's a new record)
+          if (img.id && Number.isInteger(Number(img.id))) {
             await galleryAPI.update(img.id, payload);
           } else {
             const created = await galleryAPI.create(payload);
@@ -650,6 +652,7 @@ export function SiteDataProvider({ children }) {
         console.log('✅ Gallery images updated in Supabase');
       } catch (error) {
         console.error('❌ Error updating gallery images in Supabase:', error);
+        throw error; // Re-throw so AdminGallery's handleSave can react
       }
     }
   }, []);
