@@ -1,36 +1,92 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const mounted = useRef(false);
 
-  useEffect(() => {
-    // Check if user is authenticated
-    const auth = localStorage.getItem('admin_auth');
-    if (auth) {
-      try {
-        const parsed = JSON.parse(auth);
-        // Check if auth is less than 24 hours old
-        const isValid = Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000;
-        setIsAuthenticated(isValid && parsed.authenticated);
-      } catch {
-        setIsAuthenticated(false);
-      }
+  const checkSession = useCallback(async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('Auth session error:', error);
+      setIsAuthenticated(false);
+      setLoading(false);
+      return;
+    }
+
+    if (!mounted.current) return;
+
+    if (data?.session) {
+      // Check user_roles for admin
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('email', data.session.user.email)
+        .maybeSingle();
+
+      setIsAuthenticated(roleData?.role === 'admin');
+    } else {
+      setIsAuthenticated(false);
     }
     setLoading(false);
   }, []);
 
-  const login = () => {
-    setIsAuthenticated(true);
-  };
+  useEffect(() => {
+    mounted.current = true;
+    checkSession();
 
-  const logout = () => {
-    localStorage.removeItem('admin_auth');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted.current) return;
+
+        if (session?.user) {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('email', session.user.email)
+            .maybeSingle();
+
+          setIsAuthenticated(roleData?.role === 'admin');
+        } else {
+          setIsAuthenticated(false);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => { mounted.current = false; subscription?.unsubscribe(); };
+  }, [checkSession]);
+
+  const login = useCallback(async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    // Verify admin role
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('email', data.user.email)
+      .maybeSingle();
+
+    if (roleData?.role !== 'admin') {
+      // Not an admin — sign out immediately
+      await supabase.auth.signOut();
+      throw new Error('You are not authorized to access the admin panel.');
+    }
+
+    setIsAuthenticated(true);
+    setLoading(false);
+    return data.user;
+  }, []);
+
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setIsAuthenticated(false);
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -49,7 +105,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, supabase }}>
       {children}
     </AuthContext.Provider>
   );

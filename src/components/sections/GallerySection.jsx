@@ -2,14 +2,25 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSiteData } from '../../context/SiteDataContext';
 import Section from '../shared/Section';
 import AnimatedCard from '../shared/AnimatedCard';
+import {
+  buildImageUrl,
+  buildVideoUrl,
+  buildVideoPosterUrl,
+  LIGHTBOX_WIDTH,
+  THUMBNAIL_WIDTH,
+} from '../../lib/cloudinary';
 
 export default function GallerySection({ hideHeader = false }) {
   const { galleryImages } = useSiteData();
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const isOpen = lightboxIndex !== null;
 
-  const openLightbox = (index) => setLightboxIndex(index);
-  const closeLightbox = () => setLightboxIndex(null);
+  const openLightbox = (index) => {
+    setLightboxIndex(index);
+  };
+  const closeLightbox = () => {
+    setLightboxIndex(null);
+  };
 
   const goNext = useCallback(() => {
     if (isOpen) {
@@ -40,6 +51,30 @@ export default function GallerySection({ hideHeader = false }) {
       document.body.style.overflow = '';
     };
   }, [isOpen, goNext, goPrev]);
+
+  /**
+   * Build the best thumbnail URL for a gallery item.
+   * Uses Cloudinary transformations when publicId is available; falls back
+   * to the raw `src` for legacy items.
+   */
+  function getThumbnailUrl(item) {
+    if (!item.publicId) return item.src;
+    if (item.resourceType === 'video') {
+      return buildVideoPosterUrl({ publicId: item.publicId, width: THUMBNAIL_WIDTH });
+    }
+    return buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: THUMBNAIL_WIDTH });
+  }
+
+  /**
+   * Build the lightbox URL for a gallery item.
+   */
+  function getLightboxUrl(item) {
+    if (!item.publicId) return item.src;
+    if (item.resourceType === 'video') {
+      return buildVideoUrl({ publicId: item.publicId, format: item.format || 'mp4' });
+    }
+    return buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: LIGHTBOX_WIDTH });
+  }
 
   return (
     <>
@@ -92,7 +127,7 @@ export default function GallerySection({ hideHeader = false }) {
           box-shadow: var(--shadow-xl, 0 12px 40px rgba(0,0,0,0.3));
         }
 
-        .gallery-item__img {
+        .gallery-item__media {
           width: 100%;
           display: block;
           aspect-ratio: auto;
@@ -100,15 +135,15 @@ export default function GallerySection({ hideHeader = false }) {
           transition: transform var(--transition-base, 0.3s ease);
         }
 
-        .gallery-item--portrait .gallery-item__img {
+        .gallery-item--portrait .gallery-item__media {
           aspect-ratio: 3 / 4;
         }
 
-        .gallery-item--landscape .gallery-item__img {
+        .gallery-item--landscape .gallery-item__media {
           aspect-ratio: 4 / 3;
         }
 
-        .gallery-item:hover .gallery-item__img {
+        .gallery-item:hover .gallery-item__media {
           transform: scale(1.08);
         }
 
@@ -127,7 +162,7 @@ export default function GallerySection({ hideHeader = false }) {
           opacity: 1;
         }
 
-        .gallery-item__zoom-icon {
+        .gallery-item__overlay-icon {
           width: 40px;
           height: 40px;
           color: var(--white, #fff);
@@ -136,8 +171,51 @@ export default function GallerySection({ hideHeader = false }) {
           transition: transform var(--transition-base, 0.3s ease);
         }
 
-        .gallery-item:hover .gallery-item__zoom-icon {
+        .gallery-item:hover .gallery-item__overlay-icon {
           transform: scale(1);
+        }
+
+        /* Video badge on grid thumbnails */
+        .gallery-item__video-badge {
+          position: absolute;
+          bottom: 0.75rem;
+          left: 0.75rem;
+          background: rgba(0,0,0,0.75);
+          color: white;
+          font-size: 0.625rem;
+          font-weight: 700;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          z-index: 2;
+          pointer-events: none;
+        }
+        .gallery-item__video-badge svg {
+          width: 12px;
+          height: 12px;
+          fill: currentColor;
+        }
+
+        /* Big play button on video hover */
+        .gallery-item__play-icon {
+          width: 56px;
+          height: 56px;
+          color: white;
+          filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+          opacity: 0;
+          transition: opacity var(--transition-base, 0.3s ease), transform var(--transition-base, 0.3s ease);
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) scale(0.8);
+          pointer-events: none;
+        }
+
+        .gallery-item--video:hover .gallery-item__play-icon {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
         }
 
         /* Lightbox */
@@ -164,6 +242,15 @@ export default function GallerySection({ hideHeader = false }) {
           border-radius: var(--radius-lg, 12px);
           box-shadow: 0 8px 40px rgba(0,0,0,0.5);
           animation: galleryImgIn 0.3s ease;
+        }
+
+        .gallery-lightbox__video {
+          max-width: 90vw;
+          max-height: 85vh;
+          border-radius: var(--radius-lg, 12px);
+          box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+          animation: galleryImgIn 0.3s ease;
+          background: black;
         }
 
         @keyframes galleryImgIn {
@@ -275,7 +362,7 @@ export default function GallerySection({ hideHeader = false }) {
           {galleryImages.map((image, index) => (
             <AnimatedCard key={image.id} direction="up" delay={index * 80}>
               <div
-                className={`gallery-item gallery-item--${image.orientation}`}
+                className={`gallery-item gallery-item--${image.orientation}${image.resourceType === 'video' ? ' gallery-item--video' : ''}`}
                 onClick={() => openLightbox(index)}
                 role="button"
                 tabIndex={0}
@@ -287,15 +374,38 @@ export default function GallerySection({ hideHeader = false }) {
                   }
                 }}
               >
-                <img
-                  className="gallery-item__img"
-                  src={image.src}
-                  alt={image.alt}
-                  loading="lazy"
-                />
+                {image.resourceType === 'video' ? (
+                  <>
+                    <img
+                      className="gallery-item__media"
+                      src={getThumbnailUrl(image)}
+                      alt={image.alt}
+                      loading="lazy"
+                    />
+                    {/* Play button icon overlay */}
+                    <svg
+                      className="gallery-item__play-icon"
+                      viewBox="0 0 24 24"
+                      fill="white"
+                    >
+                      <polygon points="5,3 19,12 5,21" fill="white" />
+                    </svg>
+                    <div className="gallery-item__video-badge">
+                      <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+                      {image.duration ? `${Math.round(image.duration)}s` : 'Video'}
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    className="gallery-item__media"
+                    src={getThumbnailUrl(image)}
+                    alt={image.alt}
+                    loading="lazy"
+                  />
+                )}
                 <div className="gallery-item__overlay">
                   <svg
-                    className="gallery-item__zoom-icon"
+                    className="gallery-item__overlay-icon"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -303,10 +413,16 @@ export default function GallerySection({ hideHeader = false }) {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    <line x1="11" y1="8" x2="11" y2="14" />
-                    <line x1="8" y1="11" x2="14" y2="11" />
+                    {image.resourceType === 'video' ? (
+                      <polygon points="5,3 19,12 5,21" />
+                    ) : (
+                      <>
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        <line x1="11" y1="8" x2="11" y2="14" />
+                        <line x1="8" y1="11" x2="14" y2="11" />
+                      </>
+                    )}
                   </svg>
                 </div>
               </div>
@@ -346,12 +462,24 @@ export default function GallerySection({ hideHeader = false }) {
             </svg>
           </button>
 
-          <img
-            className="gallery-lightbox__img"
-            src={galleryImages[lightboxIndex].src}
-            alt={galleryImages[lightboxIndex].alt}
-            key={lightboxIndex}
-          />
+          {galleryImages[lightboxIndex].resourceType === 'video' ? (
+            <video
+              className="gallery-lightbox__video"
+              src={getLightboxUrl(galleryImages[lightboxIndex])}
+              controls
+              autoPlay
+              key={lightboxIndex}
+            >
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <img
+              className="gallery-lightbox__img"
+              src={getLightboxUrl(galleryImages[lightboxIndex])}
+              alt={galleryImages[lightboxIndex].alt}
+              key={lightboxIndex}
+            />
+          )}
 
           <button
             className="gallery-lightbox__nav gallery-lightbox__nav--next"

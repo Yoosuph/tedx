@@ -35,10 +35,50 @@ const whyAttend = [
   },
 ]
 
+import {
+  buildImageUrl,
+  buildVideoPosterUrl,
+  THUMBNAIL_WIDTH,
+} from '../lib/cloudinary';
+
 export default function HomePage() {
   const { galleryImages, siteConfig } = useSiteData();
   const progress = useScrollProgress()
-  const previewImages = galleryImages.slice(0, 4)
+
+  /** Build the best thumbnail URL for a gallery item (images + video poster). */
+  function getPreviewUrl(img) {
+    if (!img.publicId) return img.src;
+    if (img.resourceType === 'video') {
+      return buildVideoPosterUrl({ publicId: img.publicId, width: THUMBNAIL_WIDTH });
+    }
+    return buildImageUrl({ publicId: img.publicId, format: img.format || 'jpg', width: THUMBNAIL_WIDTH });
+  }
+
+  const previewImages = galleryImages.slice(0, 4);
+
+  /** Video overlay icon for video preview items */
+  function PreviewIcon({ img }) {
+    if (img.resourceType !== 'video') return null;
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="white"
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 32,
+          height: 32,
+          opacity: 0.8,
+          zIndex: 2,
+          pointerEvents: 'none',
+        }}
+      >
+        <polygon points="5,3 19,12 5,21" />
+      </svg>
+    );
+  }
 
   const teaserCards = [
     { icon: 'fas fa-info-circle', title: 'About', desc: `Discover the story behind ${siteConfig.theme}`, link: '/about' },
@@ -643,7 +683,8 @@ export default function HomePage() {
           <div className="gallery-preview-grid">
             {previewImages.map((img, idx) => (
               <Link key={idx} to="/gallery" className="gallery-preview-item">
-                <img src={img.src} alt={img.alt} />
+                <PreviewIcon img={img} />
+                <img src={getPreviewUrl(img)} alt={img.alt} />
                 <div className="gallery-preview-overlay">
                   <span>View Gallery</span>
                 </div>

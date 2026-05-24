@@ -81,15 +81,20 @@ const styles = `
     margin-bottom: 0.5rem;
   }
 
+  .password-wrapper {
+    position: relative;
+  }
+
   .form-input {
     width: 100%;
-    padding: 1rem 1.25rem;
+    padding: 1rem 3rem 1rem 1.25rem;
     background: var(--dark);
     border: 2px solid var(--gray-700);
     border-radius: 50px;
     color: var(--white);
     font-size: 1rem;
     transition: all 0.3s ease;
+    box-sizing: border-box;
   }
 
   .form-input::placeholder {
@@ -100,6 +105,37 @@ const styles = `
     outline: none;
     border-color: var(--ted-red);
     box-shadow: 0 0 0 4px rgba(235, 0, 40, 0.1);
+  }
+
+  .toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: var(--gray-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+    border-radius: 50%;
+  }
+
+  .toggle-password:hover {
+    color: var(--gray-300);
+  }
+
+  .toggle-password svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .login-button {
@@ -160,73 +196,41 @@ const styles = `
   .login-footer a:hover {
     color: var(--ted-red);
   }
-
-  .demo-credentials {
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.3);
-    color: #93C5FD;
-    padding: 1rem 1.25rem;
-    border-radius: 12px;
-    margin-top: 2rem;
-    font-size: 0.875rem;
-    line-height: 1.6;
-  }
-
-  .demo-credentials strong {
-    color: #BFDBFE;
-    display: block;
-    margin-bottom: 0.5rem;
-  }
 `;
 
-// Default admin credentials (in production, this would be a real backend)
-const ADMIN_CREDENTIALS = {
-  username: 'admin',
-  password: 'tedxdutse2026'
-};
-
+// No hardcoded credentials — Supabase Auth handles it
 export default function AdminLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!formData.username || !formData.password) {
-      setError('Please enter both username and password');
+    if (!formData.email || !formData.password) {
+      setError('Please enter both email and password');
       return;
     }
 
     setLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      if (
-        formData.username === ADMIN_CREDENTIALS.username &&
-        formData.password === ADMIN_CREDENTIALS.password
-      ) {
-        // Store auth token (in production, this would be a JWT)
-        localStorage.setItem('admin_auth', JSON.stringify({
-          authenticated: true,
-          username: formData.username,
-          timestamp: Date.now()
-        }));
-        login(); // Update auth context
-        navigate('/admin/tickets');
-      } else {
-        setError('Invalid username or password');
-        setLoading(false);
-      }
-    }, 800);
+    try {
+      await login(formData.email, formData.password);
+      navigate('/admin/tickets');
+    } catch (err) {
+      const msg = err?.message || 'Invalid email or password';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -250,43 +254,59 @@ export default function AdminLogin() {
 
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label htmlFor="username" className="form-label">Username</label>
+                <label htmlFor="email" className="form-label">Email</label>
                 <input
-                  type="text"
-                  id="username"
-                  name="username"
+                  type="email"
+                  id="email"
+                  name="email"
                   className="form-input"
-                  placeholder="Enter your username"
-                  value={formData.username}
+                  placeholder="you@tedxdutse.com"
+                  value={formData.email}
                   onChange={handleChange}
-                  autoComplete="username"
+                  autoComplete="email"
                 />
               </div>
 
               <div className="form-group">
                 <label htmlFor="password" className="form-label">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  className="form-input"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  autoComplete="current-password"
-                />
+                <div className="password-wrapper">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    name="password"
+                    className="form-input"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    className="toggle-password"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <svg viewBox="0 0 24 24">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                        <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <button type="submit" className="login-button" disabled={loading}>
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>
-
-            <div className="demo-credentials">
-              <strong>Demo Credentials:</strong>
-              Username: <code>admin</code><br />
-              Password: <code>tedxdutse2026</code>
-            </div>
           </div>
 
           <div className="login-footer">

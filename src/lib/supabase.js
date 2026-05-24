@@ -294,6 +294,16 @@ export const ticketTiersAPI = {
 
 /**
  * Gallery Images
+ *
+ * The four methods below project and accept the Cloudinary metadata columns
+ * added in migration 00003: `public_id`, `resource_type`, `format`, `width`,
+ * `height`, `bytes`, `duration`. Pass-through `insert([image])` /
+ * `update(updates)` allows callers to set any subset of these fields, and
+ * `select('*')` returns them all on read.
+ *
+ * Unlike the other helpers in this file, these four methods throw on Supabase
+ * errors instead of swallowing them with `console.error` + `return null`.
+ * Callers (SiteDataContext) rely on this to surface failures to the admin UI.
  */
 export const galleryAPI = {
   async getAll() {
@@ -301,12 +311,11 @@ export const galleryAPI = {
       .from('gallery_images')
       .select('*')
       .order('order_index', { ascending: true });
-    
+
     if (error) {
-      console.error('Error fetching gallery images:', error);
-      return [];
+      throw new Error(`gallery getAll failed: ${error.code} ${error.message}`);
     }
-    return data;
+    return data ?? [];
   },
 
   async create(image) {
@@ -315,10 +324,9 @@ export const galleryAPI = {
       .insert([image])
       .select()
       .single();
-    
+
     if (error) {
-      console.error('Error creating gallery image:', error);
-      return null;
+      throw new Error(`gallery create failed: ${error.code} ${error.message}`);
     }
     return data;
   },
@@ -330,10 +338,9 @@ export const galleryAPI = {
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) {
-      console.error('Error updating gallery image:', error);
-      return null;
+      throw new Error(`gallery update failed: ${error.code} ${error.message}`);
     }
     return data;
   },
@@ -343,12 +350,10 @@ export const galleryAPI = {
       .from('gallery_images')
       .delete()
       .eq('id', id);
-    
+
     if (error) {
-      console.error('Error deleting gallery image:', error);
-      return false;
+      throw new Error(`gallery delete failed: ${error.code} ${error.message}`);
     }
-    return true;
   }
 };
 

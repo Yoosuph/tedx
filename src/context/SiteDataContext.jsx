@@ -170,6 +170,13 @@ export function SiteDataProvider({ children }) {
             src: g.src,
             alt: g.alt,
             orientation: g.orientation,
+            publicId: g.public_id,
+            resourceType: g.resource_type,
+            format: g.format,
+            width: g.width,
+            height: g.height,
+            bytes: g.bytes,
+            duration: g.duration,
           }));
         setGalleryImagesState(formattedGallery);
         saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
@@ -375,6 +382,13 @@ export function SiteDataProvider({ children }) {
               src: g.src,
               alt: g.alt,
               orientation: g.orientation,
+              publicId: g.public_id,
+              resourceType: g.resource_type,
+              format: g.format,
+              width: g.width,
+              height: g.height,
+              bytes: g.bytes,
+              duration: g.duration,
             }));
           setGalleryImagesState(formattedGallery);
           saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
@@ -613,20 +627,23 @@ export function SiteDataProvider({ children }) {
       try {
         for (let i = 0; i < newImages.length; i++) {
           const img = newImages[i];
+          const payload = {
+            src: img.src,
+            alt: img.alt,
+            orientation: img.orientation,
+            order_index: i,
+            public_id: img.publicId ?? null,
+            resource_type: img.resourceType ?? null,
+            format: img.format ?? null,
+            width: img.width ?? null,
+            height: img.height ?? null,
+            bytes: img.bytes ?? null,
+            duration: img.duration ?? null,
+          };
           if (img.id) {
-            await galleryAPI.update(img.id, {
-              src: img.src,
-              alt: img.alt,
-              orientation: img.orientation,
-              order_index: i,
-            });
+            await galleryAPI.update(img.id, payload);
           } else {
-            const created = await galleryAPI.create({
-              src: img.src,
-              alt: img.alt,
-              orientation: img.orientation,
-              order_index: i,
-            });
+            const created = await galleryAPI.create(payload);
             img.id = created.id;
           }
         }
