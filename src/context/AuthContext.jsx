@@ -9,27 +9,49 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const mounted = useRef(false);
 
-  // Safety net: force loading off after 4 seconds no matter what
+  // Safety net: force loading off after 20 seconds to cover retry backoff (3s+5s+8s + gaps)
   useEffect(() => {
     const id = setTimeout(() => {
       if (mounted.current) {
-        console.warn('AuthProvider: forced loading=false after 4s timeout');
+        console.warn('AuthProvider: forced loading=false after 20s timeout');
         setLoading(false);
       }
-    }, 4000);
+    }, 20000);
     return () => clearTimeout(id);
+  }, []);
+
+  // Retry helper — Chrome mobile throttles localStorage after refresh,
+  // so a single getSession() often fails. Retry with backoff.
+  const getSessionWithRetry = useCallback(async (maxRetries = 3) => {
+    const timeouts = [3000, 5000, 8000]; // 3s, 5s, 8s
+    let lastError = null;
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`Session check timeout (attempt ${attempt + 1})`)), timeouts[attempt])
+        );
+
+        const result = await Promise.race([sessionPromise, timeoutPromise]);
+        return result; // success — return immediately
+      } catch (err) {
+        lastError = err;
+        console.warn(`getSession attempt ${attempt + 1}/${maxRetries} failed:`, err.message);
+        // Only wait between retries, not after the last one
+        if (attempt < maxRetries - 1) {
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
+    }
+
+    throw lastError || new Error('All getSession retries exhausted');
   }, []);
 
   const checkSession = useCallback(async () => {
     try {
-      // Prevent infinite hanging in Chrome on mobile by setting a 3-second timeout
-      const sessionPromise = supabase.auth.getSession();
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Session check timeout')), 3000)
-      );
+      const { data, error } = await getSessionWithRetry();
 
-      const { data, error } = await Promise.race([sessionPromise, timeoutPromise]);
-      
       if (error) {
         console.error('Auth session error:', error);
         setIsAuthenticated(false);
@@ -50,12 +72,12 @@ export function AuthProvider({ children }) {
         setIsAuthenticated(false);
       }
     } catch (err) {
-      console.error('Auth check error:', err);
+      console.error('Auth check error (all retries exhausted):', err);
       setIsAuthenticated(false);
     } finally {
       if (mounted.current) setLoading(false);
     }
-  }, []);
+  }, [getSessionWithRetry]);
 
   useEffect(() => {
     mounted.current = true;
@@ -90,6 +112,16 @@ export function AuthProvider({ children }) {
   }, [checkSession]);
 
   const login = useCallback(async (email, password) => {
+    // Chrome mobile workaround: clear any stale session data before signing in.
+    // After a refresh-triggered logout, Chrome's throttled localStorage can leave
+    // corrupted session artifacts that block signInWithPassword. Explicit signOut
+    // flushes the storage layer clean so the new login can write fresh data.
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (_) {
+      // Ignore — signOut may fail if there's no session. That's fine.
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
 
