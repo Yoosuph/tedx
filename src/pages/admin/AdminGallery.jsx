@@ -242,23 +242,37 @@ export default function AdminGallery() {
   }, []);
 
   const [btnState, setBtnState] = useState('idle');
+  const [saveMessage, setSaveMessage] = useState('');
 
   const handleSave = useCallback(async () => {
     setBtnState('loading');
+    setSaveMessage('');
     try {
+      const idsToDelete = deletedItems.map(d => d.id);
+      await updateGalleryImages(images, idsToDelete);
+
+      // Only destroy Cloudinary assets AFTER supabase save succeeds
       for (const item of deletedItems) {
         if (item.publicId && item.resourceType) {
           await destroyCloudinaryAsset(item.publicId, item.resourceType).catch(() => {});
         }
       }
-      const idsToDelete = deletedItems.map(d => d.id);
-      await updateGalleryImages(images, idsToDelete);
+
       setDeletedItems([]);
       setBtnState('success');
-      setTimeout(() => setBtnState('idle'), 1500);
+      setSaveMessage('✓ Changes saved to gallery');
+      setTimeout(() => {
+        setBtnState('idle');
+        setSaveMessage('');
+      }, 3000);
     } catch (err) {
       console.error(err);
-      setBtnState('idle');
+      setBtnState('error');
+      setSaveMessage('✕ Save failed — check console');
+      setTimeout(() => {
+        setBtnState('idle');
+        setSaveMessage('');
+      }, 4000);
     }
   }, [images, deletedItems, updateGalleryImages]);
 
@@ -274,8 +288,11 @@ export default function AdminGallery() {
       <style>{`
         .gallery-page { max-width: 1100px; }
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .gallery-card { position: relative; background: var(--dark-surface); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; cursor: grab; transition: border-color 0.2s; }
-        .gallery-card:hover { border-color: rgba(255,255,255,0.15); }
+        .gallery-card { position: relative; background: var(--dark-surface); border-radius: 12px; overflow: hidden; cursor: grab; transition: border-color 0.2s, box-shadow 0.2s; }
+        .gallery-card.landing-visible { border: 2px solid rgba(34,197,94,0.2); box-shadow: 0 0 15px rgba(34,197,94,0.05); }
+        .gallery-card.landing-visible:hover { border-color: rgba(34,197,94,0.4); box-shadow: 0 0 20px rgba(34,197,94,0.1); }
+        .gallery-card.landing-hidden { border: 1px solid rgba(255,255,255,0.06); opacity: 0.75; }
+        .gallery-card.landing-hidden:hover { border-color: rgba(255,255,255,0.15); opacity: 1; }
         .gallery-thumb { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
         .gallery-card.portrait .gallery-thumb { aspect-ratio: 3/4; }
         .gallery-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; opacity: 0; transition: opacity 0.2s; }
@@ -330,6 +347,11 @@ export default function AdminGallery() {
         .btn-save:hover:not(:disabled) { background: #C41E3A; }
         .btn-save:disabled { opacity: 0.8; cursor: not-allowed; }
         .btn-save.success-state { background: #22C55E !important; }
+        .btn-save.error-state { background: #EF4444 !important; }
+        .save-message { font-size: 0.8125rem; font-weight: 600; animation: fadeIn 0.3s ease; }
+        .save-message.save-success { color: #86EFAC; }
+        .save-message.save-error { color: #FCA5A5; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         .btn-loading-content { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
         .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #ffffff; border-radius: 50%; animation: btn-spin 0.6s linear infinite; }
         @keyframes btn-spin { to { transform: rotate(360deg); } }
@@ -343,9 +365,9 @@ export default function AdminGallery() {
         .upload-success { color: #86EFAC; font-size: 0.75rem; margin-top: 0.375rem; }
 
         /* Landing visibility badge */
-        .landing-badge { position: absolute; top: 0.5rem; right: 0.5rem; font-size: 0.75rem; line-height: 1; z-index: 2; padding: 0.2rem 0.35rem; border-radius: 4px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
-        .landing-badge.visible { color: #86EFAC; }
-        .landing-badge.hidden { color: var(--gray-500); opacity: 0.6; }
+        .landing-badge { position: absolute; top: 0.5rem; right: 0.5rem; z-index: 2; padding: 0.25rem 0.5rem; border-radius: 6px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; align-items: center; gap: 0.3rem; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; border: 1px solid transparent; }
+        .landing-badge.visible { color: #86EFAC; border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.15); backdrop-filter: blur(8px); }
+        .landing-badge.hidden { color: var(--gray-500); opacity: 0.7; }
         /* Video badge */
         .video-badge { position: absolute; top: 0.5rem; left: 0.5rem; background: rgba(0,0,0,0.7); color: white; font-size: 0.625rem; font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 4px; display: flex; align-items: center; gap: 0.25rem; z-index: 2; }
         .video-badge svg { width: 12px; height: 12px; fill: currentColor; }
@@ -365,10 +387,21 @@ export default function AdminGallery() {
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
         /* Landing counter */
-        .landing-counter { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.8125rem; color: var(--gray-400); flex-wrap: wrap; }
+        .landing-counter { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.8125rem; color: var(--gray-400); flex-wrap: wrap; }
         .landing-count-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 22px; padding: 0 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; background: rgba(34,197,94,0.12); color: #86EFAC; border: 1px solid rgba(34,197,94,0.2); }
         .landing-count-badge.full { background: rgba(239,68,68,0.12); color: #FCA5A5; border-color: rgba(239,68,68,0.2); }
         .landing-limit-note { font-size: 0.75rem; color: #FCA5A5; font-weight: 600; }
+
+        /* Landing preview */
+        .landing-preview { margin-bottom: 1.5rem; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 1rem; }
+        .landing-preview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+        .landing-preview-header h4 { margin: 0; color: var(--white); font-size: 0.875rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+        .landing-preview-header h4 span { font-size: 0.7rem; font-weight: 600; color: var(--gray-500); }
+        .landing-preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.625rem; }
+        .landing-preview-item { position: relative; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; border: 2px solid rgba(34,197,94,0.2); }
+        .landing-preview-item img, .landing-preview-item video { width: 100%; height: 100%; object-fit: cover; }
+        .landing-preview-item .landing-index { position: absolute; bottom: 0.25rem; left: 0.25rem; background: rgba(0,0,0,0.7); color: white; font-size: 0.6rem; font-weight: 700; padding: 0.125rem 0.375rem; border-radius: 3px; }
+        .landing-preview-empty { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; color: var(--gray-500); font-size: 0.75rem; border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px; grid-column: span 4; }
 
         /* Toggle switch */
         .toggle-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding-top: 0.25rem; }
@@ -384,6 +417,8 @@ export default function AdminGallery() {
           .gallery-skeleton { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
           .add-form-row { grid-template-columns: 1fr !important; }
           .edit-panel { flex-direction: column; }
+          .landing-preview-grid { grid-template-columns: repeat(2, 1fr); }
+          .landing-preview-empty { grid-column: span 2 !important; }
         }
       `}</style>
 
@@ -405,6 +440,35 @@ export default function AdminGallery() {
             <span className="landing-limit-note">(limit reached — disable one first)</span>
           )}
         </div>
+
+        {/* Landing Page Preview */}
+        {landingCount > 0 && (
+          <div className="landing-preview">
+            <div className="landing-preview-header">
+              <h4>
+                🌐 Landing Page Preview
+                <span>({landingCount} of {LANDING_LIMIT} slots used)</span>
+              </h4>
+            </div>
+            <div className="landing-preview-grid">
+              {images.filter(img => img.showOnLanding !== false).slice(0, LANDING_LIMIT).map((img, i) => (
+                <div key={img.id} className="landing-preview-item">
+                  {img.resourceType === 'video' ? (
+                    <video src={img.src} muted preload="metadata" />
+                  ) : (
+                    <img src={getThumbnailUrl(img)} alt={img.alt} />
+                  )}
+                  <span className="landing-index">#{i + 1}</span>
+                </div>
+              ))}
+              {landingCount < LANDING_LIMIT && (
+                <div className="landing-preview-empty" style={{ gridColumn: `span ${LANDING_LIMIT - landingCount}` }}>
+                  +{LANDING_LIMIT - landingCount} slot{landingCount !== 3 ? 's' : ''} available — toggle more images
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Upload progress indicator */}
         {(uploadStatus === 'uploading' || uploadStatus === 'error') && (
@@ -565,7 +629,7 @@ export default function AdminGallery() {
             {images.map((img, index) => (
               <div
                 key={img.id}
-                className={`gallery-card ${img.orientation === 'portrait' ? 'portrait' : ''}`}
+                className={`gallery-card ${img.orientation === 'portrait' ? 'portrait' : ''} ${(img.showOnLanding ?? true) ? 'landing-visible' : 'landing-hidden'}`}
                 draggable
                 onDragStart={() => handleDragStart(index)}
                 onDragEnter={() => handleDragEnter(index)}
@@ -574,7 +638,7 @@ export default function AdminGallery() {
               >
                 {/* Landing visibility badge */}
                 <div className={`landing-badge ${(img.showOnLanding ?? true) ? 'visible' : 'hidden'}`}>
-                  {(img.showOnLanding ?? true) ? '🌐' : '🔒'}
+                  {(img.showOnLanding ?? true) ? '🌐 Landing' : '🔒 Hidden'}
                 </div>
                 {/* Video badge */}
                 {img.resourceType === 'video' && (
@@ -634,7 +698,7 @@ export default function AdminGallery() {
         {/* Save bar */}
         <div className="save-bar">
           <button
-            className={`btn-save ${btnState === 'success' ? 'success-state' : ''}`}
+            className={`btn-save ${btnState === 'success' ? 'success-state' : ''} ${btnState === 'error' ? 'error-state' : ''}`}
             onClick={handleSave}
             disabled={btnState !== 'idle'}
           >
@@ -645,8 +709,14 @@ export default function AdminGallery() {
                 <span>Saving...</span>
               </div>
             )}
-            {btnState === 'success' && '✓ Gallery Saved'}
+            {btnState === 'success' && '✓ Saved'}
+            {btnState === 'error' && '✕ Failed'}
           </button>
+          {saveMessage && (
+            <span className={`save-message ${btnState === 'success' ? 'save-success' : ''} ${btnState === 'error' ? 'save-error' : ''}`}>
+              {saveMessage}
+            </span>
+          )}
         </div>
       </div>
     </AdminLayout>

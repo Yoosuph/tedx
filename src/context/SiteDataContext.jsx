@@ -162,8 +162,11 @@ export function SiteDataProvider({ children }) {
         saveToStorage(STORAGE_KEYS.ticketTiers, formattedTiers);
       }
 
-      // Note: gallery images are loaded lazily on-demand
-      // when the user visits /gallery or /admin/gallery
+      // Load gallery images from localStorage (saved during admin save)
+      const cachedGallery = loadFromStorage(STORAGE_KEYS.galleryImages, null);
+      if (cachedGallery) {
+        setGalleryImagesState(cachedGallery);
+      }
 
       // Load sponsors
       const sponsorsData = await sponsorsAPI.getAll();
@@ -218,6 +221,13 @@ export function SiteDataProvider({ children }) {
           () => reject(new Error('Gallery fetch timed out')), 12000
         )),
       ]);
+      const existingState = loadFromStorage(STORAGE_KEYS.galleryImages, []);
+      const existingMap = {};
+      existingState.forEach(img => {
+        existingMap[img.src] = img.showOnLanding;
+        if (img.publicId) existingMap[img.publicId] = img.showOnLanding;
+      });
+
       const formattedGallery = (galleryData || [])
         .sort((a, b) => a.order_index - b.order_index)
         .map(g => ({
@@ -232,6 +242,7 @@ export function SiteDataProvider({ children }) {
           height: g.height,
           bytes: g.bytes,
           duration: g.duration,
+          showOnLanding: existingMap[g.src] ?? existingMap[g.public_id] ?? true,
         }));
       setGalleryImagesState(formattedGallery);
       saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
@@ -396,6 +407,12 @@ export function SiteDataProvider({ children }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery_images' }, () => {
         console.log('🔄 Gallery changed, reloading...');
         galleryAPI.getAll().then(galleryData => {
+          const existingState = loadFromStorage(STORAGE_KEYS.galleryImages, []);
+          const existingMap = {};
+          existingState.forEach(img => {
+            existingMap[img.src] = img.showOnLanding;
+            if (img.publicId) existingMap[img.publicId] = img.showOnLanding;
+          });
           const formattedGallery = galleryData
             .sort((a, b) => a.order_index - b.order_index)
             .map(g => ({
@@ -410,6 +427,7 @@ export function SiteDataProvider({ children }) {
               height: g.height,
               bytes: g.bytes,
               duration: g.duration,
+              showOnLanding: existingMap[g.src] ?? existingMap[g.public_id] ?? true,
             }));
           setGalleryImagesState(formattedGallery);
           saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
@@ -667,7 +685,6 @@ export function SiteDataProvider({ children }) {
             height: img.height ?? null,
             bytes: img.bytes ?? null,
             duration: img.duration ?? null,
-            show_on_landing: img.showOnLanding ?? true,
           };
           if (img.id && Number.isInteger(Number(img.id))) {
             await galleryAPI.update(img.id, payload);
