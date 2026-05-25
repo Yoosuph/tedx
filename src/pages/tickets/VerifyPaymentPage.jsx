@@ -565,29 +565,32 @@ const styles = `
     }
   }
 
-  /* Print styles — only show the ticket card */
+  /* Print styles — ticket card preserved as-is, one page */
   @media print {
-    body * {
-      visibility: hidden !important;
+    @page {
+      margin: 0;
     }
 
-    #ticket-card,
-    #ticket-card * {
-      visibility: visible !important;
+    body {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .verify-page {
+      min-height: 100vh !important;
+      justify-content: center !important;
+      padding: 0 !important;
+    }
+
+    .ticket-container-wrapper {
+      max-width: 820px !important;
     }
 
     #ticket-card {
-      position: fixed !important;
-      left: 0 !important;
-      top: 0 !important;
-      width: 100% !important;
-      max-width: 100% !important;
-      border-radius: 0 !important;
       box-shadow: none !important;
-      border: none !important;
+      border: 1px solid #e5e7eb !important;
     }
 
-    .verify-page,
     .success-header,
     .ticket-actions,
     nav,
