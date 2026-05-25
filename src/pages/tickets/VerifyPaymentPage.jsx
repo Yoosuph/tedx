@@ -645,10 +645,6 @@ export default function VerifyPaymentPage() {
         color: { dark: '#0A0A0A', light: '#ffffff' },
       }).then(setQrCodeUrl);
 
-      const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
-      tickets.push(ticket);
-      localStorage.setItem('tedx_tickets', JSON.stringify(tickets));
-
       ticketsAPI.create({
         reference: ticket.reference,
         name: ticket.name.toUpperCase(),

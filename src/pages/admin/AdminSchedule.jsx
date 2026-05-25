@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from './AdminLayout';
+import AdminSkeleton from '../../components/shared/AdminSkeleton';
 
 const ITEM_TYPES = ['talk', 'performance', 'break', 'remarks', 'video', 'award'];
 
@@ -8,7 +9,7 @@ const emptyItem = () => ({ time: '', title: '', type: 'talk', description: '', s
 const emptyBlock = (key) => ({ key, label: 'New Session', time: '', items: [] });
 
 export default function AdminSchedule() {
-  const { schedule, updateSchedule, speakers } = useSiteData();
+  const { schedule, updateSchedule, speakers, loading } = useSiteData();
   const [saved, setSaved] = useState(false);
 
   const [blocks, setBlocks] = useState(() => {
@@ -218,6 +219,7 @@ export default function AdminSchedule() {
         }
       `}</style>
 
+      {loading ? <AdminSkeleton type="form" /> : (
       <div className="sched-page">
         <h2 style={{ color: 'var(--white)', fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem' }}>
           Event Schedule
@@ -332,6 +334,7 @@ export default function AdminSchedule() {
           </button>
         </div>
       </div>
+      )}
     </AdminLayout>
   );
 }

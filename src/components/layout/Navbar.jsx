@@ -206,14 +206,14 @@ export default function Navbar() {
           top: 0;
           right: 0;
           width: 100%;
-          max-width: 400px;
+          max-width: 320px;
           height: 100vh;
           background: rgba(10, 10, 10, 0.98);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           display: flex;
           flex-direction: column;
-          padding: 6rem 2rem 2rem;
+          padding: 5rem 1.5rem 1.5rem;
           z-index: 1050;
           transform: translateX(100%);
           transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -225,73 +225,79 @@ export default function Navbar() {
           transform: translateX(0);
         }
 
+        .mobile-menu-close {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+          cursor: pointer;
+          color: var(--white);
+          font-size: 1.125rem;
+          transition: all 0.3s ease;
+          z-index: 1;
+        }
+
+        .mobile-menu-close:hover {
+          background: rgba(235, 0, 40, 0.1);
+          border-color: rgba(235, 0, 40, 0.3);
+          color: var(--ted-red);
+        }
+
         .mobile-menu-links {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
-          margin-bottom: 2rem;
+          gap: 0.25rem;
+          margin-bottom: 1.5rem;
         }
 
         .mobile-link {
           color: var(--white);
           text-decoration: none;
-          font-size: 1.5rem;
-          font-weight: 600;
+          font-size: 1rem;
+          font-weight: 500;
           text-transform: uppercase;
           letter-spacing: 0.04em;
           transition: all 0.3s ease;
           cursor: pointer;
-          padding: 1rem 1.5rem;
-          border-radius: 12px;
+          padding: 0.625rem 1rem;
+          border-radius: 8px;
           position: relative;
           overflow: hidden;
         }
 
-        .mobile-link::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 4px;
-          height: 100%;
-          background: var(--ted-red, #EB0028);
-          transform: scaleY(0);
-          transition: transform 0.3s ease;
-        }
-
         .mobile-link:hover {
           background: rgba(235, 0, 40, 0.1);
-          padding-left: 2rem;
-        }
-
-        .mobile-link:hover::before {
-          transform: scaleY(1);
+          color: var(--ted-red);
         }
 
         .mobile-link.active {
           background: rgba(235, 0, 40, 0.1);
-          padding-left: 2rem;
-        }
-
-        .mobile-link.active::before {
-          transform: scaleY(1);
+          color: var(--ted-red, #EB0028);
+          font-weight: 600;
         }
 
         .mobile-menu-footer {
           margin-top: auto;
-          padding-top: 2rem;
+          padding-top: 1.5rem;
           border-top: 1px solid rgba(255, 255, 255, 0.08);
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 0.75rem;
         }
 
         .mobile-ticket-btn {
           background: var(--ted-red, #EB0028);
           color: var(--white);
-          padding: 1rem 2rem;
-          border-radius: 12px;
-          font-size: 1rem;
+          padding: 0.75rem 1.5rem;
+          border-radius: 100px;
+          font-size: 0.875rem;
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.04em;
@@ -304,14 +310,12 @@ export default function Navbar() {
 
         .mobile-ticket-btn:hover {
           background: #c5001f;
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(235, 0, 40, 0.3);
         }
 
         .mobile-menu-info {
           color: var(--gray-500, #888);
-          font-size: 0.875rem;
-          line-height: 1.6;
+          font-size: 0.75rem;
+          line-height: 1.5;
           text-align: center;
         }
 
@@ -322,7 +326,7 @@ export default function Navbar() {
           left: 0;
           width: 100%;
           height: 100%;
-          background: rgba(0, 0, 0, 0.5);
+          background: rgba(0, 0, 0, 0.4);
           z-index: 1049;
           opacity: 0;
           pointer-events: none;
@@ -396,6 +400,13 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       <div className={`mobile-menu ${mobileOpen ? 'open' : ''}`} aria-hidden={!mobileOpen}>
+        <button
+          className="mobile-menu-close"
+          onClick={() => setMobileOpen(false)}
+          aria-label="Close menu"
+        >
+          ✕
+        </button>
         <div className="mobile-menu-links">
           {links.map((link) => (
             <Link

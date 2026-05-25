@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../../components/layout/Navbar';
 import AdminPageTransition from './AdminPageTransition';
+import { skeletonStyles } from '../../components/shared/AdminSkeleton';
 
 const navItems = [
   { label: 'Dashboard', path: '/admin/tickets', icon: '📊' },
@@ -187,6 +188,7 @@ export default function AdminLayout({ children }) {
             padding: 1.5rem 1rem;
           }
         }
+        ${skeletonStyles}
       `}</style>
 
       <div className="admin-container">

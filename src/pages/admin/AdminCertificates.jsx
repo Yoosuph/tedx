@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import AdminLayout from './AdminLayout';
 import { useSiteData } from '../../context/SiteDataContext';
 import { ticketsAPI } from '../../lib/supabase';
+import AdminSkeleton from '../../components/shared/AdminSkeleton';
 
 const styles = `
   .admin-certs-page {
@@ -937,12 +938,15 @@ export default function AdminCertificates() {
   const [otherSelected, setOtherSelected] = useState(new Set());
   const [otherDropdownOpen, setOtherDropdownOpen] = useState(false);
   const [otherSearch, setOtherSearch] = useState('');
+  const [ticketsLoading, setTicketsLoading] = useState(true);
   const templateRef = useRef({});
 
   const fetchCheckedIn = useCallback(async () => {
+    setTicketsLoading(true);
     const allTickets = await ticketsAPI.getAll();
     const checkedIn = allTickets.filter(t => t.checked_in || t.status === 'used');
     setCheckedInTickets(checkedIn);
+    setTicketsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -1073,6 +1077,7 @@ export default function AdminCertificates() {
   return (
     <AdminLayout>
       <style>{styles}</style>
+      {ticketsLoading ? <AdminSkeleton type="page" /> : (<>
       <div className="admin-certs-page">
         {/* Header */}
         <div className="admin-certs-header">
@@ -1322,6 +1327,7 @@ export default function AdminCertificates() {
           </div>
         </div>
       )}
+      </>)}
     </AdminLayout>
   );
 }

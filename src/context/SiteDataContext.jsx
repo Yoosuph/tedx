@@ -48,6 +48,7 @@ export function SiteDataProvider({ children }) {
   const [ticketTiers, setTicketTiersState] = useState(defaultTicketTiers);
   const [galleryImages, setGalleryImagesState] = useState(defaultGalleryImages);
   const [galleryLoading, setGalleryLoading] = useState(false);
+  const [galleryLoaded, setGalleryLoaded] = useState(false);
   const [sponsors, setSponsorsState] = useState(defaultSponsors);
 
   // Load data from Supabase
@@ -211,32 +212,36 @@ export function SiteDataProvider({ children }) {
     if (!isSupabaseConfigured()) return;
     setGalleryLoading(true);
     try {
-      const galleryData = await galleryAPI.getAll();
-      if (galleryData && galleryData.length > 0) {
-        const formattedGallery = galleryData
-          .sort((a, b) => a.order_index - b.order_index)
-          .map(g => ({
-            id: g.id,
-            src: g.src,
-            alt: g.alt,
-            orientation: g.orientation,
-            publicId: g.public_id,
-            resourceType: g.resource_type,
-            format: g.format,
-            width: g.width,
-            height: g.height,
-            bytes: g.bytes,
-            duration: g.duration,
-          }));
-        setGalleryImagesState(formattedGallery);
-        saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
-      }
+      const galleryData = await Promise.race([
+        galleryAPI.getAll(),
+        new Promise((_, reject) => setTimeout(
+          () => reject(new Error('Gallery fetch timed out')), 12000
+        )),
+      ]);
+      const formattedGallery = (galleryData || [])
+        .sort((a, b) => a.order_index - b.order_index)
+        .map(g => ({
+          id: g.id,
+          src: g.src,
+          alt: g.alt,
+          orientation: g.orientation,
+          publicId: g.public_id,
+          resourceType: g.resource_type,
+          format: g.format,
+          width: g.width,
+          height: g.height,
+          bytes: g.bytes,
+          duration: g.duration,
+        }));
+      setGalleryImagesState(formattedGallery);
+      saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
     } catch (error) {
       console.error('❌ Error loading gallery:', error);
       const cached = loadFromStorage(STORAGE_KEYS.galleryImages, defaultGalleryImages);
       if (cached) setGalleryImagesState(cached);
     } finally {
       setGalleryLoading(false);
+      setGalleryLoaded(true);
     }
   }, []);
 
@@ -662,6 +667,7 @@ export function SiteDataProvider({ children }) {
             height: img.height ?? null,
             bytes: img.bytes ?? null,
             duration: img.duration ?? null,
+            show_on_landing: img.showOnLanding ?? true,
           };
           if (img.id && Number.isInteger(Number(img.id))) {
             await galleryAPI.update(img.id, payload);
@@ -758,6 +764,7 @@ export function SiteDataProvider({ children }) {
     updateTicketTiers,
     galleryImages,
     galleryLoading,
+    galleryLoaded,
     fetchGalleryImages,
     updateGalleryImages,
     deleteGalleryImage,

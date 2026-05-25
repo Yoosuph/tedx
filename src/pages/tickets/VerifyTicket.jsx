@@ -578,16 +578,6 @@ export default function VerifyTicket() {
           setBtnState('idle');
         }, 1500);
 
-        // Sync local storage cache
-        const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
-        const index = tickets.findIndex(t => t.reference === result.ticket.reference);
-        if (index !== -1) {
-          tickets[index].status = 'used';
-          tickets[index].usedAt = updated.usedAt;
-          localStorage.setItem('tedx_tickets', JSON.stringify(tickets));
-        }
-
-        // Notify other components
         window.dispatchEvent(new Event('tickets-changed'));
       } else {
         setBtnState('idle');

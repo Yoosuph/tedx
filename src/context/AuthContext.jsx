@@ -9,6 +9,17 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const mounted = useRef(false);
 
+  // Safety net: force loading off after 15 seconds no matter what
+  useEffect(() => {
+    const id = setTimeout(() => {
+      if (mounted.current) {
+        console.warn('AuthProvider: forced loading=false after 15s timeout');
+        setLoading(false);
+      }
+    }, 15000);
+    return () => clearTimeout(id);
+  }, []);
+
   const checkSession = useCallback(async () => {
     try {
       const { data, error } = await supabase.auth.getSession();

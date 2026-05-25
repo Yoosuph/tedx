@@ -480,15 +480,6 @@ export default function TicketDetail() {
         setTimeout(() => {
           setTicket(updated);
           setBtnState('idle');
-          // Also sync local cache
-          const tickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
-          const index = tickets.findIndex(t => t.reference === reference);
-          if (index !== -1) {
-            tickets[index].status = 'used';
-            tickets[index].usedAt = updated.usedAt;
-            localStorage.setItem('tedx_tickets', JSON.stringify(tickets));
-          }
-          // Notify dashboard of changes
           window.dispatchEvent(new Event('tickets-changed'));
         }, 1500);
       } else {

@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from '../admin/AdminLayout';
 import { ticketsAPI } from '../../lib/supabase';
+import AdminSkeleton, { skeletonStyles } from '../../components/shared/AdminSkeleton';
 
 const styles = `
   .dashboard-page {
@@ -121,12 +122,6 @@ const styles = `
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
-  }
-
-  .stat-card:nth-child(4),
-  .stat-card:nth-child(5),
-  .stat-card:nth-child(6) {
-    grid-column: span 2;
   }
 
   .stat-card::before {
@@ -485,6 +480,8 @@ const styles = `
     margin: 0;
   }
 
+  ${skeletonStyles}
+
   @media (max-width: 992px) {
     .stats-grid {
       grid-template-columns: repeat(4, 1fr);
@@ -495,49 +492,44 @@ const styles = `
   }
 
   @media (max-width: 768px) {
-    .admin-header {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 1rem;
-    }
+    .admin-header { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+    .quick-checkin-bar { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 1rem; }
+    .quick-checkin-form { max-width: none; flex-direction: column; gap: 0.5rem; }
+    .quick-checkin-info h3 { font-size: 1rem; }
+    .quick-checkin-info p { font-size: 0.75rem; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .stat-card { grid-column: span 1; padding: 0.625rem; }
+    .stat-icon { width: 28px; height: 28px; font-size: 0.875rem; margin-bottom: 0.5rem; border-radius: 8px; }
+    .stat-label { font-size: 0.6rem; }
+    .stat-value { font-size: 1rem; }
+    .stat-subtext { font-size: 0.65rem; }
+    .admin-actions { grid-template-columns: 1fr; gap: 0.5rem; }
+    .btn-action { padding: 0.875rem; gap: 0.75rem; }
+    .btn-action-icon { width: 36px; height: 36px; font-size: 1rem; }
+    .btn-action-title { font-size: 0.8125rem; }
+    .btn-action-desc { font-size: 0.75rem; }
+    .tickets-section { padding: 1.25rem; border-radius: 20px; }
+    .tickets-header { flex-direction: column; align-items: stretch; gap: 0.75rem; margin-bottom: 1rem; }
+    .tickets-header h2 { font-size: 1.25rem; }
+    .search-bar { max-width: none; }
+    .tickets-table th, .tickets-table td { padding: 0.75rem 0.625rem; font-size: 0.8125rem; white-space: nowrap; }
+    .tickets-table-wrapper { margin: 0 -1.25rem; border-radius: 0; border-left: none; border-right: none; }
+    .table-ref-text { font-size: 0.75rem; }
+    .view-link { font-size: 0.75rem; }
+    .status-badge { font-size: 0.65rem; padding: 0.25rem 0.625rem; }
+  }
 
-    .quick-checkin-bar {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 1rem;
-    }
-
-    .quick-checkin-form {
-      max-width: none;
-    }
-
-    .stats-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
-    }
-
-    .stat-card {
-      grid-column: span 1;
-      padding: 1.25rem 1rem;
-    }
-
-    .stat-value {
-      font-size: 1.5rem;
-    }
-
-    .admin-actions {
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
-    }
-
-    .tickets-header {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .search-bar {
-      max-width: none;
-    }
+  @media (max-width: 480px) {
+    .dashboard-page { padding: 0; }
+    .admin-header-left h1 { font-size: 1.5rem; }
+    .quick-checkin-bar { border-radius: 14px; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0.375rem; }
+    .stat-card { border-radius: 12px; padding: 0.5rem; }
+    .stat-value { font-size: 0.875rem; }
+    .stat-icon { width: 24px; height: 24px; font-size: 0.75rem; margin-bottom: 0.375rem; border-radius: 6px; }
+    .stat-label { font-size: 0.55rem; }
+    .admin-actions { gap: 0.375rem; }
+    .btn-action { border-radius: 14px; }
   }
 `;
 
@@ -546,6 +538,7 @@ export default function AdminDashboard() {
   const { logout } = useAuth();
   const { ticketTiers } = useSiteData();
   const [tickets, setTickets] = useState([]);
+  const [ticketsLoading, setTicketsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [quickRef, setQuickRef] = useState('');
   const [copiedRef, setCopiedRef] = useState('');
@@ -560,8 +553,10 @@ export default function AdminDashboard() {
   });
 
   const fetchTickets = useCallback(async () => {
+    setTicketsLoading(true);
     const stored = await ticketsAPI.getAll();
     setTickets(stored);
+    setTicketsLoading(false);
 
     const revenue = stored.reduce((sum, t) => sum + t.price, 0);
     const regular = stored.filter(t => t.tier?.toLowerCase() === 'regular').length;
@@ -646,6 +641,19 @@ export default function AdminDashboard() {
     <AdminLayout>
       <style>{styles}</style>
       <div className="dashboard-page">
+        {ticketsLoading ? (
+          <>
+            <div className="admin-header">
+              <div className="admin-header-left">
+                <h1>Ticket Management</h1>
+                <p>Manage tickets, track sales, and handle door check-in</p>
+              </div>
+            </div>
+            <AdminSkeleton type="stats" count={6} />
+            <AdminSkeleton type="table" count={8} />
+          </>
+        ) : (
+          <>
           {/* Header */}
           <div className="admin-header">
             <div className="admin-header-left">
@@ -819,6 +827,8 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+          </>
+        )}
       </div>
       <Outlet />
     </AdminLayout>

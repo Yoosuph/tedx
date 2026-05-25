@@ -215,22 +215,22 @@ export const ticketTiers = [
 ];
 
 export const galleryImages = [
-  { id: 1, src: '/images/gallery/TEDxD-1.jpg', alt: 'TEDxDutse event', orientation: 'landscape' },
-  { id: 2, src: '/images/gallery/TEDxD-2.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait' },
-  { id: 3, src: '/images/gallery/TEDxD-3.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait' },
-  { id: 4, src: '/images/gallery/TEDxD-4.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait' },
-  { id: 5, src: '/images/gallery/TEDxD-5.jpg', alt: 'TEDxDutse event', orientation: 'landscape' },
-  { id: 6, src: '/images/gallery/TEDxD-6.jpg', alt: 'TEDxDutse event', orientation: 'landscape' },
-  { id: 7, src: '/images/gallery/TEDxD-7.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait' },
-  { id: 8, src: '/images/gallery/TEDxD-8.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait' },
-  { id: 9, src: '/images/gallery/TEDxD-9.jpg', alt: 'TEDxDutse event', orientation: 'landscape' },
-  { id: 10, src: '/images/gallery/TEDxD-10.jpg', alt: 'TEDxDutse event', orientation: 'landscape' },
-  { id: 11, src: '/images/gallery/TEDxD-11.jpg', alt: 'TEDxDutse event', orientation: 'landscape' },
-  { id: 12, src: '/images/gallery/TEDxD-12.jpg', alt: 'TEDxDutse event', orientation: 'landscape' },
-  { id: 13, src: '/images/gallery/TEDxD-13.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait' },
-  { id: 14, src: '/images/gallery/TEDxD-14.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait' },
-  { id: 15, src: '/images/gallery/TEDxD-15.jpg', alt: 'TEDxDutse event', orientation: 'landscape' },
-  { id: 16, src: '/images/gallery/TEDxD-16.jpg', alt: 'TEDxDutse event', orientation: 'landscape' },
+  { id: 1, src: '/images/gallery/TEDxD-1.jpg', alt: 'TEDxDutse event', orientation: 'landscape', showOnLanding: false },
+  { id: 2, src: '/images/gallery/TEDxD-2.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait', showOnLanding: false },
+  { id: 3, src: '/images/gallery/TEDxD-3.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait', showOnLanding: false },
+  { id: 4, src: '/images/gallery/TEDxD-4.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait', showOnLanding: false },
+  { id: 5, src: '/images/gallery/TEDxD-5.jpg', alt: 'TEDxDutse event', orientation: 'landscape', showOnLanding: false },
+  { id: 6, src: '/images/gallery/TEDxD-6.jpg', alt: 'TEDxDutse event', orientation: 'landscape', showOnLanding: false },
+  { id: 7, src: '/images/gallery/TEDxD-7.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait', showOnLanding: false },
+  { id: 8, src: '/images/gallery/TEDxD-8.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait', showOnLanding: false },
+  { id: 9, src: '/images/gallery/TEDxD-9.jpg', alt: 'TEDxDutse event', orientation: 'landscape', showOnLanding: false },
+  { id: 10, src: '/images/gallery/TEDxD-10.jpg', alt: 'TEDxDutse event', orientation: 'landscape', showOnLanding: false },
+  { id: 11, src: '/images/gallery/TEDxD-11.jpg', alt: 'TEDxDutse event', orientation: 'landscape', showOnLanding: false },
+  { id: 12, src: '/images/gallery/TEDxD-12.jpg', alt: 'TEDxDutse event', orientation: 'landscape', showOnLanding: false },
+  { id: 13, src: '/images/gallery/TEDxD-13.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait', showOnLanding: false },
+  { id: 14, src: '/images/gallery/TEDxD-14.jpg', alt: 'TEDxDutse speaker', orientation: 'portrait', showOnLanding: false },
+  { id: 15, src: '/images/gallery/TEDxD-15.jpg', alt: 'TEDxDutse event', orientation: 'landscape', showOnLanding: false },
+  { id: 16, src: '/images/gallery/TEDxD-16.jpg', alt: 'TEDxDutse event', orientation: 'landscape', showOnLanding: false },
 ];
 
 // TEDx required boilerplate text

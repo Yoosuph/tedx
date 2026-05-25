@@ -294,12 +294,126 @@ export default function Footer() {
 
         @media (max-width: 768px) {
           .footer-wrapper {
-            padding: 3rem 0 0;
+            padding: 2.5rem 0 0;
+          }
+
+          .footer-container {
+            padding: 0 1.25rem;
           }
 
           .footer-grid {
-            grid-template-columns: 1fr;
-            gap: 2rem;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+          }
+
+          .footer-grid > :nth-child(1),
+          .footer-grid > :nth-child(4) {
+            grid-column: span 2;
+          }
+
+          .footer-heading {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+          }
+
+          .footer-heading::after {
+            width: 30px;
+          }
+
+          .footer-brand-text {
+            font-size: 0.85rem;
+            line-height: 1.6;
+          }
+
+          .footer-social-icons {
+            justify-content: center;
+            gap: 0.625rem;
+            margin-top: 1rem;
+          }
+
+          .footer-social-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 0.875rem;
+          }
+
+          .footer-link {
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            padding: 0.375rem 0;
+          }
+
+          .footer-info-item {
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+          }
+
+          .footer-newsletter-text {
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+          }
+
+          .footer-newsletter-input {
+            padding: 0.875rem 1.25rem;
+            font-size: 0.875rem;
+          }
+
+          .footer-newsletter-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            min-width: auto;
+          }
+
+          .footer-bottom {
+            padding: 1.25rem 0;
+          }
+
+          .footer-copyright {
+            font-size: 0.75rem;
+          }
+
+          .footer-disclaimer {
+            font-size: 0.7rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .footer-wrapper {
+            padding: 2rem 0 0;
+          }
+
+          .footer-container {
+            padding: 0 1rem;
+          }
+
+          .footer-grid {
+            gap: 1.25rem;
+          }
+
+          .footer-heading {
+            font-size: 0.9375rem;
+            margin-bottom: 0.75rem;
+          }
+
+          .footer-brand-text {
+            font-size: 0.8125rem;
+          }
+
+          .footer-social-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 0.8125rem;
+          }
+
+          .footer-newsletter-btn {
+            padding: 0.6875rem 1.25rem;
+            font-size: 0.8125rem;
+          }
+
+          .footer-newsletter-input {
+            padding: 0.75rem 1rem;
+            font-size: 0.8125rem;
           }
         }
       `}</style>

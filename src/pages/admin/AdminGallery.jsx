@@ -50,23 +50,24 @@ async function destroyCloudinaryAsset(publicId, resourceType) {
 }
 
 export default function AdminGallery() {
-  const { galleryImages, fetchGalleryImages, updateGalleryImages } = useSiteData();
+  const { galleryImages, galleryLoading, galleryLoaded, fetchGalleryImages, updateGalleryImages } = useSiteData();
   const [images, setImages] = useState([]);
   const syncedRef = useRef(false);
   const [deletedItems, setDeletedItems] = useState([]);
 
-  // Sync local state from context once real Supabase data arrives
+  // Sync local state from context once Supabase data finishes loading
   useEffect(() => {
-    if (!syncedRef.current && galleryImages.some(img => img.publicId)) {
+    if (!syncedRef.current && galleryLoaded && galleryImages.length > 0) {
       setImages(galleryImages.map(img => ({ ...img })));
       syncedRef.current = true;
     }
-  }, [galleryImages]);
+  }, [galleryLoaded, galleryImages]);
   const [saved, setSaved] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [newAlt, setNewAlt] = useState('');
   const [newOrientation, setNewOrientation] = useState('landscape');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState(''); // '' | 'uploading' | 'error' | 'success'
@@ -116,11 +117,13 @@ export default function AdminGallery() {
         height: media.height,
         bytes: media.bytes,
         duration: media.duration,
+        showOnLanding: true,
       };
 
       setImages(prev => [...prev, newImg]);
       setNewAlt('');
       setNewOrientation('landscape');
+      setSelectedFile(null);
       setShowAddForm(false);
       setSaved(false);
       setUploadStatus('success');
@@ -133,12 +136,24 @@ export default function AdminGallery() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, []);
 
-  // Handle file selected from "Add New" form
-  const handleFileSelect = useCallback(async (e) => {
+  // Handle file selected from "Add New" form (store locally, don't upload yet)
+  const handleFileSelect = useCallback((e) => {
     const file = e.target.files[0];
     if (!file) return;
-    await handleUpload(file, newAlt, newOrientation);
-  }, [newAlt, newOrientation, handleUpload]);
+    setSelectedFile(file);
+    setUploadStatus('');
+    setUploadErrorMessage('');
+  }, []);
+
+  const handleUploadClick = useCallback(async () => {
+    if (!selectedFile) return;
+    await handleUpload(selectedFile, newAlt, newOrientation);
+  }, [selectedFile, newAlt, newOrientation, handleUpload]);
+
+  const handleClearSelected = useCallback(() => {
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, []);
 
   // Handle file selected from "Edit" panel (replace)
   const handleEditFileSelect = useCallback(async (e) => {
@@ -255,6 +270,10 @@ export default function AdminGallery() {
         .overlay-btn.edit { background: var(--ted-red); color: white; }
         .overlay-btn.edit:hover { background: #C41E3A; }
         .overlay-btn.del { background: rgba(239,68,68,0.15); color: #FCA5A5; border: 1px solid rgba(239,68,68,0.3); }
+        .overlay-btn.landing-on { background: rgba(34,197,94,0.15); color: #86EFAC; border: 1px solid rgba(34,197,94,0.3); }
+        .overlay-btn.landing-on:hover { background: rgba(34,197,94,0.25); }
+        .overlay-btn.landing-off { background: rgba(255,255,255,0.05); color: var(--gray-400); border: 1px solid rgba(255,255,255,0.1); }
+        .overlay-btn.landing-off:hover { background: rgba(255,255,255,0.1); }
         .reorder-btns { display: flex; gap: 0.25rem; }
         .reorder-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.1); border: none; color: white; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .reorder-btn:hover { background: rgba(255,255,255,0.2); }
@@ -320,8 +339,25 @@ export default function AdminGallery() {
 
         .empty-state { text-align: center; padding: 3rem 1rem; color: var(--gray-400); }
 
+        /* Skeleton */
+        .gallery-skeleton { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .skeleton-card { background: var(--dark-surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; }
+        .skeleton-thumb { width: 100%; aspect-ratio: 1; background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        .skeleton-text { height: 14px; margin: 0.625rem; border-radius: 4px; background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* Toggle switch */
+        .toggle-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding-top: 0.25rem; }
+        .toggle-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+        .toggle-slider { position: relative; width: 36px; height: 20px; background: rgba(255,255,255,0.1); border-radius: 10px; transition: background 0.3s ease; flex-shrink: 0; }
+        .toggle-slider::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--gray-400); transition: all 0.3s ease; }
+        .toggle-input:checked + .toggle-slider { background: var(--ted-red); }
+        .toggle-input:checked + .toggle-slider::after { transform: translateX(16px); background: white; }
+        .toggle-text { font-size: 0.75rem; color: var(--gray-400); font-weight: 600; }
+
         @media (max-width: 640px) {
           .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+          .gallery-skeleton { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
           .add-form-row { grid-template-columns: 1fr !important; }
           .edit-panel { flex-direction: column; }
         }
@@ -384,7 +420,7 @@ export default function AdminGallery() {
                   </label>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
                 <div className="afg">
                   <label>Alt Text</label>
                   <input value={editingImage.alt} onChange={e => updateImage(editingImage.id, 'alt', e.target.value)} />
@@ -395,6 +431,19 @@ export default function AdminGallery() {
                     <option value="landscape">Landscape</option>
                     <option value="portrait">Portrait</option>
                   </select>
+                </div>
+                <div className="afg">
+                  <label>Show on Landing</label>
+                  <label className="toggle-label">
+                    <input
+                      type="checkbox"
+                      className="toggle-input"
+                      checked={editingImage.showOnLanding ?? true}
+                      onChange={e => updateImage(editingImage.id, 'showOnLanding', e.target.checked)}
+                    />
+                    <span className="toggle-slider" />
+                    <span className="toggle-text">{editingImage.showOnLanding ?? true ? 'On' : 'Off'}</span>
+                  </label>
                 </div>
               </div>
               <div className="edit-actions">
@@ -409,7 +458,7 @@ export default function AdminGallery() {
         {showAddForm ? (
           <div className="add-form-card">
             <h4>Add New Media</h4>
-            <div className="add-form-row" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
+            <div className="add-form-row" style={{ gridTemplateColumns: '1fr 1fr 1fr auto auto' }}>
               <div className="afg">
                 <label>File (Image or Video)</label>
                 <label className="file-upload-label">
@@ -422,9 +471,17 @@ export default function AdminGallery() {
                     disabled={uploading}
                   />
                   <span className="file-upload-btn">
-                    {uploading ? `Uploading ${uploadProgress}%...` : 'Choose File'}
+                    {selectedFile ? selectedFile.name : 'Choose File'}
                   </span>
                 </label>
+                {selectedFile && !uploading && (
+                  <button
+                    onClick={handleClearSelected}
+                    style={{ background: 'none', border: 'none', color: 'var(--gray-500)', cursor: 'pointer', fontSize: '0.7rem', padding: 0, marginTop: '0.25rem', textAlign: 'left' }}
+                  >
+                    Clear selection
+                  </button>
+                )}
               </div>
               <div className="afg">
                 <label>Alt Text</label>
@@ -437,8 +494,13 @@ export default function AdminGallery() {
                   <option value="portrait">Portrait</option>
                 </select>
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button className="btn-cancel" onClick={() => setShowAddForm(false)}>Cancel</button>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'end' }}>
+                {selectedFile && (
+                  <button className="btn-add-img" onClick={handleUploadClick} disabled={uploading}>
+                    {uploading ? `Uploading ${uploadProgress}%` : 'Upload'}
+                  </button>
+                )}
+                <button className="btn-cancel" onClick={() => { setShowAddForm(false); setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>Cancel</button>
               </div>
             </div>
             <p style={{ color: 'var(--gray-500)', fontSize: '0.75rem', margin: '0.75rem 0 0' }}>
@@ -450,7 +512,16 @@ export default function AdminGallery() {
         )}
 
         {/* Gallery grid */}
-        {images.length === 0 ? (
+        {galleryLoading && images.length === 0 ? (
+          <div className="gallery-skeleton">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-thumb" />
+                <div className="skeleton-text" />
+              </div>
+            ))}
+          </div>
+        ) : images.length === 0 ? (
           <div className="empty-state">
             <p style={{ fontSize: '2rem', margin: '0 0 0.5rem' }}>🖼️</p>
             <p>No gallery media yet. Add your first image or video above.</p>
@@ -493,6 +564,9 @@ export default function AdminGallery() {
                 <div className="gallery-alt-text">
                   {img.alt || 'No alt text'}
                   {img.resourceType === 'video' && ' 🎬'}
+                  <span style={{ float: 'right', fontSize: '0.6rem', fontWeight: 700, color: (img.showOnLanding ?? true) ? 'var(--ted-red)' : 'var(--gray-500)' }}>
+                    {(img.showOnLanding ?? true) ? '🌐' : '🔒'}
+                  </span>
                 </div>
                 <div className="gallery-overlay">
                   {img.resourceType === 'video' && (
@@ -500,6 +574,13 @@ export default function AdminGallery() {
                       🎬 {img.duration ? `${Math.round(img.duration)}s` : 'Video'}
                     </span>
                   )}
+                  <button
+                    className={`overlay-btn ${(img.showOnLanding ?? true) ? 'landing-on' : 'landing-off'}`}
+                    onClick={() => updateImage(img.id, 'showOnLanding', !(img.showOnLanding ?? true))}
+                    title="Toggle landing page visibility"
+                  >
+                    {(img.showOnLanding ?? true) ? '🌐 Landing' : '🔒 Hidden'}
+                  </button>
                   <button className="overlay-btn edit" onClick={() => setEditingId(img.id)}>✏️ Edit</button>
                   <button className="overlay-btn del" onClick={() => deleteImage(img.id)}>🗑️ Delete</button>
                   <div className="reorder-btns">

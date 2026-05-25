@@ -58,7 +58,7 @@ export default function HomePage() {
     }
   }
 
-  const previewImages = galleryImages.slice(0, 4);
+  const previewImages = galleryImages.filter(img => img.showOnLanding !== false).slice(0, 4);
 
   /** Video overlay icon for video preview items */
   function PreviewIcon({ img }) {

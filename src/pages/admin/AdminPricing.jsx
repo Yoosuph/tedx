@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from './AdminLayout';
+import AdminSkeleton from '../../components/shared/AdminSkeleton';
 
 export default function AdminPricing() {
-  const { ticketTiers, updateTicketTiers } = useSiteData();
+  const { ticketTiers, updateTicketTiers, loading } = useSiteData();
   const [tiers, setTiers] = useState(ticketTiers.map(t => ({ ...t, features: [...t.features] })));
   const [saved, setSaved] = useState(false);
 
@@ -171,6 +172,7 @@ export default function AdminPricing() {
         @media (max-width: 640px) { .form-row-3 { grid-template-columns: 1fr; } .form-row-2 { grid-template-columns: 1fr; } }
       `}</style>
 
+      {loading ? <AdminSkeleton type="form" /> : (
       <div className="pricing-page">
         <h2 style={{ color: 'var(--white)', fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem' }}>Ticket Pricing</h2>
         <p style={{ color: 'var(--gray-400)', fontSize: '0.9rem', margin: '0 0 2rem' }}>Manage ticket tiers, prices, and included features.</p>
@@ -237,6 +239,7 @@ export default function AdminPricing() {
           </button>
         </div>
       </div>
+      )}
     </AdminLayout>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from './AdminLayout';
+import AdminSkeleton from '../../components/shared/AdminSkeleton';
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -24,7 +25,7 @@ const emptySpeaker = () => ({
 });
 
 export default function AdminSpeakers() {
-  const { speakers, updateSpeakers } = useSiteData();
+  const { speakers, updateSpeakers, loading } = useSiteData();
   const [list, setList] = useState(() =>
     speakers.map(s => ({ ...s, social: { ...s.social } }))
   );
@@ -204,6 +205,7 @@ export default function AdminSpeakers() {
         }
       `}</style>
 
+      {loading ? <AdminSkeleton type="form" /> : (
       <div className="speakers-page">
         <h2 style={{ color: 'var(--white)', fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem' }}>Speakers</h2>
         <p style={{ color: 'var(--gray-400)', fontSize: '0.9rem', margin: '0 0 2rem' }}>
@@ -322,6 +324,7 @@ export default function AdminSpeakers() {
           <span className="sp-count">{list.length} speaker{list.length !== 1 ? 's' : ''}</span>
         </div>
       </div>
+      )}
     </AdminLayout>
   );
 }

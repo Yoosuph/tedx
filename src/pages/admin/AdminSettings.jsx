@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from './AdminLayout';
+import AdminSkeleton, { skeletonStyles } from '../../components/shared/AdminSkeleton';
 
 // Helper to convert "Saturday, November 28, 2026" to "2026-11-28"
 function parseDateString(dateStr) {
@@ -53,7 +54,7 @@ function formatTimeString(timeInput) {
 }
 
 export default function AdminSettings() {
-  const { siteConfig, updateSiteConfig } = useSiteData();
+  const { siteConfig, updateSiteConfig, loading } = useSiteData();
   
   // Form state with proper date/time parsing
   const [form, setForm] = useState({
@@ -240,6 +241,7 @@ export default function AdminSettings() {
         }
       `}</style>
 
+      {loading ? <AdminSkeleton type="form" /> : (
       <div className="settings-page">
         <h2 style={{ color: 'var(--white)', fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem' }}>Site Settings</h2>
         <p style={{ color: 'var(--gray-400)', fontSize: '0.9rem', margin: '0 0 2rem' }}>Configure your event details, contact info, and social links.</p>
@@ -379,6 +381,7 @@ export default function AdminSettings() {
           </button>
         </div>
       </div>
+      )}
     </AdminLayout>
   );
 }

@@ -149,23 +149,6 @@ export default function RecoverTicketPage() {
       if (data && data.length > 0) {
         setStatus('success');
         setMessage(`Found ${data.length} ticket(s). Redirecting...`);
-        
-        // Push found tickets to localStorage so the client-side displays have them cached
-        const localTickets = JSON.parse(localStorage.getItem('tedx_tickets') || '[]');
-        data.forEach(t => {
-          if (!localTickets.some(lt => lt.reference === t.reference)) {
-            localTickets.push({
-              reference: t.reference,
-              name: t.name,
-              email: t.email,
-              phone: t.phone,
-              tier: t.tier,
-              price: t.price,
-              status: t.status
-            });
-          }
-        });
-        localStorage.setItem('tedx_tickets', JSON.stringify(localTickets));
 
         setTimeout(() => {
           navigate(`/ticket/${data[data.length - 1].reference}`);

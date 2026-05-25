@@ -4,6 +4,7 @@ import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import AdminLayout from './AdminLayout';
 import { useSiteData } from '../../context/SiteDataContext';
+import AdminSkeleton from '../../components/shared/AdminSkeleton';
 
 // Import Google Fonts
 const googleFonts = `
@@ -713,7 +714,7 @@ function SpeakerCertificateTemplate({ speaker, siteConfig, qrUrl }) {
 }
 
 export default function AdminSpeakerCertificates() {
-  const { siteConfig, speakers } = useSiteData();
+  const { siteConfig, speakers, loading } = useSiteData();
   const [generating, setGenerating] = useState('');
   const [bulkProgress, setBulkProgress] = useState(null);
   const [previewSpeaker, setPreviewSpeaker] = useState(null);
@@ -828,6 +829,7 @@ export default function AdminSpeakerCertificates() {
   return (
     <AdminLayout>
       <style>{styles}</style>
+      {loading ? <AdminSkeleton type="page" /> : (<>
       <div className="admin-spcerts-page">
         {/* Header */}
         <div className="admin-spcerts-header">
@@ -956,6 +958,7 @@ export default function AdminSpeakerCertificates() {
           </div>
         </div>
       )}
+      </>)}
     </AdminLayout>
   );
 }
