@@ -8,23 +8,28 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const mounted = useRef(false);
+  // Track whether onAuthStateChange has already resolved the initial state
+  const initialResolved = useRef(false);
 
-  // Safety net: force loading off after 20 seconds to cover retry backoff (3s+5s+8s + gaps)
-  useEffect(() => {
-    const id = setTimeout(() => {
-      if (mounted.current) {
-        console.warn('AuthProvider: forced loading=false after 20s timeout');
-        setLoading(false);
-      }
-    }, 20000);
-    return () => clearTimeout(id);
+  // ---------- helper: check role ----------
+  const checkAdminRole = useCallback(async (email) => {
+    try {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('email', email)
+        .maybeSingle();
+      return roleData?.role === 'admin';
+    } catch (err) {
+      console.error('Role check failed:', err);
+      return false;
+    }
   }, []);
 
-  // Dynamically build the Supabase local storage token key based on URL
+  // ---------- helper: Supabase storage key ----------
   const getSupabaseStorageKey = useCallback(() => {
     try {
       const url = import.meta.env.VITE_SUPABASE_URL || '';
-      // Extract project reference from URL (e.g. https://xyz.supabase.co -> xyz)
       const matches = url.match(/https:\/\/([^.]+)\.supabase/);
       if (matches && matches[1]) {
         return `sb-${matches[1]}-auth-token`;
@@ -35,7 +40,7 @@ export function AuthProvider({ children }) {
     return null;
   }, []);
 
-  // Check if a stored session actually exists locally in localStorage
+  // ---------- helper: has a stored session in localStorage ----------
   const hasStoredSession = useCallback(() => {
     const key = getSupabaseStorageKey();
     if (!key) return false;
@@ -43,149 +48,139 @@ export function AuthProvider({ children }) {
       const val = localStorage.getItem(key);
       if (!val) return false;
       const parsed = JSON.parse(val);
-      // Ensure we have a valid non-empty session object with user details
-      return !!(parsed && parsed.currentSession && parsed.currentSession.user);
+      // Supabase v2 stores { user, access_token, ... } at the root level
+      return !!(parsed && (parsed.user || (parsed.currentSession && parsed.currentSession.user)));
     } catch {
       return false;
     }
   }, [getSupabaseStorageKey]);
 
-  // Retry helper — Chrome mobile throttles localStorage after refresh,
-  // so a single getSession() often fails. Retry with backoff.
-  const getSessionWithRetry = useCallback(async (maxRetries = 3) => {
-    const timeouts = [3000, 5000, 8000]; // 3s, 5s, 8s
-    let lastError = null;
-
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
+  // ---------- helper: clear the stored session ----------
+  const clearStoredSession = useCallback(() => {
+    const key = getSupabaseStorageKey();
+    if (key) {
       try {
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error(`Session check timeout (attempt ${attempt + 1})`)), timeouts[attempt])
-        );
-
-        const result = await Promise.race([sessionPromise, timeoutPromise]);
-        return result; // success — return immediately
-      } catch (err) {
-        lastError = err;
-        console.warn(`getSession attempt ${attempt + 1}/${maxRetries} failed:`, err.message);
-        // Only wait between retries, not after the last one
-        if (attempt < maxRetries - 1) {
-          await new Promise(r => setTimeout(r, 500));
-        }
-      }
+        localStorage.removeItem(key);
+      } catch { /* ignore */ }
     }
+  }, [getSupabaseStorageKey]);
 
-    throw lastError || new Error('All getSession retries exhausted');
-  }, []);
-
-  const checkSession = useCallback(async () => {
-    try {
-      const { data, error } = await getSessionWithRetry();
-
-      if (error) {
-        throw error;
-      }
-
-      if (!mounted.current) return;
-
-      if (data?.session) {
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('email', data.session.user.email)
-          .maybeSingle();
-
-        setIsAuthenticated(roleData?.role === 'admin');
-      } else {
-        // If Supabase returned no session, check if we still have a valid token local token
-        if (hasStoredSession()) {
-          console.warn('checkSession: Supabase returned null session, but token exists in localStorage. Using offline fallback.');
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
-      }
-    } catch (err) {
-      console.error('Auth check error (retry failed):', err);
-      // Fallback: if we have a stored session token, treat as authenticated
-      if (hasStoredSession()) {
-        console.log('checkSession: Falling back to localStorage auth state.');
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
-    } finally {
-      if (mounted.current) setLoading(false);
-    }
-  }, [getSessionWithRetry, hasStoredSession]);
-
+  // ---------- Main auth bootstrap ----------
   useEffect(() => {
     mounted.current = true;
-    checkSession();
 
+    // ─── Safety valve: force loading off after 12 seconds ───
+    // This ensures the spinner never hangs forever.
+    const safetyTimer = setTimeout(() => {
+      if (mounted.current && loading) {
+        console.warn('AuthProvider: forced loading=false after 12s safety timeout');
+        // If loading is STILL true, either the session check or onAuthStateChange
+        // never resolved.  Fall back to localStorage.
+        if (hasStoredSession()) {
+          console.log('AuthProvider: safety timeout — using localStorage fallback');
+          setIsAuthenticated(true);
+        }
+        setLoading(false);
+      }
+    }, 12000);
+
+    // ─── onAuthStateChange listener ───
+    // This fires IMMEDIATELY with the current session state when first
+    // registered (Supabase SDK calls the callback with INITIAL_SESSION).
+    // This is much more reliable than calling getSession() manually because
+    // the SDK handles all the internal token refresh, lock acquisition, and
+    // localStorage parsing itself.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        try {
-          if (!mounted.current) return;
+        if (!mounted.current) return;
 
-          console.log(`🔑 Auth state change event: ${event}`, session?.user?.email);
+        console.log(`🔑 Auth event: ${event}`, session?.user?.email ?? '(no user)');
 
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
-            const { data: roleData } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('email', session.user.email)
-              .maybeSingle();
-
-            setIsAuthenticated(roleData?.role === 'admin');
+            const isAdmin = await checkAdminRole(session.user.email);
+            if (mounted.current) {
+              setIsAuthenticated(isAdmin);
+              setLoading(false);
+              initialResolved.current = true;
+            }
           } else {
-            // Avoid forced logout if we still have the token in localStorage and it was just a temporary network disconnect/refresh
-            if (hasStoredSession()) {
-              console.warn('onAuthStateChange: Null session received but local token is present. Ignoring disconnect.');
-              setIsAuthenticated(true);
-            } else {
-              setIsAuthenticated(false);
+            // INITIAL_SESSION with no session — user is not logged in
+            if (mounted.current) {
+              // On Chrome mobile, INITIAL_SESSION can fire with null even though
+              // the token exists in localStorage (because the SDK hasn't finished
+              // restoring it yet). Only clear auth for INITIAL_SESSION if there's
+              // genuinely no stored token.
+              if (event === 'INITIAL_SESSION' && hasStoredSession()) {
+                console.log('Auth: INITIAL_SESSION was null but localStorage has a token — waiting for TOKEN_REFRESHED');
+                // Don't change isAuthenticated yet; give the SDK time to refresh.
+                // The safety timer above will resolve it if nothing else fires.
+                setIsAuthenticated(true); // Optimistic — localStorage says we're logged in
+                setLoading(false);
+                initialResolved.current = true;
+              } else {
+                setIsAuthenticated(false);
+                setLoading(false);
+                initialResolved.current = true;
+              }
             }
           }
-        } catch (err) {
-          console.error('Auth state change error:', err);
-          if (hasStoredSession()) {
-            setIsAuthenticated(true);
-          } else {
+        } else if (event === 'SIGNED_OUT') {
+          if (mounted.current) {
             setIsAuthenticated(false);
+            setLoading(false);
+            initialResolved.current = true;
           }
-        } finally {
-          if (mounted.current) setLoading(false);
         }
       }
     );
 
-    return () => { mounted.current = false; subscription?.unsubscribe(); };
-  }, [checkSession, hasStoredSession]);
+    // ─── Fallback: if INITIAL_SESSION never fires within 5 seconds, fall back ───
+    const initialFallback = setTimeout(() => {
+      if (mounted.current && !initialResolved.current) {
+        console.warn('AuthProvider: INITIAL_SESSION never fired, using localStorage fallback');
+        if (hasStoredSession()) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+        setLoading(false);
+        initialResolved.current = true;
+      }
+    }, 5000);
 
+    return () => {
+      mounted.current = false;
+      clearTimeout(safetyTimer);
+      clearTimeout(initialFallback);
+      subscription?.unsubscribe();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ---------- Login ----------
   const login = useCallback(async (email, password) => {
-    // Chrome mobile workaround: clear any stale session data before signing in.
-    // After a refresh-triggered logout, Chrome's throttled localStorage can leave
-    // corrupted session artifacts that block signInWithPassword. Explicit signOut
-    // flushes the storage layer clean so the new login can write fresh data.
+    // Chrome mobile workaround: clear stale session data before signing in.
+    // After a refresh-triggered logout, stale session artifacts in localStorage
+    // can block signInWithPassword. We do a local signOut to flush them.
+    // Wrap in a try-catch with a short timeout so it doesn't hang forever.
     try {
-      await supabase.auth.signOut({ scope: 'local' });
-    } catch (_) {
-      // Ignore — signOut may fail if there's no session. That's fine.
+      await Promise.race([
+        supabase.auth.signOut({ scope: 'local' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('signOut timeout')), 3000)),
+      ]);
+    } catch (e) {
+      // If signOut hangs or there's no session, just clear localStorage manually
+      console.warn('Pre-login signOut failed/timed-out, clearing storage manually:', e.message);
+      clearStoredSession();
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
 
     // Verify admin role
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('email', data.user.email)
-      .maybeSingle();
+    const isAdmin = await checkAdminRole(data.user.email);
 
-    if (roleData?.role !== 'admin') {
-      // Not an admin — sign out immediately
+    if (!isAdmin) {
       await supabase.auth.signOut();
       throw new Error('You are not authorized to access the admin panel.');
     }
@@ -193,12 +188,18 @@ export function AuthProvider({ children }) {
     setIsAuthenticated(true);
     setLoading(false);
     return data.user;
-  }, []);
+  }, [checkAdminRole, clearStoredSession]);
 
+  // ---------- Logout ----------
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // If signOut fails, clear storage manually
+      clearStoredSession();
+    }
     setIsAuthenticated(false);
-  }, []);
+  }, [clearStoredSession]);
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, loading, login, logout, supabase }}>

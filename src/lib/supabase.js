@@ -1,13 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_TIMEOUT = 10000;
-
-function fetchWithTimeout(url, options) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), SUPABASE_TIMEOUT);
-  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(id));
-}
-
 // Supabase configuration
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -19,14 +11,29 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Create Supabase client
+// ──────────────────────────────────────────────────────────────────────────────
+// Chrome mobile fix:
+//   1. `lock` → no-op.  navigator.locks can deadlock when the tab is
+//      backgrounded/restored which is very common on mobile Chrome during a
+//      pull-to-refresh or manual URL-bar reload.
+//   2. `detectSessionInUrl: false` → we never do OAuth redirects, so skip the
+//      URL hash parsing step that can also race on slow connections.
+//   3. NO custom `global.fetch` timeout.  The previous `fetchWithTimeout` was
+//      aborting auth token-refresh requests before they completed, which left
+//      the SDK with no valid session.  Supabase already has its own built-in
+//      retry and timeout logic.
+// ──────────────────────────────────────────────────────────────────────────────
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
+    detectSessionInUrl: false,
+    // No-op lock: prevents navigator.locks deadlocks on Chrome mobile
+    lock: async (_name, _acquireTimeout, fn) => {
+      return await fn();
+    },
   },
-  global: {
-    fetch: fetchWithTimeout,
-  },
+  // Removed custom fetchWithTimeout — it was aborting auth requests on mobile
 });
 
 // Helper functions for database operations
