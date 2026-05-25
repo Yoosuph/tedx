@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from './AdminLayout';
 import AdminSkeleton from '../../components/shared/AdminSkeleton';
@@ -29,6 +29,12 @@ export default function AdminSpeakers() {
   const [list, setList] = useState(() =>
     speakers.map(s => ({ ...s, social: { ...s.social } }))
   );
+
+  useEffect(() => {
+    if (speakers) {
+      setList(speakers.map(s => ({ ...s, social: { ...s.social } })));
+    }
+  }, [speakers]);
   const [expandedId, setExpandedId] = useState(null);
   const [saved, setSaved] = useState(false);
 

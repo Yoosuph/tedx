@@ -1,12 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from './AdminLayout';
 import AdminSkeleton from '../../components/shared/AdminSkeleton';
 
 export default function AdminPricing() {
   const { ticketTiers, updateTicketTiers, loading } = useSiteData();
-  const [tiers, setTiers] = useState(ticketTiers.map(t => ({ ...t, features: [...t.features] })));
+  const [tiers, setTiers] = useState(() => ticketTiers.map(t => ({ ...t, features: [...t.features] })));
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (ticketTiers) {
+      setTiers(ticketTiers.map(t => ({ ...t, features: [...t.features] })));
+    }
+  }, [ticketTiers]);
 
   const handleTierChange = (index, field, value) => {
     setTiers(prev => {

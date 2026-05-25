@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSiteData } from '../../context/SiteDataContext';
 import AdminLayout from './AdminLayout';
 import AdminSkeleton from '../../components/shared/AdminSkeleton';
@@ -20,6 +20,17 @@ export default function AdminSchedule() {
       items: block.items.map(it => ({ ...it })),
     }));
   });
+
+  useEffect(() => {
+    if (schedule) {
+      setBlocks(Object.entries(schedule).map(([key, block]) => ({
+        key,
+        label: block.label,
+        time: block.time,
+        items: block.items.map(it => ({ ...it })),
+      })));
+    }
+  }, [schedule]);
 
   const markDirty = () => setSaved(false);
 
