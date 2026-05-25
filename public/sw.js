@@ -48,11 +48,13 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Clone the response and save it to the cache
-          const responseCopy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseCopy);
-          });
+          // Only cache if the response is fully successful (status 200 and ok)
+          if (response && response.status === 200 && response.ok) {
+            const responseCopy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseCopy);
+            });
+          }
           return response;
         })
         .catch(() => {

@@ -20,6 +20,36 @@ export function AuthProvider({ children }) {
     return () => clearTimeout(id);
   }, []);
 
+  // Dynamically build the Supabase local storage token key based on URL
+  const getSupabaseStorageKey = useCallback(() => {
+    try {
+      const url = import.meta.env.VITE_SUPABASE_URL || '';
+      // Extract project reference from URL (e.g. https://xyz.supabase.co -> xyz)
+      const matches = url.match(/https:\/\/([^.]+)\.supabase/);
+      if (matches && matches[1]) {
+        return `sb-${matches[1]}-auth-token`;
+      }
+    } catch (e) {
+      console.error('Error deriving storage key:', e);
+    }
+    return null;
+  }, []);
+
+  // Check if a stored session actually exists locally in localStorage
+  const hasStoredSession = useCallback(() => {
+    const key = getSupabaseStorageKey();
+    if (!key) return false;
+    try {
+      const val = localStorage.getItem(key);
+      if (!val) return false;
+      const parsed = JSON.parse(val);
+      // Ensure we have a valid non-empty session object with user details
+      return !!(parsed && parsed.currentSession && parsed.currentSession.user);
+    } catch {
+      return false;
+    }
+  }, [getSupabaseStorageKey]);
+
   // Retry helper — Chrome mobile throttles localStorage after refresh,
   // so a single getSession() often fails. Retry with backoff.
   const getSessionWithRetry = useCallback(async (maxRetries = 3) => {
@@ -53,9 +83,7 @@ export function AuthProvider({ children }) {
       const { data, error } = await getSessionWithRetry();
 
       if (error) {
-        console.error('Auth session error:', error);
-        setIsAuthenticated(false);
-        return;
+        throw error;
       }
 
       if (!mounted.current) return;
@@ -69,15 +97,27 @@ export function AuthProvider({ children }) {
 
         setIsAuthenticated(roleData?.role === 'admin');
       } else {
-        setIsAuthenticated(false);
+        // If Supabase returned no session, check if we still have a valid token local token
+        if (hasStoredSession()) {
+          console.warn('checkSession: Supabase returned null session, but token exists in localStorage. Using offline fallback.');
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
       }
     } catch (err) {
-      console.error('Auth check error (all retries exhausted):', err);
-      setIsAuthenticated(false);
+      console.error('Auth check error (retry failed):', err);
+      // Fallback: if we have a stored session token, treat as authenticated
+      if (hasStoredSession()) {
+        console.log('checkSession: Falling back to localStorage auth state.');
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
     } finally {
       if (mounted.current) setLoading(false);
     }
-  }, [getSessionWithRetry]);
+  }, [getSessionWithRetry, hasStoredSession]);
 
   useEffect(() => {
     mounted.current = true;
@@ -88,6 +128,8 @@ export function AuthProvider({ children }) {
         try {
           if (!mounted.current) return;
 
+          console.log(`🔑 Auth state change event: ${event}`, session?.user?.email);
+
           if (session?.user) {
             const { data: roleData } = await supabase
               .from('user_roles')
@@ -97,11 +139,21 @@ export function AuthProvider({ children }) {
 
             setIsAuthenticated(roleData?.role === 'admin');
           } else {
-            setIsAuthenticated(false);
+            // Avoid forced logout if we still have the token in localStorage and it was just a temporary network disconnect/refresh
+            if (hasStoredSession()) {
+              console.warn('onAuthStateChange: Null session received but local token is present. Ignoring disconnect.');
+              setIsAuthenticated(true);
+            } else {
+              setIsAuthenticated(false);
+            }
           }
         } catch (err) {
           console.error('Auth state change error:', err);
-          setIsAuthenticated(false);
+          if (hasStoredSession()) {
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+          }
         } finally {
           if (mounted.current) setLoading(false);
         }
@@ -109,7 +161,7 @@ export function AuthProvider({ children }) {
     );
 
     return () => { mounted.current = false; subscription?.unsubscribe(); };
-  }, [checkSession]);
+  }, [checkSession, hasStoredSession]);
 
   const login = useCallback(async (email, password) => {
     // Chrome mobile workaround: clear any stale session data before signing in.
