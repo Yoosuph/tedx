@@ -64,6 +64,7 @@ export function SiteDataProvider({ children }) {
           eventYear: config.event_year,
           theme: config.theme,
           tagline: config.tagline,
+          subtitle: config.subtitle || '',
           date: config.date,
           time: config.time,
           venue: config.venue,
@@ -279,6 +280,7 @@ export function SiteDataProvider({ children }) {
               eventYear: config.event_year,
               theme: config.theme,
               tagline: config.tagline,
+              subtitle: config.subtitle || '',
               date: config.date,
               time: config.time,
               venue: config.venue,
@@ -454,7 +456,7 @@ export function SiteDataProvider({ children }) {
 
     if (isSupabaseConfigured()) {
       try {
-        await siteConfigAPI.update({
+        const payload = {
           event_name: newConfig.eventName,
           event_year: newConfig.eventYear,
           theme: newConfig.theme,
@@ -471,7 +473,12 @@ export function SiteDataProvider({ children }) {
           social_twitter: newConfig.social.twitter,
           social_facebook: newConfig.social.facebook,
           social_linkedin: newConfig.social.linkedin,
-        });
+        };
+        // Only include subtitle if column exists (added via migration)
+        if (newConfig.subtitle !== undefined) {
+          payload.subtitle = newConfig.subtitle;
+        }
+        await siteConfigAPI.update(payload);
         console.log('✅ Site config updated in Supabase');
       } catch (error) {
         console.error('❌ Error updating site config in Supabase:', error);
@@ -480,39 +487,48 @@ export function SiteDataProvider({ children }) {
   }, []);
 
   const updateSpeakers = useCallback(async (newSpeakers) => {
+    // Capture current speaker IDs before updating state so we can detect deletions
+    const previousSpeakers = speakers;
     setSpeakersState(newSpeakers);
     saveToStorage(STORAGE_KEYS.speakers, newSpeakers);
 
     if (isSupabaseConfigured()) {
       try {
+        // Helper: a real DB id is a positive integer
+        const isDbId = (id) => typeof id === 'number' && id > 0;
+
+        // Detect deleted speakers (IDs in previous state but not in new state)
+        const newIdSet = new Set(newSpeakers.map(s => s.id));
+        const deletedSpeakers = previousSpeakers.filter(
+          s => isDbId(s.id) && !newIdSet.has(s.id)
+        );
+        for (const deleted of deletedSpeakers) {
+          await speakersAPI.delete(deleted.id);
+          console.log(`🗑️ Speaker ${deleted.id} deleted from Supabase`);
+        }
+
+        // Create or update remaining speakers
         for (const speaker of newSpeakers) {
-          if (speaker.id) {
-            await speakersAPI.update(speaker.id, {
-              name: speaker.name,
-              role: speaker.role,
-              title: speaker.title,
-              bio: speaker.bio,
-              story: speaker.story,
-              duration: speaker.duration,
-              image: speaker.image,
-              social_facebook: speaker.social?.facebook,
-              social_instagram: speaker.social?.instagram,
-              social_linkedin: speaker.social?.linkedin,
-            });
+          const payload = {
+            name: speaker.name,
+            role: speaker.role,
+            title: speaker.title,
+            bio: speaker.bio,
+            story: speaker.story,
+            duration: speaker.duration,
+            image: speaker.image,
+            social_facebook: speaker.social?.facebook,
+            social_instagram: speaker.social?.instagram,
+            social_linkedin: speaker.social?.linkedin,
+          };
+
+          if (isDbId(speaker.id)) {
+            // Existing speaker — update
+            await speakersAPI.update(speaker.id, payload);
           } else {
-            const created = await speakersAPI.create({
-              name: speaker.name,
-              role: speaker.role,
-              title: speaker.title,
-              bio: speaker.bio,
-              story: speaker.story,
-              duration: speaker.duration,
-              image: speaker.image,
-              social_facebook: speaker.social?.facebook,
-              social_instagram: speaker.social?.instagram,
-              social_linkedin: speaker.social?.linkedin,
-            });
-            speaker.id = created.id;
+            // New speaker (temp string ID like "speaker-1716...") — create
+            const created = await speakersAPI.create(payload);
+            if (created) speaker.id = created.id;
           }
         }
         console.log('✅ Speakers updated in Supabase');
@@ -520,7 +536,7 @@ export function SiteDataProvider({ children }) {
         console.error('❌ Error updating speakers in Supabase:', error);
       }
     }
-  }, []);
+  }, [speakers]);
 
   const deleteSpeaker = useCallback(async (speakerId) => {
     if (!isSupabaseConfigured()) return;
@@ -534,62 +550,76 @@ export function SiteDataProvider({ children }) {
   }, []);
 
   const updateSchedule = useCallback(async (newSchedule) => {
+    // Capture current schedule IDs before updating state so we can detect deletions
+    const previousSchedule = schedule;
     setScheduleState(newSchedule);
     saveToStorage(STORAGE_KEYS.schedule, newSchedule);
 
     if (isSupabaseConfigured()) {
       try {
-        for (let i = 0; i < newSchedule.morning.items.length; i++) {
-          const item = newSchedule.morning.items[i];
-          if (item.id) {
-            await scheduleAPI.update(item.id, {
-              time: item.time,
-              title: item.title,
-              type: item.type,
-              description: item.description,
-              speaker_id: item.speakerId,
-              order_index: i,
-            });
-          } else {
-            const created = await scheduleAPI.create({
-              session_type: 'morning',
-              session_label: newSchedule.morning.label,
-              session_time: newSchedule.morning.time,
-              time: item.time,
-              title: item.title,
-              type: item.type,
-              description: item.description,
-              speaker_id: item.speakerId,
-              order_index: i,
-            });
-            item.id = created.id;
+        // Helper: a real DB id is a positive integer
+        const isDbId = (id) => typeof id === 'number' && id > 0;
+
+        // Collect all current DB IDs from previous state
+        const previousIds = new Set();
+        for (const session of Object.values(previousSchedule)) {
+          if (session?.items) {
+            for (const item of session.items) {
+              if (isDbId(item.id)) previousIds.add(item.id);
+            }
           }
         }
 
-        for (let i = 0; i < newSchedule.afternoon.items.length; i++) {
-          const item = newSchedule.afternoon.items[i];
-          if (item.id) {
-            await scheduleAPI.update(item.id, {
+        // Collect all DB IDs in the new state
+        const newIds = new Set();
+        for (const session of Object.values(newSchedule)) {
+          if (session?.items) {
+            for (const item of session.items) {
+              if (isDbId(item.id)) newIds.add(item.id);
+            }
+          }
+        }
+
+        // Delete items that were removed
+        for (const id of previousIds) {
+          if (!newIds.has(id)) {
+            await scheduleAPI.delete(id);
+            console.log(`🗑️ Schedule item ${id} deleted from Supabase`);
+          }
+        }
+
+        // Process each session block
+        for (const [sessionKey, session] of Object.entries(newSchedule)) {
+          if (!session?.items) continue;
+          for (let i = 0; i < session.items.length; i++) {
+            const item = session.items[i];
+            const payload = {
               time: item.time,
               title: item.title,
               type: item.type,
               description: item.description,
-              speaker_id: item.speakerId,
+              speaker_id: item.speakerId || null,
               order_index: i,
-            });
-          } else {
-            const created = await scheduleAPI.create({
-              session_type: 'afternoon',
-              session_label: newSchedule.afternoon.label,
-              session_time: newSchedule.afternoon.time,
-              time: item.time,
-              title: item.title,
-              type: item.type,
-              description: item.description,
-              speaker_id: item.speakerId,
-              order_index: i,
-            });
-            item.id = created.id;
+            };
+
+            if (isDbId(item.id)) {
+              // Existing item — update
+              await scheduleAPI.update(item.id, {
+                ...payload,
+                session_type: sessionKey,
+                session_label: session.label,
+                session_time: session.time,
+              });
+            } else {
+              // New item — create
+              const created = await scheduleAPI.create({
+                session_type: sessionKey,
+                session_label: session.label,
+                session_time: session.time,
+                ...payload,
+              });
+              if (created) item.id = created.id;
+            }
           }
         }
 
@@ -598,29 +628,58 @@ export function SiteDataProvider({ children }) {
         console.error('❌ Error updating schedule in Supabase:', error);
       }
     }
-  }, []);
+  }, [schedule]);
 
   const updateTicketTiers = useCallback(async (newTiers) => {
+    // Capture current tier IDs before updating state so we can detect deletions
+    const previousTiers = ticketTiers;
     setTicketTiersState(newTiers);
     saveToStorage(STORAGE_KEYS.ticketTiers, newTiers);
 
     if (isSupabaseConfigured()) {
       try {
+        // ticket_tiers uses TEXT PKs (e.g. 'regular', 'vip', 'vvip')
+        // Temp IDs from the UI look like 'tier-1716...'
+        const isTempId = (id) => typeof id === 'string' && id.startsWith('tier-');
+
+        // Detect deleted tiers
+        const newIdSet = new Set(newTiers.map(t => t.id));
+        const deletedTiers = previousTiers.filter(
+          t => t.id && !isTempId(t.id) && !newIdSet.has(t.id)
+        );
+        for (const deleted of deletedTiers) {
+          await ticketTiersAPI.delete(deleted.id);
+          console.log(`🗑️ Ticket tier ${deleted.id} deleted from Supabase`);
+        }
+
+        // Create or update remaining tiers
         for (const tier of newTiers) {
-          await ticketTiersAPI.update(tier.id, {
+          const payload = {
             name: tier.name,
             price: tier.price,
             currency: tier.currency,
             features: tier.features,
             popular: tier.popular,
-          });
+          };
+
+          if (isTempId(tier.id)) {
+            // New tier — generate a proper slug ID and create
+            const slugId = tier.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `tier-${Date.now()}`;
+            tier.id = slugId;
+            payload.id = slugId;
+            const created = await ticketTiersAPI.create({ id: slugId, ...payload });
+            if (created) tier.id = created.id;
+          } else {
+            // Existing tier — update
+            await ticketTiersAPI.update(tier.id, payload);
+          }
         }
         console.log('✅ Ticket tiers updated in Supabase');
       } catch (error) {
         console.error('❌ Error updating ticket tiers in Supabase:', error);
       }
     }
-  }, []);
+  }, [ticketTiers]);
 
   const updateGalleryImages = useCallback(async (newImages, deletedIds = []) => {
     setGalleryImagesState(newImages);
@@ -677,30 +736,63 @@ export function SiteDataProvider({ children }) {
   }, []);
 
   const updateSponsors = useCallback(async (newSponsors) => {
+    // Capture current sponsor IDs before updating state so we can detect deletions
+    const previousSponsors = sponsors;
     setSponsorsState(newSponsors);
     saveToStorage(STORAGE_KEYS.sponsors, newSponsors);
 
     if (isSupabaseConfigured()) {
       try {
+        // Helper: a real DB id is a positive integer
+        const isDbId = (id) => typeof id === 'number' && id > 0;
+
+        // Collect all current DB IDs from previous state
+        const previousIds = new Set();
+        for (const tierSponsors of Object.values(previousSponsors)) {
+          if (Array.isArray(tierSponsors)) {
+            for (const s of tierSponsors) {
+              if (isDbId(s.id)) previousIds.add(s.id);
+            }
+          }
+        }
+
+        // Collect all DB IDs from new state
+        const newIds = new Set();
+        for (const tierSponsors of Object.values(newSponsors)) {
+          if (Array.isArray(tierSponsors)) {
+            for (const s of tierSponsors) {
+              if (isDbId(s.id)) newIds.add(s.id);
+            }
+          }
+        }
+
+        // Delete removed sponsors
+        for (const id of previousIds) {
+          if (!newIds.has(id)) {
+            await sponsorsAPI.delete(id);
+            console.log(`🗑️ Sponsor ${id} deleted from Supabase`);
+          }
+        }
+
+        // Create or update remaining sponsors
         let orderIndex = 0;
         for (const tier of ['presenting', 'platinum', 'gold', 'community']) {
           if (newSponsors[tier]) {
             for (const sponsor of newSponsors[tier]) {
-              if (sponsor.id) {
-                await sponsorsAPI.update(sponsor.id, {
-                  name: sponsor.name,
-                  logo: sponsor.logo,
-                  tier: tier,
-                  order_index: orderIndex++,
-                });
+              const payload = {
+                name: sponsor.name,
+                logo: sponsor.logo,
+                tier: tier,
+                order_index: orderIndex++,
+              };
+
+              if (isDbId(sponsor.id)) {
+                // Existing sponsor — update
+                await sponsorsAPI.update(sponsor.id, payload);
               } else {
-                const created = await sponsorsAPI.create({
-                  name: sponsor.name,
-                  logo: sponsor.logo,
-                  tier: tier,
-                  order_index: orderIndex++,
-                });
-                sponsor.id = created.id;
+                // New sponsor — create
+                const created = await sponsorsAPI.create(payload);
+                if (created) sponsor.id = created.id;
               }
             }
           }
@@ -710,7 +802,7 @@ export function SiteDataProvider({ children }) {
         console.error('❌ Error updating sponsors in Supabase:', error);
       }
     }
-  }, []);
+  }, [sponsors]);
 
   const deleteSponsor = useCallback(async (sponsorId) => {
     if (!isSupabaseConfigured()) return;

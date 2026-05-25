@@ -87,7 +87,7 @@ export default function AdminSchedule() {
           label: b.label,
           time: b.time,
           items: b.items.map(it => {
-            const item = { time: it.time, title: it.title, type: it.type, description: it.description };
+            const item = { id: it.id, time: it.time, title: it.title, type: it.type, description: it.description };
             if (it.speakerId) item.speakerId = Number(it.speakerId);
             return item;
           }),
