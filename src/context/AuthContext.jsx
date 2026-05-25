@@ -9,20 +9,27 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const mounted = useRef(false);
 
-  // Safety net: force loading off after 15 seconds no matter what
+  // Safety net: force loading off after 4 seconds no matter what
   useEffect(() => {
     const id = setTimeout(() => {
       if (mounted.current) {
-        console.warn('AuthProvider: forced loading=false after 15s timeout');
+        console.warn('AuthProvider: forced loading=false after 4s timeout');
         setLoading(false);
       }
-    }, 15000);
+    }, 4000);
     return () => clearTimeout(id);
   }, []);
 
   const checkSession = useCallback(async () => {
     try {
-      const { data, error } = await supabase.auth.getSession();
+      // Prevent infinite hanging in Chrome on mobile by setting a 3-second timeout
+      const sessionPromise = supabase.auth.getSession();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Session check timeout')), 3000)
+      );
+
+      const { data, error } = await Promise.race([sessionPromise, timeoutPromise]);
+      
       if (error) {
         console.error('Auth session error:', error);
         setIsAuthenticated(false);
@@ -109,17 +116,8 @@ export function AuthProvider({ children }) {
     setIsAuthenticated(false);
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: '#0a0a0a'
-      }} />
-    );
-  }
-
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, supabase }}>
+    <AuthContext.Provider value={{ isAuthenticated, loading, login, logout, supabase }}>
       {children}
     </AuthContext.Provider>
   );
@@ -135,8 +133,36 @@ export function useAuth() {
 
 // Protected route wrapper
 export function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#0a0a0a',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        {/* Beautiful premium TEDx Red Loading Spinner */}
+        <div style={{
+          width: '50px',
+          height: '50px',
+          border: '3px solid rgba(235, 0, 40, 0.1)',
+          borderTopColor: '#EB0028',
+          borderRadius: '50%',
+          animation: 'tedx-spin 1s linear infinite'
+        }} />
+        <style>{`
+          @keyframes tedx-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;

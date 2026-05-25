@@ -11,3 +11,12 @@ createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </StrictMode>,
 )
+
+// Register Service Worker in production for proper caching and offline support
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((reg) => console.log('🚀 Service Worker registered successfully on scope:', reg.scope))
+      .catch((err) => console.error('❌ Service Worker registration failed:', err));
+  });
+}

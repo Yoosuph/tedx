@@ -266,12 +266,10 @@ export function SiteDataProvider({ children }) {
 
     loadData();
 
-    // Subscribe to real-time changes
-    const subscriptions = [];
-
-    // Site config changes
-    const siteConfigSub = supabase
-      .channel('site_config_changes')
+    // Subscribe to real-time changes using a single consolidated WebSocket connection
+    console.log('🔌 Initializing consolidated real-time database listener...');
+    const dbChangesChannel = supabase
+      .channel('realtime_db_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'site_config' }, () => {
         console.log('🔄 Site config changed, reloading...');
         siteConfigAPI.get().then(config => {
@@ -303,12 +301,6 @@ export function SiteDataProvider({ children }) {
           }
         }).catch(err => console.error('❌ Site config reload error:', err));
       })
-      .subscribe();
-    subscriptions.push(siteConfigSub);
-
-    // Speakers changes
-    const speakersSub = supabase
-      .channel('speakers_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'speakers' }, () => {
         console.log('🔄 Speakers changed, reloading...');
         speakersAPI.getAll().then(speakersData => {
@@ -331,12 +323,6 @@ export function SiteDataProvider({ children }) {
           saveToStorage(STORAGE_KEYS.speakers, formattedSpeakers);
         }).catch(err => console.error('❌ Speakers reload error:', err));
       })
-      .subscribe();
-    subscriptions.push(speakersSub);
-
-    // Schedule changes
-    const scheduleSub = supabase
-      .channel('schedule_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'schedule' }, () => {
         console.log('🔄 Schedule changed, reloading...');
         scheduleAPI.getAll().then(scheduleData => {
@@ -377,12 +363,6 @@ export function SiteDataProvider({ children }) {
           saveToStorage(STORAGE_KEYS.schedule, formattedSchedule);
         }).catch(err => console.error('❌ Schedule reload error:', err));
       })
-      .subscribe();
-    subscriptions.push(scheduleSub);
-
-    // Ticket tiers changes
-    const tiersSub = supabase
-      .channel('ticket_tiers_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ticket_tiers' }, () => {
         console.log('🔄 Ticket tiers changed, reloading...');
         ticketTiersAPI.getAll().then(tiersData => {
@@ -398,12 +378,6 @@ export function SiteDataProvider({ children }) {
           saveToStorage(STORAGE_KEYS.ticketTiers, formattedTiers);
         }).catch(err => console.error('❌ Ticket tiers reload error:', err));
       })
-      .subscribe();
-    subscriptions.push(tiersSub);
-
-    // Gallery changes
-    const gallerySub = supabase
-      .channel('gallery_images_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery_images' }, () => {
         console.log('🔄 Gallery changed, reloading...');
         galleryAPI.getAll().then(galleryData => {
@@ -433,12 +407,6 @@ export function SiteDataProvider({ children }) {
           saveToStorage(STORAGE_KEYS.galleryImages, formattedGallery);
         }).catch(err => console.error('❌ Gallery reload error:', err));
       })
-      .subscribe();
-    subscriptions.push(gallerySub);
-
-    // Sponsors changes
-    const sponsorsSub = supabase
-      .channel('sponsors_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'sponsors' }, () => {
         console.log('🔄 Sponsors changed, reloading...');
         sponsorsAPI.getAll().then(sponsorsData => {
@@ -465,22 +433,18 @@ export function SiteDataProvider({ children }) {
           saveToStorage(STORAGE_KEYS.sponsors, groupedSponsors);
         }).catch(err => console.error('❌ Sponsors reload error:', err));
       })
-      .subscribe();
-    subscriptions.push(sponsorsSub);
-
-    // Tickets changes (for admin dashboard)
-    const ticketsSub = supabase
-      .channel('tickets_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, () => {
         console.log('🔄 Tickets changed, triggering refresh event...');
         window.dispatchEvent(new CustomEvent('tickets-changed'));
       })
-      .subscribe();
-    subscriptions.push(ticketsSub);
+      .subscribe((status) => {
+        console.log('🔌 DB Changes subscription status:', status);
+      });
 
-    // Cleanup subscriptions on unmount
+    // Cleanup subscription on unmount
     return () => {
-      subscriptions.forEach(sub => supabase.removeChannel(sub));
+      console.log('🔌 Removing consolidated real-time database listener...');
+      supabase.removeChannel(dbChangesChannel);
     };
   }, []);
 
