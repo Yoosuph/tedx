@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useScrollProgress } from '../hooks/useScrollAnimation'
 import Navbar from '../components/layout/Navbar'
@@ -41,48 +42,76 @@ import {
   THUMBNAIL_WIDTH,
 } from '../lib/cloudinary';
 
+/** Build the best thumbnail URL for a gallery item (images + video poster). */
+function getPreviewUrl(img) {
+  if (!img.publicId) return img.src;
+  try {
+    if (img.resourceType === 'video') {
+      return buildVideoPosterUrl({ publicId: img.publicId, width: THUMBNAIL_WIDTH });
+    }
+    return buildImageUrl({ publicId: img.publicId, format: img.format || 'jpg', width: THUMBNAIL_WIDTH });
+  } catch {
+    return img.src;
+  }
+}
+
+/** Video overlay icon for video preview items */
+function PreviewIcon({ img }) {
+  if (img.resourceType !== 'video') return null;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="white"
+      style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 32,
+        height: 32,
+        opacity: 0.8,
+        zIndex: 2,
+        pointerEvents: 'none',
+      }}
+    >
+      <polygon points="5,3 19,12 5,21" />
+    </svg>
+  );
+}
+
+/** Premium preview card with skeleton loader while the Cloudinary image is downloading */
+function GalleryPreviewCard({ img }) {
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <Link to="/gallery" className="gallery-preview-item">
+      <PreviewIcon img={img} />
+      {!loaded && <div className="gallery-preview-item-skeleton" />}
+      <img
+        src={getPreviewUrl(img)}
+        alt={img.alt}
+        onLoad={() => setLoaded(true)}
+        style={{
+          opacity: loaded ? 1 : 0,
+          transition: 'opacity 0.4s ease-in-out',
+          position: loaded ? 'relative' : 'absolute',
+          inset: loaded ? 'auto' : 0,
+        }}
+      />
+      {loaded && (
+        <div className="gallery-preview-overlay">
+          <span>View Gallery</span>
+        </div>
+      )}
+    </Link>
+  );
+}
+
 export default function HomePage() {
-  const { galleryImages, siteConfig } = useSiteData();
+  const { galleryImages, siteConfig, loading } = useSiteData();
   const progress = useScrollProgress()
 
-  /** Build the best thumbnail URL for a gallery item (images + video poster). */
-  function getPreviewUrl(img) {
-    if (!img.publicId) return img.src;
-    try {
-      if (img.resourceType === 'video') {
-        return buildVideoPosterUrl({ publicId: img.publicId, width: THUMBNAIL_WIDTH });
-      }
-      return buildImageUrl({ publicId: img.publicId, format: img.format || 'jpg', width: THUMBNAIL_WIDTH });
-    } catch {
-      return img.src;
-    }
-  }
-
   const previewImages = galleryImages.filter(img => img.showOnLanding !== false).slice(0, 4);
-
-  /** Video overlay icon for video preview items */
-  function PreviewIcon({ img }) {
-    if (img.resourceType !== 'video') return null;
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        fill="white"
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 32,
-          height: 32,
-          opacity: 0.8,
-          zIndex: 2,
-          pointerEvents: 'none',
-        }}
-      >
-        <polygon points="5,3 19,12 5,21" />
-      </svg>
-    );
-  }
 
   const teaserCards = [
     { icon: 'fas fa-info-circle', title: 'About', desc: `Discover the story behind ${siteConfig.theme}`, link: '/about' },
@@ -372,6 +401,31 @@ export default function HomePage() {
           color: var(--ted-red);
           transform: translateY(-2px);
           box-shadow: 0 8px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Gallery Preview Skeletons */
+        .gallery-preview-skeleton {
+          aspect-ratio: 1;
+          border-radius: var(--radius-lg);
+          background: linear-gradient(90deg, #121212 25%, #1d1d1d 50%, #121212 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite linear;
+          border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .gallery-preview-item-skeleton {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, #121212 25%, #1d1d1d 50%, #121212 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite linear;
+          border-radius: var(--radius-lg);
+          z-index: 1;
+        }
+
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
         }
 
         /* Testimonial Section */
@@ -685,15 +739,15 @@ export default function HomePage() {
           </div>
 
           <div className="gallery-preview-grid">
-            {previewImages.map((img, idx) => (
-              <Link key={idx} to="/gallery" className="gallery-preview-item">
-                <PreviewIcon img={img} />
-                <img src={getPreviewUrl(img)} alt={img.alt} />
-                <div className="gallery-preview-overlay">
-                  <span>View Gallery</span>
-                </div>
-              </Link>
-            ))}
+            {loading ? (
+              Array.from({ length: 4 }).map((_, idx) => (
+                <div key={idx} className="gallery-preview-skeleton" />
+              ))
+            ) : (
+              previewImages.map((img, idx) => (
+                <GalleryPreviewCard key={idx} img={img} />
+              ))
+            )}
           </div>
 
           <div className="gallery-preview-cta">
