@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ticketsAPI } from '../../lib/supabase';
 import { useSiteData } from '../../context/SiteDataContext';
@@ -13,9 +14,9 @@ const styles = `
     -webkit-backdrop-filter: blur(12px);
     z-index: 1000;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    padding: 1.5rem 1rem;
+    padding: 2rem;
     overflow-y: auto;
     animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -45,8 +46,9 @@ const styles = `
     position: relative;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
     animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    overflow: hidden;
-    margin: auto 0;
+    overflow-y: auto;
+    max-height: 85vh;
+    margin: auto;
   }
 
   .modal-close {
@@ -322,13 +324,13 @@ const styles = `
     .modal-overlay {
       align-items: flex-start;
       padding: 0.75rem;
+      padding-top: 3rem;
     }
 
     .modal-content {
       max-width: 100%;
       margin: 0;
-      max-height: 92vh;
-      overflow-y: auto;
+      max-height: 90vh;
     }
   }
 
@@ -395,10 +397,11 @@ const styles = `
   @media (max-width: 480px) {
     .modal-overlay {
       padding: 0.5rem;
+      padding-top: 3rem;
     }
 
     .modal-content {
-      max-height: 95vh;
+      max-height: 92vh;
       border-radius: 14px;
     }
 
@@ -440,9 +443,10 @@ export default function TicketDetail() {
   }, [reference, siteConfig]);
 
   useEffect(() => {
-    // Prevent body scroll when modal is open
-    document.body.style.overflow = 'hidden';
-    
+    const scrollY = window.scrollY;
+    const body = document.body;
+    body.style.overflow = 'hidden';
+
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         handleClose();
@@ -451,7 +455,8 @@ export default function TicketDetail() {
 
     document.addEventListener('keydown', handleEscape);
     return () => {
-      document.body.style.overflow = '';
+      body.style.overflow = '';
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
       document.removeEventListener('keydown', handleEscape);
     };
   }, []);
@@ -491,8 +496,7 @@ export default function TicketDetail() {
     }
   };
 
-  if (!ticket) {
-    return (
+  const modal = !ticket ? (
       <div className="modal-overlay" onClick={handleClose}>
         <div className="modal-content" onClick={e => e.stopPropagation()}>
           <button className="modal-close" onClick={handleClose}>×</button>
@@ -508,10 +512,7 @@ export default function TicketDetail() {
           </div>
         </div>
       </div>
-    );
-  }
-
-  return (
+  ) : (
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <button className="modal-close" onClick={handleClose}>×</button>
@@ -618,4 +619,6 @@ export default function TicketDetail() {
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }

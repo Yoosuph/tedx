@@ -641,194 +641,224 @@ export default function AdminDashboard() {
     <AdminLayout>
       <style>{styles}</style>
       <div className="dashboard-page">
-        {ticketsLoading ? (
-          <>
-            <div className="admin-header">
-              <div className="admin-header-left">
-                <h1>Ticket Management</h1>
-                <p>Manage tickets, track sales, and handle door check-in</p>
-              </div>
-            </div>
-            <AdminSkeleton type="stats" count={6} />
-            <AdminSkeleton type="table" count={8} />
-          </>
-        ) : (
-          <>
-          {/* Header */}
-          <div className="admin-header">
-            <div className="admin-header-left">
-              <h1>Ticket Management</h1>
-              <p>Manage tickets, track sales, and handle door check-in</p>
-            </div>
+        <div className="admin-header">
+          <div className="admin-header-left">
+            <h1>Ticket Management</h1>
+            <p>Manage tickets, track sales, and handle door check-in</p>
           </div>
+        </div>
 
-          {/* Quick Check-In Bar */}
-          <div className="quick-checkin-bar">
-            <div className="quick-checkin-info">
-              <h3>Fast Ticket Lookup</h3>
-              <p>Enter a reference code below to check in an attendee instantly</p>
-            </div>
-            <form onSubmit={handleQuickLookup} className="quick-checkin-form">
-              <input
-                type="text"
-                className="quick-checkin-input"
-                placeholder="e.g., TEDX1716493205"
-                value={quickRef}
-                onChange={(e) => setQuickRef(e.target.value)}
-              />
-              <button type="submit" className="btn-quick-lookup">
-                Lookup Ticket
-              </button>
-            </form>
+        <div className="quick-checkin-bar">
+          <div className="quick-checkin-info">
+            <h3>Fast Ticket Lookup</h3>
+            <p>Enter a reference code below to check in an attendee instantly</p>
           </div>
-
-          {/* Stats Grid */}
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon total">🎫</div>
-              <p className="stat-label">Total Tickets</p>
-              <p className="stat-value">{stats.total}</p>
-              <p className="stat-subtext">{stats.checkedIn} checked in</p>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon revenue">💰</div>
-              <p className="stat-label">Revenue</p>
-              <p className="stat-value revenue">₦{stats.revenue.toLocaleString()}</p>
-              <p className="stat-subtext">Total sales</p>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon regular">🎟️</div>
-              <p className="stat-label">Regular</p>
-              <p className="stat-value">{stats.regular}</p>
-              <p className="stat-subtext">₦{(ticketTiers.find(t => t.id === 'regular')?.price || 3000).toLocaleString()} each</p>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon vip">⭐</div>
-              <p className="stat-label">VIP</p>
-              <p className="stat-value">{stats.vip}</p>
-              <p className="stat-subtext">₦{(ticketTiers.find(t => t.id === 'vip')?.price || 10000).toLocaleString()} each</p>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon vvip">👑</div>
-              <p className="stat-label">VVIP</p>
-              <p className="stat-value">{stats.vvip}</p>
-              <p className="stat-subtext">₦{(ticketTiers.find(t => t.id === 'vvip')?.price || 25000).toLocaleString()} each</p>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon checkedin">✅</div>
-              <p className="stat-label">Checked In</p>
-              <p className="stat-value checkedin">{stats.checkedIn}</p>
-              <p className="stat-subtext">{stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) : 0}% of {stats.total} tickets</p>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="admin-actions">
-            <Link to="/admin/tickets/scanner" className="btn-action primary">
-              <div className="btn-action-icon">📷</div>
-              <div className="btn-action-text">
-                <p className="btn-action-title">QR Scanner</p>
-                <p className="btn-action-desc">Verify with device camera</p>
-              </div>
-            </Link>
-            <Link to="/admin/tickets/verify" className="btn-action">
-              <div className="btn-action-icon">🔍</div>
-              <div className="btn-action-text">
-                <p className="btn-action-title">Verify Ticket</p>
-                <p className="btn-action-desc">Manual verification page</p>
-              </div>
-            </Link>
-            <button onClick={handleExportCSV} className="btn-action">
-              <div className="btn-action-icon">📊</div>
-              <div className="btn-action-text">
-                <p className="btn-action-title">Export CSV</p>
-                <p className="btn-action-desc">Download sales data</p>
-              </div>
+          <form onSubmit={handleQuickLookup} className="quick-checkin-form">
+            <input
+              type="text"
+              className="quick-checkin-input"
+              placeholder="e.g., TEDX1716493205"
+              value={quickRef}
+              onChange={(e) => setQuickRef(e.target.value)}
+            />
+            <button type="submit" className="btn-quick-lookup">
+              Lookup Ticket
             </button>
-          </div>
+          </form>
+        </div>
 
-          {/* Tickets Section */}
-          <div className="tickets-section">
-            <div className="tickets-header">
-              <h2>All Tickets</h2>
-              <div className="search-bar">
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="Search by name, email, reference..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {filteredTickets.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">🎫</div>
-                <h3>No tickets found</h3>
-                <p>{searchTerm ? 'Try a different search term' : 'Tickets will appear here once purchases are made'}</p>
-              </div>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-icon total">🎫</div>
+            <p className="stat-label">Total Tickets</p>
+            {ticketsLoading ? (
+              <div className="skeleton-line" style={{ height: '2rem', marginBottom: '0.25rem' }} />
             ) : (
-              <div className="tickets-table-wrapper">
-                <table className="tickets-table">
-                  <thead>
-                    <tr>
-                      <th>Reference</th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>Tier</th>
-                      <th>Amount</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredTickets.map((ticket) => (
-                      <tr key={ticket.reference}>
-                        <td>
-                          <div className="table-ref-cell">
-                            <span className="table-ref-text">{ticket.reference}</span>
-                            <button 
-                              className="btn-table-copy" 
-                              onClick={() => handleCopyRef(ticket.reference)}
-                              title="Copy Reference"
-                            >
-                              {copiedRef === ticket.reference ? (
-                                <span style={{ color: '#22C55E', fontSize: '9px', fontWeight: 'bold' }}>✓</span>
-                              ) : (
-                                <svg viewBox="0 0 24 24">
-                                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                                </svg>
-                              )}
-                            </button>
-                          </div>
-                        </td>
-                        <td>{ticket.name}</td>
-                        <td>{ticket.email}</td>
-                        <td>{ticket.phone || '—'}</td>
-                        <td>{ticket.tier}</td>
-                        <td>₦{ticket.price.toLocaleString()}</td>
-                        <td>
-                          <span className={`status-badge status-${ticket.status || 'paid'}`}>
-                            {ticket.status || 'paid'}
-                          </span>
-                        </td>
-                        <td>
-                          <Link to={`/admin/tickets/${ticket.reference}`} className="view-link">
-                            View
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <p className="stat-value">{stats.total}</p>
+            )}
+            {ticketsLoading ? (
+              <div className="skeleton-line short" style={{ height: '0.8125rem' }} />
+            ) : (
+              <p className="stat-subtext">{stats.checkedIn} checked in</p>
             )}
           </div>
-          </>
-        )}
+          <div className="stat-card">
+            <div className="stat-icon revenue">💰</div>
+            <p className="stat-label">Revenue</p>
+            {ticketsLoading ? (
+              <div className="skeleton-line" style={{ height: '2rem', marginBottom: '0.25rem' }} />
+            ) : (
+              <p className="stat-value revenue">₦{stats.revenue.toLocaleString()}</p>
+            )}
+            {ticketsLoading ? (
+              <div className="skeleton-line short" style={{ height: '0.8125rem' }} />
+            ) : (
+              <p className="stat-subtext">Total sales</p>
+            )}
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon regular">🎟️</div>
+            <p className="stat-label">Regular</p>
+            {ticketsLoading ? (
+              <div className="skeleton-line" style={{ height: '2rem', marginBottom: '0.25rem' }} />
+            ) : (
+              <p className="stat-value">{stats.regular}</p>
+            )}
+            {ticketsLoading ? (
+              <div className="skeleton-line short" style={{ height: '0.8125rem' }} />
+            ) : (
+              <p className="stat-subtext">₦{(ticketTiers.find(t => t.id === 'regular')?.price || 3000).toLocaleString()} each</p>
+            )}
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon vip">⭐</div>
+            <p className="stat-label">VIP</p>
+            {ticketsLoading ? (
+              <div className="skeleton-line" style={{ height: '2rem', marginBottom: '0.25rem' }} />
+            ) : (
+              <p className="stat-value">{stats.vip}</p>
+            )}
+            {ticketsLoading ? (
+              <div className="skeleton-line short" style={{ height: '0.8125rem' }} />
+            ) : (
+              <p className="stat-subtext">₦{(ticketTiers.find(t => t.id === 'vip')?.price || 10000).toLocaleString()} each</p>
+            )}
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon vvip">👑</div>
+            <p className="stat-label">VVIP</p>
+            {ticketsLoading ? (
+              <div className="skeleton-line" style={{ height: '2rem', marginBottom: '0.25rem' }} />
+            ) : (
+              <p className="stat-value">{stats.vvip}</p>
+            )}
+            {ticketsLoading ? (
+              <div className="skeleton-line short" style={{ height: '0.8125rem' }} />
+            ) : (
+              <p className="stat-subtext">₦{(ticketTiers.find(t => t.id === 'vvip')?.price || 25000).toLocaleString()} each</p>
+            )}
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon checkedin">✅</div>
+            <p className="stat-label">Checked In</p>
+            {ticketsLoading ? (
+              <div className="skeleton-line" style={{ height: '2rem', marginBottom: '0.25rem' }} />
+            ) : (
+              <p className="stat-value checkedin">{stats.checkedIn}</p>
+            )}
+            {ticketsLoading ? (
+              <div className="skeleton-line short" style={{ height: '0.8125rem' }} />
+            ) : (
+              <p className="stat-subtext">{stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) : 0}% of {stats.total} tickets</p>
+            )}
+          </div>
+        </div>
+
+        <div className="admin-actions">
+          <Link to="/admin/tickets/scanner" className="btn-action primary">
+            <div className="btn-action-icon">📷</div>
+            <div className="btn-action-text">
+              <p className="btn-action-title">QR Scanner</p>
+              <p className="btn-action-desc">Verify with device camera</p>
+            </div>
+          </Link>
+          <Link to="/admin/tickets/verify" className="btn-action">
+            <div className="btn-action-icon">🔍</div>
+            <div className="btn-action-text">
+              <p className="btn-action-title">Verify Ticket</p>
+              <p className="btn-action-desc">Manual verification page</p>
+            </div>
+          </Link>
+          <button onClick={handleExportCSV} className="btn-action">
+            <div className="btn-action-icon">📊</div>
+            <div className="btn-action-text">
+              <p className="btn-action-title">Export CSV</p>
+              <p className="btn-action-desc">Download sales data</p>
+            </div>
+          </button>
+        </div>
+
+        <div className="tickets-section">
+          <div className="tickets-header">
+            <h2>All Tickets</h2>
+            <div className="search-bar">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search by name, email, reference..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {ticketsLoading ? (
+            <AdminSkeleton type="table" count={8} />
+          ) : filteredTickets.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">🎫</div>
+              <h3>No tickets found</h3>
+              <p>{searchTerm ? 'Try a different search term' : 'Tickets will appear here once purchases are made'}</p>
+            </div>
+          ) : (
+            <div className="tickets-table-wrapper">
+              <table className="tickets-table">
+                <thead>
+                  <tr>
+                    <th>Reference</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Tier</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTickets.map((ticket) => (
+                    <tr key={ticket.reference}>
+                      <td>
+                        <div className="table-ref-cell">
+                          <span className="table-ref-text">{ticket.reference}</span>
+                          <button 
+                            className="btn-table-copy" 
+                            onClick={() => handleCopyRef(ticket.reference)}
+                            title="Copy Reference"
+                          >
+                            {copiedRef === ticket.reference ? (
+                              <span style={{ color: '#22C55E', fontSize: '9px', fontWeight: 'bold' }}>✓</span>
+                            ) : (
+                              <svg viewBox="0 0 24 24">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                      <td>{ticket.name}</td>
+                      <td>{ticket.email}</td>
+                      <td>{ticket.phone || '—'}</td>
+                      <td>{ticket.tier}</td>
+                      <td>₦{ticket.price.toLocaleString()}</td>
+                      <td>
+                        <span className={`status-badge status-${ticket.status || 'paid'}`}>
+                          {ticket.status || 'paid'}
+                        </span>
+                      </td>
+                      <td>
+                        <Link to={`/admin/tickets/${ticket.reference}`} className="view-link">
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
       <Outlet />
     </AdminLayout>
