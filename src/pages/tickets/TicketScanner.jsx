@@ -771,6 +771,7 @@ export default function TicketScanner() {
         console.error("Error stopping scanner stream", e);
       }
     }
+    html5QrCodeRef.current = null;
     setIsScanning(false);
   };
 
@@ -875,8 +876,8 @@ export default function TicketScanner() {
   const resetScanner = () => {
     setResult(null);
     setManualRef('');
-    // Optionally restart scanning automatically upon clicking "Scan Another"
-    startScanning(selectedCameraId);
+    // Wait for React to re-render scanner card before creating new scanner
+    setTimeout(() => startScanning(selectedCameraId), 150);
   };
 
   const handleCameraChange = (e) => {

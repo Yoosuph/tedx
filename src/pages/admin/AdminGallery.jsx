@@ -117,10 +117,16 @@ export default function AdminGallery() {
         height: media.height,
         bytes: media.bytes,
         duration: media.duration,
-        showOnLanding: true,
+        showOnLanding: false,
       };
 
-      setImages(prev => [...prev, newImg]);
+      setImages(prev => {
+        const currentLanding = prev.filter(img => img.showOnLanding !== false).length;
+        if (currentLanding < LANDING_LIMIT) {
+          newImg.showOnLanding = true;
+        }
+        return [...prev, newImg];
+      });
       setNewAlt('');
       setNewOrientation('landscape');
       setSelectedFile(null);
@@ -193,10 +199,16 @@ export default function AdminGallery() {
 
   const updateImage = useCallback((id, field, value) => {
     setImages(prev => {
+      if (field === 'showOnLanding' && value === true) {
+        const currentLanding = prev.filter(img => img.showOnLanding !== false).length;
+        const isCurrentlyOn = prev.find(img => img.id === id)?.showOnLanding !== false;
+        if (!isCurrentlyOn && currentLanding >= LANDING_LIMIT) {
+          return prev;
+        }
+      }
       const updated = prev.map(img =>
         img.id === id ? { ...img, [field]: value } : img
       );
-      // Check if anything actually changed to avoid unnecessary re-renders
       return updated;
     });
     setSaved(false);
@@ -250,6 +262,8 @@ export default function AdminGallery() {
     }
   }, [images, deletedItems, updateGalleryImages]);
 
+  const LANDING_LIMIT = 4;
+  const landingCount = images.filter(img => img.showOnLanding !== false).length;
   const editingImage = images.find(img => img.id === editingId);
 
   const acceptTypes = 'image/*,video/*';
@@ -328,6 +342,10 @@ export default function AdminGallery() {
         .upload-error { color: #FCA5A5; font-size: 0.75rem; margin-top: 0.5rem; background: rgba(239,68,68,0.1); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid rgba(239,68,68,0.2); }
         .upload-success { color: #86EFAC; font-size: 0.75rem; margin-top: 0.375rem; }
 
+        /* Landing visibility badge */
+        .landing-badge { position: absolute; top: 0.5rem; right: 0.5rem; font-size: 0.75rem; line-height: 1; z-index: 2; padding: 0.2rem 0.35rem; border-radius: 4px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .landing-badge.visible { color: #86EFAC; }
+        .landing-badge.hidden { color: var(--gray-500); opacity: 0.6; }
         /* Video badge */
         .video-badge { position: absolute; top: 0.5rem; left: 0.5rem; background: rgba(0,0,0,0.7); color: white; font-size: 0.625rem; font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 4px; display: flex; align-items: center; gap: 0.25rem; z-index: 2; }
         .video-badge svg { width: 12px; height: 12px; fill: currentColor; }
@@ -345,6 +363,12 @@ export default function AdminGallery() {
         .skeleton-thumb { width: 100%; aspect-ratio: 1; background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
         .skeleton-text { height: 14px; margin: 0.625rem; border-radius: 4px; background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* Landing counter */
+        .landing-counter { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.8125rem; color: var(--gray-400); flex-wrap: wrap; }
+        .landing-count-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 22px; padding: 0 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; background: rgba(34,197,94,0.12); color: #86EFAC; border: 1px solid rgba(34,197,94,0.2); }
+        .landing-count-badge.full { background: rgba(239,68,68,0.12); color: #FCA5A5; border-color: rgba(239,68,68,0.2); }
+        .landing-limit-note { font-size: 0.75rem; color: #FCA5A5; font-weight: 600; }
 
         /* Toggle switch */
         .toggle-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding-top: 0.25rem; }
@@ -367,10 +391,20 @@ export default function AdminGallery() {
         <h2 style={{ color: 'var(--white)', fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem' }}>Gallery</h2>
         <p style={{ color: 'var(--gray-400)', fontSize: '0.9rem', margin: '0 0 2rem' }}>
           Manage gallery images and videos. Files are uploaded to <strong>Cloudinary</strong>.
-          {uploadStatus === 'uploading' && (
+            {uploadStatus === 'uploading' && (
             <span style={{ color: 'var(--ted-red)', marginLeft: '0.5rem' }}>(uploading...)</span>
           )}
         </p>
+
+        <div className="landing-counter">
+          <span className={`landing-count-badge ${landingCount >= LANDING_LIMIT ? 'full' : ''}`}>
+            {landingCount}/{LANDING_LIMIT}
+          </span>
+          <span>images shown on landing page</span>
+          {landingCount >= LANDING_LIMIT && (
+            <span className="landing-limit-note">(limit reached — disable one first)</span>
+          )}
+        </div>
 
         {/* Upload progress indicator */}
         {(uploadStatus === 'uploading' || uploadStatus === 'error') && (
@@ -538,6 +572,10 @@ export default function AdminGallery() {
                 onDragEnd={handleDragEnd}
                 onDragOver={e => e.preventDefault()}
               >
+                {/* Landing visibility badge */}
+                <div className={`landing-badge ${(img.showOnLanding ?? true) ? 'visible' : 'hidden'}`}>
+                  {(img.showOnLanding ?? true) ? '🌐' : '🔒'}
+                </div>
                 {/* Video badge */}
                 {img.resourceType === 'video' && (
                   <div className="video-badge">
@@ -564,9 +602,6 @@ export default function AdminGallery() {
                 <div className="gallery-alt-text">
                   {img.alt || 'No alt text'}
                   {img.resourceType === 'video' && ' 🎬'}
-                  <span style={{ float: 'right', fontSize: '0.6rem', fontWeight: 700, color: (img.showOnLanding ?? true) ? 'var(--ted-red)' : 'var(--gray-500)' }}>
-                    {(img.showOnLanding ?? true) ? '🌐' : '🔒'}
-                  </span>
                 </div>
                 <div className="gallery-overlay">
                   {img.resourceType === 'video' && (
@@ -576,10 +611,13 @@ export default function AdminGallery() {
                   )}
                   <button
                     className={`overlay-btn ${(img.showOnLanding ?? true) ? 'landing-on' : 'landing-off'}`}
-                    onClick={() => updateImage(img.id, 'showOnLanding', !(img.showOnLanding ?? true))}
-                    title="Toggle landing page visibility"
+                    onClick={() => {
+                      if ((img.showOnLanding ?? true) === false && landingCount >= LANDING_LIMIT) return;
+                      updateImage(img.id, 'showOnLanding', !(img.showOnLanding ?? true));
+                    }}
+                    title={((img.showOnLanding ?? true) === false && landingCount >= LANDING_LIMIT) ? 'Limit of 4 reached — disable another image first' : 'Toggle landing page visibility'}
                   >
-                    {(img.showOnLanding ?? true) ? '🌐 Landing' : '🔒 Hidden'}
+                    {(img.showOnLanding ?? true) ? '🌐 Visible' : (landingCount >= LANDING_LIMIT ? '🔒 Full' : '🔒 Hidden')}
                   </button>
                   <button className="overlay-btn edit" onClick={() => setEditingId(img.id)}>✏️ Edit</button>
                   <button className="overlay-btn del" onClick={() => deleteImage(img.id)}>🗑️ Delete</button>
