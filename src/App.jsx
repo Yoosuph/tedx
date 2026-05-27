@@ -27,6 +27,7 @@ import AdminPricing from './pages/admin/AdminPricing'
 import AdminSpeakers from './pages/admin/AdminSpeakers'
 import AdminSchedule from './pages/admin/AdminSchedule'
 import AdminGallery from './pages/admin/AdminGallery'
+import AdminSponsors from './pages/admin/AdminSponsors'
 import AdminCertificates from './pages/admin/AdminCertificates'
 import AdminSpeakerCertificates from './pages/admin/AdminSpeakerCertificates'
 import CertificatesPage from './pages/certificates/CertificatesPage'
@@ -115,7 +116,12 @@ function App() {
                 <AdminGallery />
               </ProtectedRoute>
             } />
-            <Route path="/admin/certificates" element={
+            <Route path="/admin/sponsors" element={
+            <ProtectedRoute>
+              <AdminSponsors />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/certificates" element={
               <ProtectedRoute>
                 <AdminCertificates />
               </ProtectedRoute>

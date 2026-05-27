@@ -164,7 +164,7 @@ export default function SponsorsPage() {
           your brand can be part of something meaningful.
         </p>
         <a
-          href={`mailto:${siteConfig.contact.email}?subject=Sponsorship%20Inquiry%20%E2%80%94%20TEDxDutse%20${siteConfig.eventYear}`}
+          href={`mailto:sponsors@tedxdutse.com?subject=Sponsorship%20Inquiry%20%E2%80%94%20TEDxDutse%20${siteConfig.eventYear}`}
           className="become-partner__btn"
         >
           Become a Partner

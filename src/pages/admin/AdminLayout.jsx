@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Speakers', path: '/admin/speakers', icon: '🎤' },
   { label: 'Schedule', path: '/admin/schedule', icon: '📅' },
   { label: 'Gallery', path: '/admin/gallery', icon: '🖼️' },
+  { label: 'Partners', path: '/admin/sponsors', icon: '🤝' },
   { label: 'Certificates', path: '/admin/certificates', icon: '📜' },
   { label: 'Speaker Certs', path: '/admin/speaker-certificates', icon: '🏆' },
 ];

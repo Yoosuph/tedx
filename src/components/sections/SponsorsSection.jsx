@@ -18,10 +18,11 @@ function SponsorCard({ sponsor, size }) {
   };
 
   const cfg = sizeMap[size];
+  const hasLink = !!sponsor.website;
 
-  return (
+  const card = (
     <div
-      className="sponsor-card"
+      className={`sponsor-card${hasLink ? ' sponsor-card--linked' : ''}`}
       style={{
         minHeight: cfg.minHeight,
         padding: cfg.padding,
@@ -56,11 +57,25 @@ function SponsorCard({ sponsor, size }) {
       <span className="sponsor-card__name">{sponsor.name}</span>
     </div>
   );
+
+  if (hasLink) {
+    return (
+      <a
+        href={sponsor.website}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="sponsor-card__link"
+      >
+        {card}
+      </a>
+    );
+  }
+
+  return card;
 }
 
 export default function SponsorsSection({ hideHeader = false }) {
   const { sponsors } = useSiteData();
-  let globalDelay = 0;
 
   return (
     <>
@@ -102,28 +117,37 @@ export default function SponsorsSection({ hideHeader = false }) {
           gap: 1.5rem;
         }
 
-        .sponsors-tier__grid--large .sponsor-card {
+        .sponsors-tier__grid--large .sponsor-card,
+        .sponsors-tier__grid--large .sponsor-card__link {
           min-width: 320px;
           max-width: 480px;
           width: 100%;
         }
 
-        .sponsors-tier__grid--medium .sponsor-card {
+        .sponsors-tier__grid--medium .sponsor-card,
+        .sponsors-tier__grid--medium .sponsor-card__link {
           min-width: 220px;
           max-width: 320px;
           flex: 1 1 220px;
         }
 
-        .sponsors-tier__grid--small .sponsor-card {
+        .sponsors-tier__grid--small .sponsor-card,
+        .sponsors-tier__grid--small .sponsor-card__link {
           min-width: 180px;
           max-width: 260px;
           flex: 1 1 180px;
         }
 
-        .sponsors-tier__grid--xsmall .sponsor-card {
+        .sponsors-tier__grid--xsmall .sponsor-card,
+        .sponsors-tier__grid--xsmall .sponsor-card__link {
           min-width: 150px;
           max-width: 220px;
           flex: 1 1 150px;
+        }
+
+        .sponsor-card__link {
+          text-decoration: none;
+          display: block;
         }
 
         .sponsor-card {
@@ -134,14 +158,26 @@ export default function SponsorsSection({ hideHeader = false }) {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
+          transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.4s ease;
           cursor: default;
           border: 1px solid var(--gray-200, #e5e7eb);
+          filter: grayscale(100%);
+        }
+
+        .sponsor-card--linked {
+          cursor: pointer;
         }
 
         .sponsor-card:hover {
           transform: translateY(-6px);
           box-shadow: var(--shadow-lg, 0 8px 30px rgba(0,0,0,0.12));
+          filter: grayscale(0%);
+        }
+
+        .sponsor-card__link:hover .sponsor-card {
+          transform: translateY(-6px);
+          box-shadow: var(--shadow-lg, 0 8px 30px rgba(0,0,0,0.12));
+          filter: grayscale(0%);
         }
 
         .sponsor-card__logo {

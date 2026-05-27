@@ -156,20 +156,19 @@ export const schedule = {
 
 export const sponsors = {
   presenting: [
-    { name: 'Presenting Partner', logo: null },
+    { name: 'TED', logo: null, website: 'https://www.ted.com/' },
   ],
   platinum: [
-    { name: 'Platinum Partner 1', logo: null },
-    { name: 'Platinum Partner 2', logo: null },
+    { name: 'Federal University Dutse', logo: null, website: 'https://fud.edu.ng/' },
+    { name: 'Jigawa State Government', logo: null, website: 'https://jigawastate.gov.ng/' },
   ],
   gold: [
-    { name: 'Gold Partner 1', logo: null },
-    { name: 'Gold Partner 2', logo: null },
-    { name: 'Gold Partner 3', logo: null },
+    { name: 'Dutse Innovation Hub', logo: null, website: null },
+    { name: 'Green Energy Solutions', logo: null, website: null },
+    { name: 'Zenchida Nigeria Ltd', logo: null, website: 'https://zenchidanigeria.com.ng/' },
   ],
   community: [
-    { name: 'Community Partner 1', logo: null },
-    { name: 'Community Partner 2', logo: null },
+    { name: 'Tech Partners', logo: null, website: null },
   ],
 };
 

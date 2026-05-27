@@ -169,7 +169,7 @@ export function SiteDataProvider({ children }) {
         setGalleryImagesState(cachedGallery);
       }
 
-      // Load sponsors
+      // Load sponsors from Supabase (managed via Admin section)
       const sponsorsData = await sponsorsAPI.getAll();
       if (sponsorsData && sponsorsData.length > 0) {
         const groupedSponsors = {
@@ -180,19 +180,22 @@ export function SiteDataProvider({ children }) {
         };
 
         sponsorsData
-          .sort((a, b) => a.order_index - b.order_index)
+          .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
           .forEach(s => {
             if (groupedSponsors[s.tier]) {
               groupedSponsors[s.tier].push({
                 id: s.id,
                 name: s.name,
                 logo: s.logo,
+                website: s.website || null,
               });
             }
           });
 
         setSponsorsState(groupedSponsors);
         saveToStorage(STORAGE_KEYS.sponsors, groupedSponsors);
+      } else {
+        // No Supabase data — fall back to defaults (already set by useState)
       }
 
       console.log('✅ Data loaded from Supabase');
@@ -782,6 +785,7 @@ export function SiteDataProvider({ children }) {
               const payload = {
                 name: sponsor.name,
                 logo: sponsor.logo,
+                website: sponsor.website || null,
                 tier: tier,
                 order_index: orderIndex++,
               };
