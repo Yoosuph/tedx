@@ -45,14 +45,12 @@ import {
 /** Build the best thumbnail URL for a gallery item (images + video poster). */
 function getPreviewUrl(img) {
   if (!img.publicId) return img.src;
-  try {
-    if (img.resourceType === 'video') {
-      return buildVideoPosterUrl({ publicId: img.publicId, width: THUMBNAIL_WIDTH });
-    }
-    return buildImageUrl({ publicId: img.publicId, format: img.format || 'jpg', width: THUMBNAIL_WIDTH });
-  } catch {
-    return img.src;
+  if (img.resourceType === 'video') {
+    const url = buildVideoPosterUrl({ publicId: img.publicId, width: THUMBNAIL_WIDTH });
+    return url || img.src;
   }
+  const url = buildImageUrl({ publicId: img.publicId, format: img.format || 'jpg', width: THUMBNAIL_WIDTH });
+  return url || img.src;
 }
 
 /** Video overlay icon for video preview items */

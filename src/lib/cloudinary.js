@@ -56,18 +56,23 @@ function getConfig() {
   const cloudName = import.meta.env?.VITE_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = import.meta.env?.VITE_CLOUDINARY_UPLOAD_PRESET;
 
+  // Return null when config is missing — callers must handle gracefully
+  // instead of crashing the render tree.  This protects against deployments
+  // where Cloudinary env vars haven't been set yet.
   if (!cloudName || typeof cloudName !== 'string') {
-    throw new Error(
-      'Cloudinary configuration error: VITE_CLOUDINARY_CLOUD_NAME is missing or empty.',
+    console.warn(
+      'Cloudinary: VITE_CLOUDINARY_CLOUD_NAME is missing — Cloudinary URLs will not be generated.',
     );
+    return null;
   }
   if (!uploadPreset || typeof uploadPreset !== 'string') {
-    throw new Error(
-      'Cloudinary configuration error: VITE_CLOUDINARY_UPLOAD_PRESET is missing or empty.',
+    console.warn(
+      'Cloudinary: VITE_CLOUDINARY_UPLOAD_PRESET is missing — Cloudinary uploads are disabled.',
     );
+    // upload preset is only needed for uploads; URL generation still works
   }
 
-  return { cloudName, uploadPreset };
+  return { cloudName, uploadPreset: uploadPreset || '' };
 }
 
 // ---------------------------------------------------------------------------
@@ -94,8 +99,9 @@ function getConfig() {
  * Validates Req 6.1, 6.2, 6.5, 6.7.
  */
 export function buildImageUrl({ publicId, format, width }) {
-  const { cloudName } = getConfig();
-  return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto,w_${width}/${publicId}.${format}`;
+  const cfg = getConfig();
+  if (!cfg) return null;
+  return `https://res.cloudinary.com/${cfg.cloudName}/image/upload/f_auto,q_auto,w_${width}/${publicId}.${format}`;
 }
 
 /**
@@ -109,8 +115,9 @@ export function buildImageUrl({ publicId, format, width }) {
  * Validates Req 6.3, 6.7.
  */
 export function buildVideoUrl({ publicId, format }) {
-  const { cloudName } = getConfig();
-  return `https://res.cloudinary.com/${cloudName}/video/upload/f_auto,q_auto/${publicId}.${format}`;
+  const cfg = getConfig();
+  if (!cfg) return null;
+  return `https://res.cloudinary.com/${cfg.cloudName}/video/upload/f_auto,q_auto/${publicId}.${format}`;
 }
 
 /**
@@ -124,8 +131,9 @@ export function buildVideoUrl({ publicId, format }) {
  * Validates Req 6.4, 6.5, 6.7.
  */
 export function buildVideoPosterUrl({ publicId, width = THUMBNAIL_WIDTH }) {
-  const { cloudName } = getConfig();
-  return `https://res.cloudinary.com/${cloudName}/video/upload/f_auto,q_auto,w_${width},so_0/${publicId}.jpg`;
+  const cfg = getConfig();
+  if (!cfg) return null;
+  return `https://res.cloudinary.com/${cfg.cloudName}/video/upload/f_auto,q_auto,w_${width},so_0/${publicId}.jpg`;
 }
 
 /**
@@ -140,6 +148,8 @@ export function buildVideoPosterUrl({ publicId, width = THUMBNAIL_WIDTH }) {
  * Validates Req 6.8.
  */
 export function buildSrcSet({ publicId, format }) {
+  const cfg = getConfig();
+  if (!cfg) return '';
   return RESPONSIVE_WIDTHS
     .map((width) => `${buildImageUrl({ publicId, format, width })} ${width}w`)
     .join(', ');

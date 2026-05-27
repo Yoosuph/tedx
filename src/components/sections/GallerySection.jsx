@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSiteData } from '../../context/SiteDataContext';
 import Section from '../shared/Section';
 import AnimatedCard from '../shared/AnimatedCard';
@@ -10,25 +10,51 @@ import {
   THUMBNAIL_WIDTH,
 } from '../../lib/cloudinary';
 
-export default function GallerySection({ hideHeader = false }) {
+/**
+ * Infer the "moment" category from a gallery item's alt text and resource type.
+ * Used for narrative section filtering (On Stage / The Crowd / Behind Scenes / Videos).
+ */
+export function getMomentCategory(item) {
+  if (item.resourceType === 'video') return 'videos';
+  const alt = (item.alt || '').toLowerCase();
+  if (alt.includes('speaker') || alt.includes('talk') || alt.includes('performance')) return 'on-stage';
+  if (alt.includes('template') || alt.includes('behind') || alt.includes('team') || alt.includes('backstage')) return 'behind-scenes';
+  return 'crowd';
+}
+
+const MOMENT_FILTERS = [
+  { key: 'all', label: 'All Media', icon: null },
+  { key: 'videos', label: 'Videos', icon: null },
+];
+
+export default function GallerySection({
+  hideHeader = false,
+  moment = null,
+  showFilter = true,
+  maxItems,
+  sectionTitle,
+  sectionSubtitle,
+}) {
   const { galleryImages, galleryLoading } = useSiteData();
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState(moment || 'all');
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [downloading, setDownloading] = useState(false);
+  const touchStartX = useRef(null);
 
   const isOpen = lightboxIndex !== null;
 
-  // Filter images based on type
-  const filteredImages = galleryImages.filter((image) => {
-    if (filter === 'photo') {
-      return image.resourceType !== 'video';
+  // Filter images — only "all" and "videos" filters remain
+  const filteredImages = (() => {
+    let images = galleryImages;
+    if (filter === 'videos') {
+      images = images.filter((img) => img.resourceType === 'video');
     }
-    if (filter === 'video') {
-      return image.resourceType === 'video';
+    if (maxItems && maxItems > 0) {
+      images = images.slice(0, maxItems);
     }
-    return true;
-  });
+    return images;
+  })();
 
   const openLightbox = (index) => {
     setLightboxIndex(index);
@@ -50,7 +76,7 @@ export default function GallerySection({ hideHeader = false }) {
     }
   }, [isOpen, filteredImages.length]);
 
-  // Keyboard navigation
+  // Keyboard + touch navigation
   useEffect(() => {
     if (!isOpen) return;
 
@@ -60,37 +86,56 @@ export default function GallerySection({ hideHeader = false }) {
       if (e.key === 'ArrowLeft') goPrev();
     };
 
+    const handleTouchStart = (e) => {
+      touchStartX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = (e) => {
+      if (touchStartX.current === null) return;
+      const diff = e.changedTouches[0].clientX - touchStartX.current;
+      if (Math.abs(diff) > 50) {
+        if (diff < 0) goNext();
+        else goPrev();
+      }
+      touchStartX.current = null;
+    };
+
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd);
     document.body.style.overflow = 'hidden';
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchend', handleTouchEnd);
       document.body.style.overflow = '';
     };
   }, [isOpen, goNext, goPrev]);
 
   function getThumbnailUrl(item) {
-    if (!item.publicId) return item.src;
-    try {
-      if (item.resourceType === 'video') {
-        return buildVideoPosterUrl({ publicId: item.publicId, width: THUMBNAIL_WIDTH });
-      }
-      return buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: THUMBNAIL_WIDTH });
-    } catch {
+    if (!item.publicId) {
+      // For videos without a Cloudinary poster, return null — the grid
+      // will show a dark placeholder with the play icon instead of a broken img
+      if (item.resourceType === 'video') return null;
       return item.src;
     }
+    if (item.resourceType === 'video') {
+      const url = buildVideoPosterUrl({ publicId: item.publicId, width: THUMBNAIL_WIDTH });
+      return url || null;
+    }
+    const url = buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: THUMBNAIL_WIDTH });
+    return url || item.src;
   }
 
   function getLightboxUrl(item) {
     if (!item.publicId) return item.src;
-    try {
-      if (item.resourceType === 'video') {
-        return buildVideoUrl({ publicId: item.publicId, format: item.format || 'mp4' });
-      }
-      return buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: LIGHTBOX_WIDTH });
-    } catch {
-      return item.src;
+    if (item.resourceType === 'video') {
+      const url = buildVideoUrl({ publicId: item.publicId, format: item.format || 'mp4' });
+      return url || item.src;
     }
+    const url = buildImageUrl({ publicId: item.publicId, format: item.format || 'jpg', width: LIGHTBOX_WIDTH });
+    return url || item.src;
   }
 
   // Copy shareable link
@@ -211,6 +256,8 @@ export default function GallerySection({ hideHeader = false }) {
           box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           display: block;
+          content-visibility: auto;
+          contain-intrinsic-size: auto 300px;
         }
 
         @media (min-width: 768px) {
@@ -230,6 +277,14 @@ export default function GallerySection({ hideHeader = false }) {
           display: block;
           object-fit: cover;
           transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Video placeholder when no poster frame is available */
+        .gallery-item__video-placeholder {
+          background: linear-gradient(135deg, rgba(235, 0, 40, 0.15), rgba(10, 10, 10, 0.8));
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .gallery-item--portrait .gallery-item__media {
@@ -387,19 +442,16 @@ export default function GallerySection({ hideHeader = false }) {
           50% { opacity: 0.65; }
         }
 
-        /* Split-screen Lightbox UI */
+        /* Full-screen Lightbox */
         .gallery-lightbox {
           position: fixed;
           inset: 0;
           z-index: 99999;
-          background: rgba(5, 5, 5, 0.85);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
+          background: rgba(0, 0, 0, 0.95);
           display: flex;
           align-items: center;
           justify-content: center;
-          animation: lightboxFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          padding: 1rem;
+          animation: lightboxFadeIn 0.25s ease forwards;
         }
 
         @keyframes lightboxFadeIn {
@@ -407,297 +459,99 @@ export default function GallerySection({ hideHeader = false }) {
           to { opacity: 1; }
         }
 
-        .gallery-lightbox__container {
-          width: 100%;
-          max-width: 1180px;
-          height: 85vh;
-          max-height: 800px;
-          background: rgba(18, 18, 18, 0.95);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 24px;
-          box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
-          overflow: hidden;
-          display: flex;
-          position: relative;
-          animation: lightboxScaleUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        @keyframes lightboxScaleUp {
-          from { transform: scale(0.95); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
-        }
-
-        /* Lightbox Media Pane */
-        .gallery-lightbox__media-pane {
-          flex: 1;
-          background: #000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          height: 100%;
-          overflow: hidden;
-        }
-
-        .gallery-lightbox__main-media {
-          max-width: 95%;
-          max-height: 95%;
-          object-fit: contain;
-          border-radius: 8px;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-          transition: transform 0.3s ease;
-        }
-
-        /* Lightbox Sidebar Pane */
-        .gallery-lightbox__sidebar {
-          width: 320px;
-          background: rgba(20, 20, 20, 0.95);
-          border-left: 1px solid rgba(255, 255, 255, 0.06);
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-          z-index: 2;
-        }
-
-        .gallery-lightbox__sidebar-header {
-          padding: 1.75rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .gallery-lightbox__counter {
-          color: var(--gray-400, #a3a3a3);
-          font-size: 0.8125rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
-
-        .gallery-lightbox__close-btn {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #fff;
-          width: 32px;
-          height: 32px;
+        /* Close button — top-right */
+        .gallery-lightbox__close {
+          position: absolute;
+          top: 1.25rem;
+          right: 1.5rem;
+          z-index: 10;
+          width: 44px;
+          height: 44px;
           border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: #fff;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.25s ease;
         }
 
-        .gallery-lightbox__close-btn:hover {
+        .gallery-lightbox__close:hover {
           background: var(--ted-red, #EB0028);
           border-color: var(--ted-red, #EB0028);
           transform: rotate(90deg);
         }
 
-        .gallery-lightbox__sidebar-content {
-          padding: 1.75rem;
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-          flex: 1;
-          overflow-y: auto;
+        .gallery-lightbox__close svg {
+          width: 20px;
+          height: 20px;
         }
 
-        .gallery-lightbox__info {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
+        /* Main media — centered */
+        .gallery-lightbox__main-media {
+          max-width: 92vw;
+          max-height: 90vh;
+          object-fit: contain;
+          border-radius: 4px;
         }
 
-        .gallery-lightbox__badge {
-          align-self: flex-start;
-          background: rgba(235, 0, 40, 0.15);
-          color: var(--ted-red, #EB0028);
-          padding: 0.25rem 0.625rem;
-          border-radius: 100px;
-          font-size: 0.6875rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .gallery-lightbox__title {
-          font-size: 1.125rem;
-          font-weight: 700;
-          color: #fff;
-          line-height: 1.4;
-          margin: 0;
-        }
-
-        .gallery-lightbox__details-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.625rem;
-          font-size: 0.8125rem;
-          color: var(--gray-400, #a3a3a3);
-          border-top: 1px solid rgba(255, 255, 255, 0.05);
-          padding-top: 1.25rem;
-        }
-
-        .gallery-lightbox__detail-row {
-          display: flex;
-          justify-content: space-between;
-        }
-
-        .gallery-lightbox__detail-row span:first-child {
-          color: var(--gray-500, #737373);
-        }
-
-        .gallery-lightbox__actions {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-          margin-top: auto;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-          padding-top: 1.5rem;
-        }
-
-        .gallery-action-btn {
-          width: 100%;
-          padding: 0.875rem 1.25rem;
-          border-radius: 100px;
-          font-size: 0.875rem;
-          font-weight: 700;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .gallery-action-btn--primary {
-          background: var(--ted-red, #EB0028);
-          border: none;
-          color: #fff;
-          box-shadow: 0 4px 15px rgba(235, 0, 40, 0.2);
-        }
-
-        .gallery-action-btn--primary:hover {
-          background: #c5001f;
-          box-shadow: 0 6px 20px rgba(235, 0, 40, 0.3);
-          transform: translateY(-1px);
-        }
-
-        .gallery-action-btn--secondary {
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          color: #fff;
-        }
-
-        .gallery-action-btn--secondary:hover {
-          background: rgba(255, 255, 255, 0.06);
-          border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        /* Navigation Arrows on Media Viewport */
+        /* Nav arrows */
         .gallery-lightbox__nav-arrow {
           position: absolute;
           top: 50%;
           transform: translateY(-50%);
           width: 48px;
           height: 48px;
-          background: rgba(18, 18, 18, 0.6);
-          border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 50%;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
           color: #fff;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           transition: all 0.25s;
-          z-index: 3;
+          z-index: 5;
         }
 
         .gallery-lightbox__nav-arrow:hover {
           background: var(--ted-red, #EB0028);
           border-color: var(--ted-red, #EB0028);
-          transform: translateY(-50%) scale(1.1);
         }
 
         .gallery-lightbox__nav-arrow svg {
-          width: 20px;
-          height: 20px;
+          width: 22px;
+          height: 22px;
           stroke: currentColor;
           stroke-width: 2.5;
           fill: none;
         }
 
-        .gallery-lightbox__nav-arrow--left { left: 1.5rem; }
-        .gallery-lightbox__nav-arrow--right { right: 1.5rem; }
+        .gallery-lightbox__nav-arrow--left { left: 1rem; }
+        .gallery-lightbox__nav-arrow--right { right: 1rem; }
 
-        /* Toast Feedback */
-        .gallery-toast {
-          position: fixed;
-          bottom: 2rem;
+        /* Counter — bottom center */
+        .gallery-lightbox__counter {
+          position: absolute;
+          bottom: 1.5rem;
           left: 50%;
-          transform: translateX(-50%) translateY(0);
-          background: rgba(10, 10, 10, 0.9);
-          border: 1px solid var(--ted-red, #EB0028);
-          color: #fff;
-          padding: 0.75rem 1.75rem;
+          transform: translateX(-50%);
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 0.9rem;
+          font-weight: 500;
+          letter-spacing: 0.05em;
+          background: rgba(0, 0, 0, 0.5);
+          padding: 0.4rem 1rem;
           border-radius: 100px;
-          font-size: 0.8125rem;
-          font-weight: 600;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-          z-index: 100000;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          backdrop-filter: blur(8px);
-          animation: toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        @keyframes toastSlideUp {
-          from { transform: translateX(-50%) translateY(20px); opacity: 0; }
-          to { transform: translateX(-50%) translateY(0); opacity: 1; }
-        }
-
-        /* Responsive Mobile Layout for Split Lightbox */
+        /* Mobile */
         @media (max-width: 768px) {
-          .gallery-lightbox {
-            padding: 0.5rem;
-          }
-
-          .gallery-lightbox__container {
-            flex-direction: column;
-            height: 90vh;
-            max-height: none;
-            border-radius: 18px;
-          }
-
-          .gallery-lightbox__media-pane {
-            flex: 1;
-            min-height: 0; /* Important for flex child sizing */
-          }
-
-          .gallery-lightbox__sidebar {
-            width: 100%;
-            height: auto;
-            border-left: none;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-          }
-
-          .gallery-lightbox__sidebar-header {
-            padding: 1rem 1.25rem;
-          }
-
-          .gallery-lightbox__sidebar-content {
-            padding: 1.25rem;
-            gap: 1.25rem;
-            max-height: 250px;
-            overflow-y: auto;
-          }
-
           .gallery-lightbox__nav-arrow {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
           }
 
           .gallery-lightbox__nav-arrow svg {
@@ -705,43 +559,48 @@ export default function GallerySection({ hideHeader = false }) {
             height: 16px;
           }
 
-          .gallery-lightbox__nav-arrow--left { left: 0.75rem; }
-          .gallery-lightbox__nav-arrow--right { right: 0.75rem; }
+          .gallery-lightbox__nav-arrow--left { left: 0.5rem; }
+          .gallery-lightbox__nav-arrow--right { right: 0.5rem; }
 
-          .gallery-lightbox__actions {
-            margin-top: 0.5rem;
-            padding-top: 1rem;
+          .gallery-lightbox__close {
+            width: 38px;
+            height: 38px;
+            top: 0.75rem;
+            right: 0.75rem;
+          }
+
+          .gallery-lightbox__close svg {
+            width: 16px;
+            height: 16px;
+          }
+
+          .gallery-lightbox__main-media {
+            max-width: 96vw;
+            max-height: 85vh;
           }
         }
       `}</style>
 
       {/* Filter Tabs Header */}
+      {showFilter && (
       <div className="gallery-filter-container">
-        <button
-          className={`gallery-filter-btn ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          🔍 All Media
-        </button>
-        <button
-          className={`gallery-filter-btn ${filter === 'photo' ? 'active' : ''}`}
-          onClick={() => setFilter('photo')}
-        >
-          📸 Photos
-        </button>
-        <button
-          className={`gallery-filter-btn ${filter === 'video' ? 'active' : ''}`}
-          onClick={() => setFilter('video')}
-        >
-          🎥 Videos
-        </button>
+        {MOMENT_FILTERS.map(({ key, label }) => (
+          <button
+            key={key}
+            className={`gallery-filter-btn ${filter === key ? 'active' : ''}`}
+            onClick={() => setFilter(key)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
+      )}
 
       {/* Main Grid View */}
       <Section
         id="gallery"
-        title="Event Gallery"
-        subtitle="Capturing moments from our inspiring events"
+        title={sectionTitle || "Event Gallery"}
+        subtitle={sectionSubtitle || "Capturing moments from our inspiring events"}
         dark
         hideHeader={hideHeader}
       >
@@ -776,12 +635,19 @@ export default function GallerySection({ hideHeader = false }) {
                 >
                   {image.resourceType === 'video' ? (
                     <>
-                      <img
-                        className="gallery-item__media"
-                        src={getThumbnailUrl(image)}
-                        alt={image.alt || 'TEDxDutse video clip'}
-                        loading="lazy"
-                      />
+                      {(() => {
+                        const poster = getThumbnailUrl(image);
+                        return poster ? (
+                          <img
+                            className="gallery-item__media"
+                            src={poster}
+                            alt={image.alt || 'TEDxDutse video clip'}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="gallery-item__media gallery-item__video-placeholder" />
+                        );
+                      })()}
                       <div className="gallery-item__video-badge">
                         <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" /></svg>
                         {image.duration ? `${Math.round(image.duration)}s` : 'Video'}
@@ -816,7 +682,7 @@ export default function GallerySection({ hideHeader = false }) {
         )}
       </Section>
 
-      {/* Immersive Split-Screen Lightbox Modal */}
+      {/* Full-Screen Lightbox */}
       {isOpen && filteredImages[lightboxIndex] && (
         <div
           className="gallery-lightbox"
@@ -825,127 +691,66 @@ export default function GallerySection({ hideHeader = false }) {
           }}
           role="dialog"
           aria-modal="true"
-          aria-label="Interactive media details"
+          aria-label="Image lightbox"
         >
-          <div className="gallery-lightbox__container">
-            {/* Left Media Viewport */}
-            <div className="gallery-lightbox__media-pane">
-              <button
-                className="gallery-lightbox__nav-arrow gallery-lightbox__nav-arrow--left"
-                onClick={(e) => { e.stopPropagation(); goPrev(); }}
-                aria-label="Previous"
-              >
-                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
-              </button>
+          {/* Close Button */}
+          <button
+            className="gallery-lightbox__close"
+            onClick={closeLightbox}
+            aria-label="Close lightbox"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
 
-              {filteredImages[lightboxIndex].resourceType === 'video' ? (
-                <video
-                  className="gallery-lightbox__video gallery-lightbox__main-media"
-                  src={getLightboxUrl(filteredImages[lightboxIndex])}
-                  controls
-                  autoPlay
-                  key={lightboxIndex}
-                >
-                  Your browser does not support the video tag.
-                </video>
-              ) : (
-                <img
-                  className="gallery-lightbox__img gallery-lightbox__main-media"
-                  src={getLightboxUrl(filteredImages[lightboxIndex])}
-                  alt={filteredImages[lightboxIndex].alt || 'TEDxDutse Event moment'}
-                  key={lightboxIndex}
-                />
-              )}
+          {/* Prev Arrow */}
+          {filteredImages.length > 1 && (
+            <button
+              className="gallery-lightbox__nav-arrow gallery-lightbox__nav-arrow--left"
+              onClick={(e) => { e.stopPropagation(); goPrev(); }}
+              aria-label="Previous"
+            >
+              <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
+            </button>
+          )}
 
-              <button
-                className="gallery-lightbox__nav-arrow gallery-lightbox__nav-arrow--right"
-                onClick={(e) => { e.stopPropagation(); goNext(); }}
-                aria-label="Next"
-              >
-                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
-              </button>
+          {/* Media */}
+          {filteredImages[lightboxIndex].resourceType === 'video' ? (
+            <video
+              className="gallery-lightbox__main-media"
+              src={getLightboxUrl(filteredImages[lightboxIndex])}
+              controls
+              autoPlay
+              key={lightboxIndex}
+            />
+          ) : (
+            <img
+              className="gallery-lightbox__main-media"
+              src={getLightboxUrl(filteredImages[lightboxIndex])}
+              alt={filteredImages[lightboxIndex].alt || 'Gallery image'}
+              key={lightboxIndex}
+            />
+          )}
+
+          {/* Next Arrow */}
+          {filteredImages.length > 1 && (
+            <button
+              className="gallery-lightbox__nav-arrow gallery-lightbox__nav-arrow--right"
+              onClick={(e) => { e.stopPropagation(); goNext(); }}
+              aria-label="Next"
+            >
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+            </button>
+          )}
+
+          {/* Counter */}
+          {filteredImages.length > 1 && (
+            <div className="gallery-lightbox__counter">
+              {lightboxIndex + 1} / {filteredImages.length}
             </div>
-
-            {/* Right Information Sidebar Pane */}
-            <div className="gallery-lightbox__sidebar" onClick={(e) => e.stopPropagation()}>
-              <div className="gallery-lightbox__sidebar-header">
-                <span className="gallery-lightbox__counter">
-                  {lightboxIndex + 1} of {filteredImages.length}
-                </span>
-                <button
-                  className="gallery-lightbox__close-btn"
-                  onClick={closeLightbox}
-                  aria-label="Close details"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="gallery-lightbox__sidebar-content">
-                <div className="gallery-lightbox__info">
-                  <span className="gallery-lightbox__badge">
-                    {filteredImages[lightboxIndex].resourceType === 'video' ? '🎥 Video clip' : '📸 Photo'}
-                  </span>
-                  <h3 className="gallery-lightbox__title">
-                    {filteredImages[lightboxIndex].alt || 'TEDxDutse Event Moment'}
-                  </h3>
-                </div>
-
-                <div className="gallery-lightbox__details-list">
-                  <div className="gallery-lightbox__detail-row">
-                    <span>Dimensions</span>
-                    <span>
-                      {filteredImages[lightboxIndex].width && filteredImages[lightboxIndex].height 
-                        ? `${filteredImages[lightboxIndex].width} × ${filteredImages[lightboxIndex].height} px` 
-                        : 'Unknown'}
-                    </span>
-                  </div>
-                  {filteredImages[lightboxIndex].format && (
-                    <div className="gallery-lightbox__detail-row">
-                      <span>Format</span>
-                      <span style={{ textTransform: 'uppercase' }}>{filteredImages[lightboxIndex].format}</span>
-                    </div>
-                  )}
-                  {filteredImages[lightboxIndex].bytes && (
-                    <div className="gallery-lightbox__detail-row">
-                      <span>File Size</span>
-                      <span>{Math.round(filteredImages[lightboxIndex].bytes / 1024)} KB</span>
-                    </div>
-                  )}
-                  {filteredImages[lightboxIndex].duration && (
-                    <div className="gallery-lightbox__detail-row">
-                      <span>Duration</span>
-                      <span>{Math.round(filteredImages[lightboxIndex].duration)} seconds</span>
-                    </div>
-                  )}
-                  <div className="gallery-lightbox__detail-row">
-                    <span>Credit</span>
-                    <span>AD Visuals</span>
-                  </div>
-                </div>
-
-                <div className="gallery-lightbox__actions">
-                  <button
-                    className="gallery-action-btn gallery-action-btn--primary"
-                    onClick={() => downloadMedia(filteredImages[lightboxIndex])}
-                    disabled={downloading}
-                  >
-                    <i className="fa-solid fa-download"></i>
-                    {downloading ? 'Downloading...' : 'Download High-Res'}
-                  </button>
-                  <button
-                    className="gallery-action-btn gallery-action-btn--secondary"
-                    onClick={() => copyShareLink(filteredImages[lightboxIndex])}
-                  >
-                    <i className="fa-solid fa-share-nodes"></i> Copy Share Link
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       )}
 
